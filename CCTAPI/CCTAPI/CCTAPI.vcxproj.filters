@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Inc">
+      <UniqueIdentifier>{05b51254-9dff-4e7a-a874-a8bdbfcfe326}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Inc\Socket">
+      <UniqueIdentifier>{33688e63-1a36-4ca0-aee4-11e676e08c21}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="camProp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CCTAPI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="clientProp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DataCapture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DataProcess.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="imgFrame.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageQueue.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TrigImgPack.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="wqueue.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceGVCP.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Inc\Socket\Socket.cpp">
+      <Filter>Inc\Socket</Filter>
+    </ClCompile>
+    <ClCompile Include="Inc\color_print\color_print.cpp">
+      <Filter>Inc</Filter>
+    </ClCompile>
+    <ClCompile Include="VirtualDevice.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Inc\MV_CrossPlatform\Linux_Thread.cpp">
+      <Filter>Inc</Filter>
+    </ClCompile>
+    <ClCompile Include="Inc\MV_CrossPlatform\MV_Log.cpp">
+      <Filter>Inc</Filter>
+    </ClCompile>
+    <ClCompile Include="Inc\MV_CrossPlatform\MV_Memory.cpp">
+      <Filter>Inc</Filter>
+    </ClCompile>
+    <ClCompile Include="Inc\MV_CrossPlatform\MV_Thread.cpp">
+      <Filter>Inc</Filter>
+    </ClCompile>
+    <ClCompile Include="Inc\MV_CrossPlatform\MV_Tools.cpp">
+      <Filter>Inc</Filter>
+    </ClCompile>
+    <ClCompile Include="Inc\MV_CrossPlatform\Windows_Thread.cpp">
+      <Filter>Inc</Filter>
+    </ClCompile>
+    <ClCompile Include="Inc\Iniparser\ini.cpp">
+      <Filter>Inc</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CCTAPI.def">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="res\CCTAPI.rc2">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="camProp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CCTAPI.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="clientProp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CyUsb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DataCapture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DataProcess.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="imgFrame.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageQueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Mutex.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TrigImgPack.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="wqueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceGVCP.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\Socket\Socket.h">
+      <Filter>Inc\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Device.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\color_print\color_print.h">
+      <Filter>Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDevice.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\MV_CrossPlatform\Linux_Thread.h">
+      <Filter>Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\MV_CrossPlatform\MV_CrossPlatform.h">
+      <Filter>Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\MV_CrossPlatform\MV_CrossPlatformDefine.h">
+      <Filter>Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\MV_CrossPlatform\Windows_Thread.h">
+      <Filter>Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\Iniparser\ini.h">
+      <Filter>Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\MVGigEVisionGVCPDefine.h">
+      <Filter>Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\MVGigEVisionDeviceDefine.h">
+      <Filter>Inc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CCTAPI.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
