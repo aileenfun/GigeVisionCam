@@ -485,7 +485,7 @@ int CDataCapture::ThreadProcessFunction()
 							int k=0;
 						}
 						vframe[i]->packnum++;
-						packnum=this_udp_pack->packbuffer[11]-1;
+						packnum=this_udp_pack->packbuffer[11]-1;//£¿£¿£¿£¿
 						
 						memcpy(vframe[i]->imgBuf+packnum*PAYLOADSIZE,this_udp_pack->packbuffer+16,cpylen);
 					}
@@ -498,36 +498,7 @@ int CDataCapture::ThreadProcessFunction()
 						head=false;
 					}
 				}
-
-				
-				
 			}
-
-			//for (int i=vframe.size()-1;i>-1;i--)//good frame always on tail
-			//{
-			//	if(vframe[i]->m_camNum==camNum)
-			//	{
-			//		vframe[i]->packnum++;
-			//		packnum=this_udp_pack->packbuffer[11]-1;
-			//		ASSERT(packnum<39);
-			//		memcpy(vframe[i]->imgBuf+packnum*PAYLOADSIZE,this_udp_pack->packbuffer+16,cpylen);
-			//		
-			//		if(vframe[i]->packnum>TOTALPACK)
-			//		{
-			//			m_queue.add(vframe[i]);
-			//			vframe.erase(vframe.begin()+i);
-			//			frameCnt++;
-			//			head=false;
-
-			//		}
-			//	}
-				//house keeping, no more than 2 frames
-				//if(vframe.size()>2)
-				//{
-				//	
-				//	vframe.erase(vframe.begin());
-				//}
-			
 
 		}
 		camNum_last=camNum;
@@ -582,49 +553,6 @@ int CDataCapture::ThreadProcessFunction()
 		delete this_udp_pack;
 		*/
 
-
-		/*
-		nRet=getData(m_pInData,0,ReadDataBytes,PACKSIZE);
-		if(nRet>0)
-		{
-			for(int i=0;i<ReadDataBytes/PACKSIZE;i++)
-			{
-				temppack=m_pInData+PACKSIZE*i;
-				char pack1=temppack[0];
-				char pack2=temppack[1];
-				if(pack1==0x30)
-				{
-					pack2=0xc0;
-				}
-				if((pack1==0x30))//&&(pack2==0xc0))//new frame pack
-				{
-					camNum=temppack[2];
-					thisImgFrame=new imgFrame(640,480,camNum);
-					long timestamp=temppack[3]<<16;
-					timestamp+=temppack[4]<<8;
-					timestamp+=temppack[5];
-					thisImgFrame->timestamp=timestamp;
-					thisImgFrame->status=1;
-					head=true;
-				}
-				if(head&&(temppack[0]==0x33))//&&(this_udp_pack->packbuffer[1]==0xcc))
-				{
-					unsigned long packnum=temppack[10]<<8;
-					packnum+=(unsigned int)temppack[11];
-					unsigned long cpylen=temppack[12]<<8;
-					cpylen+=(unsigned int)temppack[13];
-					packnum=packnum-1;
-					memcpy(thisImgFrame->imgBuf+packnum*PAYLOADSIZE,temppack+16,cpylen);
-				}
-				if(head&&(temppack[0]==0x3f))//&&(this_udp_pack->packbuffer[1]==0xcf))
-				{
-					m_queue.add(thisImgFrame);
-					thisImgFrame=NULL;
-					frameCnt++;
-					head=false;
-				}
-			}
-		}*/
 	 }//while
 	
 #ifdef _SAVEFILE
