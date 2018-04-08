@@ -57,9 +57,6 @@
     <ClCompile Include="Inc\Socket\Socket.cpp">
       <Filter>Inc\Socket</Filter>
     </ClCompile>
-    <ClCompile Include="Inc\color_print\color_print.cpp">
-      <Filter>Inc</Filter>
-    </ClCompile>
     <ClCompile Include="VirtualDevice.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -104,9 +101,6 @@
     <ClInclude Include="clientProp.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CyUsb.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="DataCapture.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -145,9 +139,6 @@
     </ClInclude>
     <ClInclude Include="Device.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Inc\color_print\color_print.h">
-      <Filter>Inc</Filter>
     </ClInclude>
     <ClInclude Include="VirtualDevice.h">
       <Filter>头文件</Filter>

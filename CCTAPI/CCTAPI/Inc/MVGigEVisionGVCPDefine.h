@@ -221,12 +221,18 @@ typedef struct _FORCEIP_CMD_MSG_
  *     flag字段说明：bit 0~2, 保留,置0；bit 3, 允许应答消息广播；bit 7 必须置1。
  *    【该命令设备必须支持】
  ***************************************************/
-
+typedef struct _READREG_CMD_MSG_
+{
+    unsigned long       nRegAddress;   // 寄存器地址
+} READREG_CMD_MSG;
 /**************************************************
  *  6. [ACK] 读寄存器，负载为一系列32bits的值，这些值从CMD的寄存器地址中获取。
  *    【该命令设备必须支持】
  ***************************************************/
-
+typedef struct _READREG_CMD_MSG_ACK_
+{
+    unsigned long       nRegData;   // 寄存器地址
+} READREG_CMD_MSG_ACK;
 /***************************************************
  *  7. [CMD] 写寄存器，负载为 WRITEREG_CMD_MSG 数组（至少一个，最多67个）
  *     lag字段说明：bit 0~2, 保留,置0；bit 3, 允许应答消息广播。

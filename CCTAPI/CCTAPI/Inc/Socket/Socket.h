@@ -78,12 +78,18 @@ class SocketException : public std::exception
 struct Address : protected sockaddr_in
 {
   private:
-    void _address(Ip, Port);
+    void _address(Ip ip, Port port);
 
   public:
-    Address();
+    Address()
+	{
+		_address("0.0.0.0", 0);
+	}
     Address(Port);
-    Address(Ip, Port);
+    Address(Ip ip, Port port)
+	{
+		_address(ip, port);
+	}
     Address(struct sockaddr_in);
     Address(const Address&);
 
@@ -128,17 +134,27 @@ class CommonSocket
     bool                _binded;
 
   public:
-    CommonSocket(void);
+    CommonSocket(void)
+{
+    CommonSocket::_socket();
+}
+
     CommonSocket(int);
 
-    ~CommonSocket(void);
-
+    ~CommonSocket(void)
+	{
+#ifdef WINDOWS
+    this->_num_sockets--;
+    if (this->_num_sockets == 0)
+        WSACleanup();
+#endif
+}
     SocketId GetSocketId(void);
 
     void Open(void);
     void Close(void);
-
     virtual void BindOnPort(Port);
+	void BindAddr(Address addr);
     int SetOption(int, int, const void*, socklen_t);
     int GetOption(int, int, void*, socklen_t*);
 
@@ -160,7 +176,8 @@ class CommonSocket
 class UDP : public CommonSocket
 {
   public:
-    UDP(void);
+	  UDP(void): CommonSocket(SOCK_DGRAM)
+	  {}
     UDP(const UDP&);
 
   public:

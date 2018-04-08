@@ -2,7 +2,6 @@
 #include "DataCapture.h"
 #include <tchar.h>
 #include <windows.h>
-#include "Inc\MVGigEVisionGVCPDefine.h"
 /*
 #include <cv.hpp>
 #include <opencv.hpp>
@@ -18,10 +17,10 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 #ifdef _W1280
-#define TOTALPACK 151  //for 1280*960
+//#define TOTALPACK 152  //for 1280*960
 #endif
 #ifdef _W640
-#define TOTALPACK 39	//for 640*480
+//#define TOTALPACK 39	//for 640*480
 #endif
 CDataCapture::CDataCapture(wqueue<imgFrame*>&queue,CDataProcess *dp)
 	:m_queue(queue)
@@ -54,6 +53,12 @@ int CDataCapture::Open(int height,int width)//
 #else
 	g_width=width;
 #endif
+	TOTALPACK = height*width / 8176+1;
+	unsigned int residue = (height*width) % 8176;//residue//8192-16
+	if (residue > 0)
+	{
+		TOTALPACK++;
+	}
 	g_width_L=g_width;
 	//m_pOutData=new byte[g_height*g_width_L];
 	//m_pInData=new byte[(ReadDataBytes+g_width_L+3)];
@@ -65,11 +70,18 @@ int CDataCapture::Open(int height,int width)//
 	sendbuff[0]=0x56;
 	sendbuff[1]=0xab;
 	sendbuff[2]=0x04;
-	sendbuff[3]=0x01;
+	sendbuff[3]=0x00;//stop
 	sendbuff[30]=0x57;
 	sendbuff[31]=0xac;
-	sendto(socketSrv,sendbuff,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
-
+	int rst = sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));//stop
+	Sleep(10);
+	sendbuff[3] = 0x01;//start
+	rst=sendto(socketSrv,sendbuff,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
+	if (rst < 0)
+	{
+		unsigned long dw = WSAGetLastError();
+		return -dw;
+	}
 	m_hThread = (HANDLE)_beginthreadex(NULL,0,ThreadProcess,this,0,NULL);
 	int temp=SetThreadPriority(m_hThread,THREAD_PRIORITY_TIME_CRITICAL);
 #ifdef _SAVEFILE
@@ -87,7 +99,7 @@ int CDataCapture::Close()
 	sendbuff[3]=0x00;
 	sendbuff[30]=0x57;
 	sendbuff[31]=0xac;
-	sendto(socketSrv,sendbuff,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
+	int rst=sendto(socketSrv,sendbuff,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
 
 
 	m_bCapture=FALSE;
@@ -102,6 +114,7 @@ int CDataCapture::Close()
 		delete[] m_pInData;
 		m_pInData=NULL;
 	}
+	closeUDP();
 	return 0;
 }
 int CDataCapture::initUDP(int *s)
@@ -127,20 +140,23 @@ int CDataCapture::initUDP(int *s)
 		return -4;
 	}
     //set server ip
-    addrSrv.sin_addr.S_un.S_addr = htonl(this_clientProp->getpcIP());//inet_addr("192.168.1.3");//this_clientProp.getpcIP();
+	addrSrv.sin_addr.S_un.S_addr = this_clientProp->getpcIP();
+	unsigned long long temp= htonl(inet_addr("192.168.2.7"));
     addrSrv.sin_family = AF_INET;
     addrSrv.sin_port = htons(8080);
 	
-	addrClient.sin_addr.S_un.S_addr = htonl(this_clientProp->getcamIP());//inet_addr("192.168.1.2");//this_clientProp.getcamIP();//inet_addr("192.168.1.2");
+	addrClient.sin_addr.S_un.S_addr= htonl(this_clientProp->getcamIP());
+	unsigned long long temp1=inet_addr("192.168.2.2");
 	addrClient.sin_family = AF_INET;
 	addrClient.sin_port = htons(8080);
     // bind socket server
     rst = bind(socketSrv,(SOCKADDR*)&addrSrv,sizeof(SOCKADDR));
     if(SOCKET_ERROR == rst)   
     {   
+		unsigned long dw = WSAGetLastError();
         printf("bind failed !\n");   
-        closesocket(socketSrv);   
-        WSACleanup();   
+		closeUDP();
+		Close();
         return -1;   
     }
 	int nRecvBuf = 38400*4096;//38400*4096;//
@@ -158,13 +174,9 @@ int CDataCapture::initUDP(int *s)
 		exit(EXIT_FAILURE);
 	}
 	*s=socketSrv;
-	return 0;
+	return 1;
 }
-void CDataCapture::closeUDP(int socket)
-{
-	closesocket(socket);   
-    WSACleanup();   
-}
+
 unsigned int __stdcall CDataCapture::get_udp_data_wrapper(void *handle)
 {
 	CDataCapture* pThis=(CDataCapture*)handle;
@@ -207,7 +219,7 @@ void CDataCapture::get_udp_data()
 		//sendto(socketSrv,tempbuf,10,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
 
 		nRet = recvfrom(socketSrv, recv_buf, PACKSIZE, 0, (struct sockaddr*)&client_addr1, &cliaddr_len); 
-
+		dataCnt += PACKSIZE;
 			if(nRet>0)
 			{
 				this_udpbuffer=new udp_buffer(nRet);
@@ -236,13 +248,13 @@ void CDataCapture::get_udp_data()
 					continue;
 				}
 				
-				
+				//todo: for single cam, camNum won't change. need better rules
 				if((camNum!=camNum_last)&&(p_udpbuf[0]==0x33))//boarder pack check,new frame came
 				{
 					lostpacks=TOTALPACK-packnum_last;
 					if((lostpacks>0)&&(lostpacks<3))//last pack lost
 					{
-						resendbuf[2]=0x03;//resend order
+						resendbuf[2]=0x03;//resend cmd
 						resendbuf[3]=camNum_last;//camNum
 						resendbuf[4]=(timestamp_last>>16)&0xff;//frame cnt H
 						resendbuf[5]=(timestamp_last>>8)&0xff;
@@ -739,20 +751,11 @@ int CDataCapture::getProp(clientPropStruct* prop)
 	return -2;
 
 }
-int CDataCapture::sendProp(clientPropStruct prop,int s)
+int CDataCapture::sendProp(clientPropStruct prop)
 {
-	//if(socketSrv<0)
-	//{
-	//	initUDP();
-	//}
-
-	char *sendbuff=new char[32];
+	
 	this_clientProp->setClientProp(prop);
-	this_clientProp->getBuffer(sendbuff);
 	m_pDataProcess->setCamSize(prop.camCnt);
-	sendbuff[23]=0x01;
-	if(s==0)
-	sendto(socketSrv,sendbuff,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
 	return 0;
 }
 int CDataCapture::sendOrder(camPropStruct camprop,int s)
@@ -793,7 +796,6 @@ unsigned __int32 CDataCapture::WriteReg(unsigned __int32 addr, unsigned __int32 
 	sendto(socketSrv,sendbuff,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
 	return 1;
 }
-
 int CDataCapture::sendSoftTrig(int s)
 {
 	char *sendbuff=new char[32];

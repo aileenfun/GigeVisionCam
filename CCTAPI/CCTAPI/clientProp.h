@@ -10,13 +10,6 @@ struct clientPropStruct
 	unsigned long long MACaddr;
 	int width;
 	int height;
-	/*clientPropStruct():camCnt(6),
-	hostIP(0xc0a800003),
-	clientIP(0xc0a80002),
-	MACaddr(0xabcdc0a8019b),
-	packetSize(1024),
-	interval_time(0x1000){}*/
-	
 };
 class clientProp
 {

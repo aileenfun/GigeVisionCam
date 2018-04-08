@@ -1,5 +1,5 @@
 // -*- coding: gb2312-dos -*-
-
+#include "stdafx.h"
 #include "Windows_Thread.h"
 #include "MV_CrossPlatformDefine.h"
 

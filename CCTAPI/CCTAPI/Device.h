@@ -46,6 +46,7 @@ class Device
     virtual uint32_t GetPayload() = 0;
     virtual uint32_t GetHeartbeatTimeout() = 0;
 
+	virtual bool Cancel() = 0;
     virtual bool IsCancel() = 0;
 };
 

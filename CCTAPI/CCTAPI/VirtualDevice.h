@@ -21,7 +21,7 @@
 #include "stdint.h"
 #include <string>
 #include "Inc/Iniparser/ini.h"
-#include "Inc/color_print/color_print.h"
+//#include "Inc/color_print/color_print.h"
 #include "Inc/MVErrorDefine.h"
 #include "Inc/MVGigEVisionDeviceDefine.h"
 #include "Inc/MVGiGEVisionGVCPRegisterDefine.h"
@@ -48,6 +48,8 @@ class VirtualDevice : public Device
 {
   public:
     VirtualDevice(const char* szXmlFileName, const char* szDeviceIni);
+	VirtualDevice(MvCamCtrl::MV_CC_DEVICE_INFO info);
+	VirtualDevice();
     virtual ~VirtualDevice();
 
     // No copying allowed
@@ -72,14 +74,16 @@ class VirtualDevice : public Device
     uint32_t GetPayload();
     uint32_t GetHeartbeatTimeout();
 
+	bool Cancel();
     bool IsCancel();
 
   private:
     int InitVtMem();
 
   private:
-    bool                         _bCancel;
+    
     MvCamCtrl::MV_CC_DEVICE_INFO _DeviceInfo;
+	
     std::string                  _strXmlFileName;
     uint32_t                     _nXmlFileSize;
 
@@ -91,9 +95,8 @@ class VirtualDevice : public Device
 
     virtual_addr_t _pVtMem;
     uint32_t       _VtMemSize;
+	bool                         _bCancel;
 
-    // Color print
-    cp_state_ptr   _cp;
 };
 
 

@@ -26,13 +26,12 @@ public:
 	int closeUDP();
 	unsigned long getFrameCnt();
 	unsigned long getDataCnt();
-	int sendProp(clientPropStruct prop,int s=0);
+	int sendProp(clientPropStruct prop);
 	int sendOrder(camPropStruct camprop,int s=0);
 	int sendSoftTrig(int s=0);
 	unsigned long dataCnt;
 	unsigned int frameCnt;
 	long getData(byte * buffer,long startpos,long len,long packsize=1024);
-	void closeUDP(int socket);
 	void get_udp_data();
 	static unsigned int __stdcall get_udp_data_wrapper(void *handle);
 	int getProp(clientPropStruct* prop);
@@ -71,5 +70,5 @@ private:
 	clientProp *this_clientProp;
 	camProp *this_camprop;
 	int softtrigmode;
-
+	unsigned int TOTALPACK;
 };

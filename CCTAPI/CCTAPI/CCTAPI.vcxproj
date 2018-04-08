@@ -39,7 +39,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>Dynamic</UseOfMfc>
-    <CharacterSet>NotSet</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <CLRSupport>OldSyntax</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -95,7 +95,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
@@ -150,7 +150,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;_W1280;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -207,7 +207,6 @@
     <ClCompile Include="DataProcess.cpp" />
     <ClCompile Include="DeviceGVCP.cpp" />
     <ClCompile Include="imgFrame.cpp" />
-    <ClCompile Include="Inc\color_print\color_print.cpp" />
     <ClCompile Include="Inc\Iniparser\ini.cpp" />
     <ClCompile Include="Inc\MV_CrossPlatform\Linux_Thread.cpp" />
     <ClCompile Include="Inc\MV_CrossPlatform\MV_Log.cpp" />
@@ -236,13 +235,11 @@
     <ClInclude Include="camProp.h" />
     <ClInclude Include="CCTAPI.h" />
     <ClInclude Include="clientProp.h" />
-    <ClInclude Include="CyUsb.h" />
     <ClInclude Include="DataCapture.h" />
     <ClInclude Include="DataProcess.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="DeviceGVCP.h" />
     <ClInclude Include="imgFrame.h" />
-    <ClInclude Include="Inc\color_print\color_print.h" />
     <ClInclude Include="Inc\Iniparser\ini.h" />
     <ClInclude Include="Inc\MVGigEVisionDeviceDefine.h" />
     <ClInclude Include="Inc\MVGigEVisionGVCPDefine.h" />

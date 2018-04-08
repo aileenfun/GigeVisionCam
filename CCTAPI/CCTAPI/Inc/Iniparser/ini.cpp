@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "ini.h"
 
 
@@ -18,7 +19,10 @@ inline std::string trim(const std::string& s)
 
     return s.substr(sp, ep-sp+1);
 }
-
+Parser::Parser()
+{
+	
+}
 Parser::Parser(const char* fn) : f0_(fn), f_(&f0_), ln_(0)
 {
     if (!f0_)

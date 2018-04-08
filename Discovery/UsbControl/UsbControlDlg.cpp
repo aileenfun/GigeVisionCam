@@ -8,7 +8,9 @@
 //#include "afxdialogex.h"
 #include "propFromFileExm.h"
 //#include "clientProp.h"
+#include "Utility.h"
 #include <cstdlib>
+#include "Ce2Writer.h"
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -25,8 +27,6 @@ int g_width=640;
 int g_height=480;
 #endif
 #ifdef _W1280
-int g_width=1280;
-int g_height=960;
 #endif
 
 class CAboutDlg : public CDialog
@@ -76,7 +76,6 @@ CUsbControlDlg::CUsbControlDlg(CWnd* pParent /*=NULL*/)
 	m_bUsbOpen=FALSE;
 	m_bSendData=FALSE;
 	memset(m_byData,0,sizeof(BYTE)*64);
-	m_sUsbOrder.pData=m_byData;
 	m_pVideoDlg=NULL;
 
 	m_hDisplayDC=NULL;
@@ -86,7 +85,6 @@ CUsbControlDlg::CUsbControlDlg(CWnd* pParent /*=NULL*/)
 
 	m_bCloseWnd=FALSE;
 	m_lBytePerSecond=0;
-	m_CyDriver=NEW_DRIVER;
 	m_pBrush=NULL;
 	m_pVideoDataFile=NULL;
 	m_bReview=FALSE;
@@ -95,10 +93,7 @@ CUsbControlDlg::CUsbControlDlg(CWnd* pParent /*=NULL*/)
 	snap=false;
 	lastDataCnt=0;
 	lastFrameCnt=0;
-	
-	//system("arp -s 192.168.1.2 ab-cd-c0-a8-01-9b 192.168.1.3");
-	//system("arp -s 192.168.2.8 ab-cd-c0-a8-01-9b 192.168.2.9");
-	
+	cameralist = new map_camera();
 }
 
 CUsbControlDlg::~CUsbControlDlg()
@@ -114,25 +109,38 @@ void CUsbControlDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Radio(pDX, IDC_RADIO_NORMAL, m_iProcType);
-	DDX_Control(pDX, IDC_EDIT1, m_Edit_Width);
-	DDX_Control(pDX, IDC_EDIT2, m_Edit_Height);
-	DDX_Text(pDX, IDC_EDIT1, m_sEdit_Width);
-	DDX_Text(pDX, IDC_EDIT2, m_sEdit_Height);
 	DDX_Control(pDX, IDC_COMBO_CHANNEL, select_channel);
 	DDX_Control(pDX, IDC_CHECK_SAVE, check_save_file);
-	DDX_Control(pDX, IDC_EDIT_MAC, m_eMAC);
-	DDX_Control(pDX, IDC_EDIT_PACK, m_ePACK);
-	DDX_Control(pDX, IDC_EDIT_INTV, m_eINTV);
 	DDX_Control(pDX, IDC_EDIT_EXPO, m_eEXPO);
 	DDX_Control(pDX, IDC_EDIT_GAIN, m_eGAIN);
 	DDX_Control(pDX, IDC_IPADDRESS_CAM, m_eCAMIP);
-	DDX_Control(pDX, IDC_IPADDRESS_PC, m_ePCIP);
-	DDX_Control(pDX, IDC_EDITCAMSIZE, m_editcamsize);
+	DDX_Control(pDX, IDC_IPADDRESS_GATE, m_eGATE);
+	DDX_Control(pDX, IDC_IPADDRESS_SUBNET, m_eSUBNET);
 	DDX_Control(pDX, IDC_COMBO_TRIG, m_combo_trig);
-	DDX_Text(pDX, IDC_EDITCAMSIZE, m_scamsize);
-	DDX_Control(pDX, IDC_EDIT_REG__ADDR, m_eRegAddr);
-	DDX_Control(pDX, IDC_EDIT_REG_DATA, m_eRegData);
 	DDX_Control(pDX, IDC_LIST1, listbox);
+	DDX_Control(pDX, IDC_CHECK_Gain, autogain);
+	DDX_Control(pDX, IDC_CHECK_EXPO, autoexpo);
+	DDX_Control(pDX, IDC_EDIT_TrigFreq, m_eFreq);
+	DDX_Control(pDX, IDC_EDIT_rgain, m_eRGain);
+	DDX_Control(pDX, IDC_EDIT_ggain, m_eGGain);
+	DDX_Control(pDX, IDC_EDIT_bgain, m_eBGain);
+	DDX_Control(pDX, IDC_static_imgctrl, gb_imgctrl);
+	DDX_Control(pDX, IDC_EDIT_ggain2, m_eGGain2);
+	DDX_Control(pDX, IDC_EDIT_regaddr, m_eRegAddr);
+	DDX_Control(pDX, IDC_EDIT_regdata, m_eRegData);
+	DDX_Control(pDX, IDC_EDIT_camsize, m_ecamsize);
+	DDX_Control(pDX, IDC_CHECK_roienable, m_cb_roienable);
+	DDX_Control(pDX, IDC_EDIT_roixstart, m_eroixstart);
+	DDX_Control(pDX, IDC_EDIT_roixend, m_eroixend);
+	DDX_Control(pDX, IDC_EDIT_roiystart, m_eroiystart);
+	DDX_Control(pDX, IDC_EDIT_roiyend, m_eroiyend);
+	DDX_Control(pDX, IDC_CHECK_binning, m_cb_binning);
+	DDX_Control(pDX, IDC_CHECK_skip, m_cb_skip);
+	DDX_Control(pDX, IDC_IPADDRESS_PCIP, m_ePCIp);
+	DDX_Control(pDX, IDC_IPADDRESS_PCIP2, m_ePCIp2);
+	DDX_Control(pDX, IDC_IPADDRESS_CAM3, m_eCAMIP2);
+	DDX_Control(pDX, IDC_IPADDRESS_SUBNET2, m_eSUBNET2);
+	DDX_Control(pDX, IDC_IPADDRESS_GATE2, m_eGATE2);
 }
 
 BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
@@ -153,16 +161,28 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(IDC_BTN_SNAP, &CUsbControlDlg::OnBnClickedBtnSnap)
 	ON_CBN_SELCHANGE(IDC_COMBO_CHANNEL, &CUsbControlDlg::OnCbnSelchangeComboChannel)
 	ON_BN_CLICKED(IDC_CHECK_SAVE, &CUsbControlDlg::OnBnClickedCheckSave)
-	ON_BN_CLICKED(IDC_BUTTON_UDPROP, &CUsbControlDlg::OnBnClickedButtonUdprop)
-	ON_BN_CLICKED(IDC_BUTTON_CAM_ORDER, &CUsbControlDlg::OnBnClickedButtonCamOrder)
-	ON_BN_CLICKED(IDC_BUTTON4, &CUsbControlDlg::OnBnClickedButton4)
-//	ON_EN_CHANGE(IDC_EDITCAMSIZE, &CUsbControlDlg::OnEnChangeEditcamsize)
-ON_BN_CLICKED(IDC_BTN_READDEV, &CUsbControlDlg::OnBnClickedBtnReaddev)
-ON_BN_CLICKED(IDC_BTN_INIT, &CUsbControlDlg::OnBnClickedBtnInit)
-ON_BN_CLICKED(IDC_BTN_CLOSECON, &CUsbControlDlg::OnBnClickedBtnClosecon)
-ON_BN_CLICKED(IDC_BTNW, &CUsbControlDlg::OnBnClickedBtnw)
-ON_BN_CLICKED(IDC_BTNR, &CUsbControlDlg::OnBnClickedBtnr)
-ON_LBN_SELCHANGE(IDC_LIST1, &CUsbControlDlg::OnLbnSelchangeList1)
+	ON_BN_CLICKED(IDC_BUTTON_SETIP, &CUsbControlDlg::OnBnClickedButtonSetIP)
+	ON_BN_CLICKED(IDC_BTN_CONNECT, &CUsbControlDlg::OnBnClickedBtnConnect)
+	ON_BN_CLICKED(IDC_BTN_SEARCH, &CUsbControlDlg::OnBnClickedBtnSearch)
+	ON_BN_CLICKED(IDC_BTN_CLOSECON, &CUsbControlDlg::OnBnClickedBtnClosecon)
+	ON_BN_CLICKED(IDC_BTNW, &CUsbControlDlg::OnBnClickedBtnw)
+	ON_LBN_SELCHANGE(IDC_LIST1, &CUsbControlDlg::OnLbnSelchangeList1)
+	ON_BN_CLICKED(IDC_BTN_TRIG, &CUsbControlDlg::OnBnClickedBtnTrig)
+	ON_BN_CLICKED(IDC_CHECK_Gain, &CUsbControlDlg::OnBnClickedCheckGain)
+	ON_BN_CLICKED(IDC_CHECK_EXPO, &CUsbControlDlg::OnBnClickedCheckExpo)
+	ON_BN_CLICKED(IDC_BUTTON_SENDgain, &CUsbControlDlg::OnBnClickedButtonSendgain)
+	ON_BN_CLICKED(IDC_BUTTON_SENDexpo, &CUsbControlDlg::OnBnClickedButtonSendexpo)
+	ON_BN_CLICKED(IDC_BTN_WBSet, &CUsbControlDlg::OnBnClickedBtnWbset2)
+	ON_BN_CLICKED(IDC_BUTTON_SENDgain2, &CUsbControlDlg::OnBnClickedButtonSendgain2)
+	ON_BN_CLICKED(IDC_BTNregread, &CUsbControlDlg::OnBnClickedBtnregread)
+	ON_BN_CLICKED(IDC_BTNregwrite, &CUsbControlDlg::OnBnClickedBtnregwrite)
+	ON_BN_CLICKED(IDC_BUTTON_SENDcamsize, &CUsbControlDlg::OnBnClickedButtonSendcamsize)
+	ON_BN_CLICKED(IDC_BTN_roiset, &CUsbControlDlg::OnBnClickedBtnroiset)
+	ON_BN_CLICKED(IDC_CHECK_binning, &CUsbControlDlg::OnBnClickedCheckbinning)
+	ON_BN_CLICKED(IDC_CHECK_skip, &CUsbControlDlg::OnBnClickedCheckskip)
+	ON_BN_CLICKED(IDC_CHECK_roienable, &CUsbControlDlg::OnBnClickedCheckroienable)
+	ON_BN_CLICKED(IDC_BUTTON_ForceIp, &CUsbControlDlg::OnBnClickedButtonForceip)
+	ON_BN_CLICKED(IDC_BTN_WBSet2, &CUsbControlDlg::OnBnClickedBtnWbset2)
 END_MESSAGE_MAP()
 
 
@@ -207,19 +227,18 @@ BOOL CUsbControlDlg::OnInitDialog()
 	mRect.top=mRect.bottom-cRect.Height();
 	MoveWindow(mRect);
 	//------------------------------------
-	m_pFileRbf=new CFile();
-	m_pVideoDlg=new CVideoDlg();
+	//m_pFileRbf=new CFile();
+	//m_pVideoDlg=new CVideoDlg();
 
-	m_pVideoDlg->Create(IDD_DLG_VIDEO,this);
-	m_pVideoDlg->ShowWindow(FALSE);
-	m_hDisplayDC=m_pVideoDlg->GetDisplayDC()->m_hDC;
-	m_pDisplay=new CDisplay();
-	m_pDisplay->Open(CDC::FromHandle(m_hDisplayDC),CRect(0,0,g_width,g_height));
-	m_iRdoDriver=(int)m_CyDriver;
+	//m_pVideoDlg->Create(IDD_DLG_VIDEO,this);
+	//m_pVideoDlg->ShowWindow(FALSE);
+	//m_hDisplayDC=m_pVideoDlg->GetDisplayDC()->m_hDC;
+	//m_pDisplay=new CDisplay();
+	//m_pDisplay->Open(CDC::FromHandle(m_hDisplayDC),CRect(0,0,g_width,g_height));
 
 	m_pBrush=new CBrush[2];
-	m_pBrush[0].CreateSolidBrush(RGB(99,208,242));
-	m_pBrush[1].CreateSolidBrush(RGB(174,238,250));
+	//m_pBrush[0].CreateSolidBrush(RGB(99,208,242));
+	//m_pBrush[1].CreateSolidBrush(RGB(174,238,250));
 	select_channel.InsertString(0,_T("0"));
 	select_channel.InsertString(1,_T("1"));
 	select_channel.InsertString(2,_T("2"));
@@ -229,22 +248,30 @@ BOOL CUsbControlDlg::OnInitDialog()
 	select_channel.SetCurSel(0);
 	check_save_file.SetCheck(0);
 
-	m_combo_trig.InsertString(0,_T("FPGA Trig"));
-	m_combo_trig.InsertString(1,_T("Ext Trig"));
+	m_combo_trig.InsertString(0,_T("Auto"));
+	m_combo_trig.InsertString(1,_T("Fpga Trig"));
 	m_combo_trig.InsertString(2,_T("Soft Trig"));
+	m_combo_trig.InsertString(3,_T("Out Trig"));
 	m_combo_trig.SetCurSel(0);
 
-	m_eMAC.SetWindowTextW(_T("AB:CE:C0:A8:01:9B"));
-	m_ePACK.SetWindowTextW(_T("1024"));
-	m_eINTV.SetWindowTextW(_T("4096"));
-	m_eCAMIP.SetWindowTextW(_T("192.168.1.2"));
-
-	m_ePCIP.SetWindowTextW(_T("192.168.1.3"));
 	m_eEXPO.SetWindowTextW(_T("300"));
 	m_eGAIN.SetWindowTextW(_T("16"));
 
-	
-
+	//m_eCAMIP.SetWindowTextW(_T("192.168.1.10"));
+	//m_eSUBNET.SetWindowTextW(_T("255.255.255.0"));
+	//m_eGATE.SetWindowTextW(_T("192.168.1.1"));
+	m_ecamsize.SetWindowTextW(_T("6"));
+//	m_ePCIp.SetWindowTextW(_T("192.168.1.3"));
+	autogain.SetCheck(1);
+	autoexpo.SetCheck(1);
+	m_eEXPO.EnableWindow(0);
+	m_eGAIN.EnableWindow(0);
+	gb_imgctrl.EnableWindow(0);
+	m_cb_roienable.SetCheck(0);
+	m_eroixstart.EnableWindow(1);
+	m_eroixend.EnableWindow(1);
+	m_eroiystart.EnableWindow(1);
+	m_eroiyend.EnableWindow(1);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -396,15 +423,20 @@ HCURSOR CUsbControlDlg::OnQueryDragIcon()
 
 volatile int show_channel;
 bool b_save_file;
-byte* imgBuf=new byte[g_width*g_height];
+byte* imgBuf = NULL;
 void _stdcall RawCallBack(LPVOID lpParam,LPVOID lpUser)
 {
+	
 	imgFrame *thisFrame=(imgFrame*)lpParam;
 	if(thisFrame==NULL)
 		return;
 	//sendSoftTrig(board1,2);
 	
 	CUsbControlDlg *pDlg=(CUsbControlDlg*)lpUser;
+	if (imgBuf == NULL)
+	{
+		imgBuf = new byte[thisFrame->m_height*thisFrame->m_width];
+	}
 	memcpy(imgBuf,thisFrame->imgBuf,thisFrame->m_height*thisFrame->m_width);
 	cv::Mat frame(thisFrame->m_height,thisFrame->m_width,CV_8UC1,imgBuf);
 	
@@ -421,9 +453,8 @@ void _stdcall RawCallBack(LPVOID lpParam,LPVOID lpUser)
 		//cv::Mat frameRGB;
 	//cv::cvtColor(frame,frameRGB,CV_BayerBG2BGR);
 		//cv::imshow("RGB",frameRGB);
-		cv::imshow("RAW",frame);
+		cv::imshow("disp",frame);
 		cv::waitKey(1);
-		//memset(imgBuf,0,g_width*g_height);
 	}
 	
 	if(b_save_file)
@@ -460,17 +491,9 @@ void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
 	
 	CUsbControlDlg *pDlg=(CUsbControlDlg*)lpUser;
 	
-		cv::Mat frame(thisFrame->m_height,thisFrame->m_width,CV_8UC1,thisFrame->imgBuf);
+	cv::Mat frame(thisFrame->m_height,thisFrame->m_width,CV_8UC1,thisFrame->imgBuf);
 	if(show_channel==thisFrame->m_camNum)
 	{
-		
-		//memcpy(imgBuf,thisFrame->imgBuf,thisFrame->m_height*thisFrame->m_width);
-		//BITMAPINFO* m_bmi;
-		//pDlg->BMPHeader(thisFrame->m_width,thisFrame->m_height,thisFrame->imgBuf,pDlg->m_bmi);
-		//StretchDIBits(pDlg->m_pDisplay->GetMemDC()->m_hDC,0,0,g_width,g_height,0,0,g_width,g_height,thisFrame->imgBuf,pDlg->m_bmi,DIB_RGB_COLORS,SRCCOPY);
-		//pDlg->m_pDisplay->Display();
-
-		//cv::Mat frame1=frame.clone();
 		cv::imshow("disp2",frame);
 		cv::waitKey(1);
 		//memset(imgBuf,0,g_width*g_height);
@@ -505,26 +528,24 @@ void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 {
 
 	CUsbControlDlg *temp=this;
-	if(startCap(g_height,g_width,board1)<1)
+	if(startCap(board1)<1)
 	{
 		SetDlgItemText(IDC_STATIC_TEXT,L"设备打开失败！");
 		return;
 	}
-	else
+	if (startCap(board2)<0)
 	{
+		SetDlgItemText(IDC_STATIC_TEXT, L"设备2打开失败！");
+	}
+
 
 		SetDlgItemText(IDC_STATIC_TEXT,L"采集中...");
 		CheckRadioButton(IDC_RADIO_NORMAL,IDC_RADIO_XYMIRROR,IDC_RADIO_NORMAL);
 		SetTimer(1,1000,NULL);
-		
 		cv::namedWindow("disp");
-	}
+	
 
-	/*if(startCap(g_height,g_width,board2)<0)
-	{
-		SetDlgItemText(IDC_STATIC_TEXT,L"设备打开失败！");
-		return;
-	}*/
+	
 	//sendSoftTrig(1);
 	//m_bmi= (BITMAPINFO*)alloca( sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD)*256);
 	//BMPHeader(g_width,g_height,NULL,m_bmi);
@@ -546,18 +567,18 @@ void CUsbControlDlg::OnBnClickedBtnStopcapture()
 	// TODO: 在此添加控件通知处理程序代码
 	KillTimer(1);
 	KillTimer(2);
-	if(stopCap(board1)!=0)
+	if(stopCap(board1)<0)
 	{
 		SetDlgItemText(IDC_STATIC_TEXT,L"尚未采集");
-		return;
 	}
-	//if(stopCap(board2)!=0)
-	//{
-	//	SetDlgItemText(IDC_STATIC_TEXT,L"尚未采集");
-	//	return;
-	//}
+	if(stopCap(board2)!=0)
+	{
+		SetDlgItemText(IDC_STATIC_TEXT,L"尚未采集");
+		
+	}
+
 	UpdateData(TRUE);
-	cv::destroyWindow("disp");
+	//cv::destroyWindow("disp");
 	SetDlgItemText(IDC_STATIC_TEXT,L" ");
 }
 
@@ -576,8 +597,6 @@ void CUsbControlDlg::OnDestroy()
 		delete m_pVideoDlg;
 		m_pVideoDlg=NULL;
 	}
-	//CloseUsb();
-	//CyUsb_Destroy();
 	if(m_pBrush!=NULL)
 	{
 		for(int i=0;i<2;++i)
@@ -607,8 +626,6 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 			lastFrameCnt=getFrameCnt();
 			lastDataCnt=getDataCnt();
 			SetDlgItemText(IDC_STATIC_TEXT,str);
-			
-			
 		}
 	case 2:
 		{
@@ -627,7 +644,7 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 void CUsbControlDlg::OnBnClickedRadioProcType()
 {
 	UpdateData(TRUE);
-	setMirrorType(DataProcessType(m_iProcType));
+	setMirrorType(DataProcessType(m_iProcType),board1);
 }
 
 
@@ -708,10 +725,7 @@ void CUsbControlDlg::OnBnClickedCheckSave()
 	// TODO: Add your control notification handler code here
 	b_save_file=check_save_file.GetCheck();
 }
-void CUsbControlDlg::modifyProp()
-{
 
-}
 BOOL CUsbControlDlg::PreTranslateMessage(MSG* pMsg) 
 {
 	if (pMsg->message == WM_KEYDOWN)
@@ -723,12 +737,6 @@ BOOL CUsbControlDlg::PreTranslateMessage(MSG* pMsg)
 			CWnd* pWndWithFocus = GetFocus();
 			int ctrlNum=pWndWithFocus->GetDlgCtrlID();
 			// Check if focus belongs to edit control
-			if (pWndWithFocus == GetDlgItem(IDC_EDIT_MAC))
-			{ 
-				
-				//AfxMessageBox("Yess!");
-				return TRUE;
-			}
 		}
 	}
 	
@@ -787,106 +795,157 @@ unsigned long long  CUsbControlDlg::ConverMacAddressStringIntoByte(const char *p
 	return rstmacaddr;
 }
 
-void CUsbControlDlg::OnBnClickedButtonUdprop()
+void CUsbControlDlg::OnBnClickedButtonSetIP()
 {
 	// TODO: Add your control notification handler code here
-	CString s_temp;
-	CStringA s_tempA;
-	m_eMAC.GetWindowTextW(s_temp);
-	s_tempA=s_temp;
-	const size_t newsizea = (s_tempA.GetLength()+1);
-	char * pc=new char [newsizea];
-	
-	strcpy_s(pc,newsizea,s_tempA);
-	unsigned char byAddress[6] = {'\0'};
-	prop.MACaddr=ConverMacAddressStringIntoByte(pc,byAddress);
-	//unsigned long tempval = _tstol(s_temp);
-	//prop.MACaddr=tempval;
 
-	DWORD addr;
-	m_eCAMIP.GetAddress(addr);
-	prop.camIP=addr;
-	m_ePCIP.GetAddress(addr);
-	prop.pcIP=addr;
-	
-	m_ePACK.GetWindowTextW(s_temp);
-	int tempint=_tstoi(s_temp);
-	if(tempint!=0)
-	prop.packetSize=tempint;
-
-	m_eINTV.GetWindowTextW(s_temp);
-	tempint=_tstoi(s_temp);
-	if(tempint!=0)
-	prop.interval_time=tempint;
-
-	sendProp(prop,board1);
-//	sendProp(prop,board2);
-}
-
-void CUsbControlDlg::OnBnClickedButtonCamOrder()
-{
-		
-	camPropStruct camprop;
-	bool mode2=0;
-	camprop.trigMode=m_combo_trig.GetCurSel();	
-
-
-	if(camprop.trigMode==TM_SOFT)//2
+	DWORD ipaddr, subnet, gateway;
+	m_eCAMIP.GetAddress(ipaddr);
+	m_eSUBNET.GetAddress(subnet);
+	m_eGATE.GetAddress(gateway);
+	CCHCamera *c = new CCHCamera();
+	MV_CC_DEVICE_INFO* deviceinfo;
+	int idx = listbox.GetCurSel();
+	if (idx <0)
 	{
-		mode2=1;
-		camprop.trigMode=1;
+		SetDlgItemText(IDC_STATIC_TEXT, _T("please select a item"));
+		return;
 	}
-	CString s_temp;
-	int tempint;
-	
-	m_eEXPO.GetWindowTextW(s_temp);
-	tempint=_tstoi(s_temp);
-	camprop.expo=tempint;
-	
-	m_eGAIN.GetWindowTextW(s_temp);
-	tempint=_tstoi(s_temp);
-	camprop.brightness=tempint;
-	
-	camprop.col=g_width;
-	camprop.row=g_height;
+	CString strtemp;
+	listbox.GetText(idx, strtemp);
+	CT2CA pszConvertedAnsiString(strtemp);
+	std::string strtemp2(pszConvertedAnsiString);
+	c = cameralist->find(strtemp2)->second;
+	deviceinfo = c->CamInfo;
+	deviceinfo->stGigEInfo.nCurrentIp = ipaddr;
+	deviceinfo->stGigEInfo.nDefultGateWay = gateway;
+	deviceinfo->stGigEInfo.nCurrentSubNetMask = subnet;
 
-	camprop.mirror=m_iProcType;
-	sendOrder(camprop,board1);
-	Sleep(1000);
-	
-	if(mode2==1)
+	c->CamInfo = deviceinfo;
+	m_ePCIp.GetAddress(ipaddr);
+	c->hostaddr = ipaddr;
+	int rst=setIP(c,board1);
+	CString str;
+	if (rst < 0)
 	{
-		sendSoftTrig(board1,1);
+		str.Format(L"IP set error: %d",rst);
+		
 	}
 	else
 	{
-		sendSoftTrig(board1,m_combo_trig.GetCurSel());
-		//SetTimer(2,1000,NULL);
+		str.Format(L"IP set success");
 	}
-//	sendOrder(camprop,board2);
+	SetDlgItemText(IDC_STATIC_TEXT, str);
+	OnBnClickedBtnSearch();
 }
 
-
-void CUsbControlDlg::OnBnClickedButton4()
+void CUsbControlDlg::OnBnClickedButtonForceip()
 {
-	sendSoftTrig(board1,4);
-	sendSoftTrig(board1,2);
-}
-
-void CUsbControlDlg::OnBnClickedBtnReaddev()
-{
-	listbox.ResetContent();
-	clientPropStruct *devprop=new clientPropStruct();
-	
-	
-	devicelist=getProp(board1,devprop);
-	std::map<std::string, MvCamCtrl::MV_CC_DEVICE_INFO*> ::iterator itr;
-	for(itr=devicelist.begin();itr!=devicelist.end();++itr)
+	DWORD ipaddr, subnet, gateway;
+	m_eCAMIP2.GetAddress(ipaddr);
+	m_eSUBNET2.GetAddress(subnet);
+	m_eGATE2.GetAddress(gateway);
+	CCHCamera *c = new CCHCamera();
+	MV_CC_DEVICE_INFO* deviceinfo;
+	int idx = listbox.GetCurSel();
+	if (idx < 0)
 	{
-		listbox.AddString((LPCTSTR)itr->first.c_str());
+		SetDlgItemText(IDC_STATIC_TEXT, _T("please select a item"));
+		return;
 	}
+	CString strtemp;
+	listbox.GetText(idx, strtemp);
+	CT2CA pszConvertedAnsiString(strtemp);
+	std::string strtemp2(pszConvertedAnsiString);
 	
-	UpdateData(TRUE);
+	c = cameralist->find(strtemp2)->second;
+	deviceinfo = c->CamInfo;
+	deviceinfo->stGigEInfo.nCurrentIp = ipaddr;
+	deviceinfo->stGigEInfo.nDefultGateWay = gateway;
+	deviceinfo->stGigEInfo.nCurrentSubNetMask = subnet;
+	c->CamInfo = deviceinfo;
+	m_ePCIp2.GetAddress(ipaddr);
+	c->hostaddr = ipaddr;
+	int rst = forceIP(c);
+	CString str;
+	if (rst < 0)
+	{
+		str.Format(L"IP set error: %d", rst);
+
+	}
+	else
+	{
+		str.Format(L"IP set success");
+	}
+	SetDlgItemText(IDC_STATIC_TEXT, str);
+	OnBnClickedBtnSearch();
+}
+
+void CUsbControlDlg::OnBnClickedBtnConnect()
+{
+	//get info from list selection
+	int idx = listbox.GetCurSel();
+	CString str;
+
+	if (idx <= -1)
+	{
+		map_camera::iterator itr;
+		itr = cameralist->begin(); 
+		if (itr != cameralist->end())
+		{
+			CCHCamera *c0 = itr->second;
+			board1 = addInstance((LPVOID*)this, RawCallBack, c0);
+			itr++;
+		}
+		
+		if (itr != cameralist->end())
+		{
+			CCHCamera *c1 = itr->second;
+			board2 = addInstance((LPVOID*)this, RawCallBack2, c1);
+		}
+		
+		
+		if (board1&&board2>0)
+		{
+			str.Format(L"Device connected");
+			SetDlgItemText(IDC_STATIC_TEXT, str);
+			gb_imgctrl.EnableWindow(1);
+
+		}
+		else
+		{
+			str.Format(L"connect error %d", board1);
+			SetDlgItemText(IDC_STATIC_TEXT, str);
+		}
+		return;
+	}
+	else
+	{
+
+		CString strtemp;
+		listbox.GetText(idx, strtemp);
+		CT2CA pszConvertedAnsiString(strtemp);
+		std::string strtemp2(pszConvertedAnsiString);
+		cameralist->find(strtemp2);
+
+		CCHCamera* c = cameralist->find(strtemp2)->second;
+
+		//connect button
+		board1 = addInstance((LPVOID*)this, RawCallBack, c);
+
+		if (board1 > 0)
+		{
+			str.Format(L"Device connected");
+			SetDlgItemText(IDC_STATIC_TEXT, str);
+			gb_imgctrl.EnableWindow(1);
+
+		}
+		else
+		{
+			str.Format(L"connect error %d", board1);
+			SetDlgItemText(IDC_STATIC_TEXT, str);
+		}
+	}
 }
 void CUsbControlDlg::OnLbnSelchangeList1()
 {
@@ -897,93 +956,316 @@ void CUsbControlDlg::OnLbnSelchangeList1()
 		return;
 	}
 	CString strtemp;
-	
 	listbox.GetText(idx,strtemp);
 	CT2CA pszConvertedAnsiString(strtemp);
 	std::string strtemp2(pszConvertedAnsiString);
-	devicelist.find(strtemp2);
-	MV_CC_DEVICE_INFO* deviceinfo=devicelist.find(strtemp2)->second;
-	CString temp;
-	temp.Format(L"%d",devprop->height);
-	m_Edit_Height.SetWindowTextW(temp);
-	temp.Format(L"%d",devprop->width);
-	m_Edit_Width.SetWindowTextW(temp);
-	temp.Format(L"%d",devprop->camCnt);
-	m_editcamsize.SetWindowTextW(temp);
-	g_width=devprop->width;
-	g_height=devprop->height;
+	cameralist->find(strtemp2);
+	CCHCamera* camerainfo=cameralist->find(strtemp2)->second;
+	//show pcip address
+	unsigned int ipaddr = inet_addr(camerainfo->hostaddr.c_str());
+	sockaddr_in socktemp;
+	socktemp.sin_addr.S_un.S_addr = ipaddr;
+	CString addrstrpc(inet_ntoa(socktemp.sin_addr));
+	m_ePCIp.SetWindowTextW(addrstrpc);
+	m_ePCIp2.SetWindowTextW(addrstrpc);
+	//show camip address
+	ipaddr = ntohl(camerainfo->CamInfo->stGigEInfo.nCurrentIp);
+	//unsigned int ipaddr = inet_addr("192.168.0.1");
+	socktemp.sin_addr.S_un.S_addr = ipaddr;
+	CString addrstr(inet_ntoa(socktemp.sin_addr));
+	m_eCAMIP.SetWindowTextW(addrstr);
+	m_eCAMIP2.SetWindowTextW(addrstr);
+	//show subnet
+	ipaddr=ntohl(camerainfo->CamInfo->stGigEInfo.nCurrentSubNetMask);
+	socktemp.sin_addr.S_un.S_addr=ipaddr;
+	CString addrstr2(inet_ntoa(socktemp.sin_addr));
+	m_eSUBNET.SetWindowTextW(addrstr2);
+	m_eSUBNET2.SetWindowTextW(addrstr2);
+	//show Gateway
+	ipaddr=ntohl(camerainfo->CamInfo->stGigEInfo.nDefultGateWay);
+	socktemp.sin_addr.S_un.S_addr=ipaddr;
+	CString addrstr3(inet_ntoa(socktemp.sin_addr));
+	m_eGATE.SetWindowTextW(addrstr3);
+	m_eGATE2.SetWindowTextW(addrstr3);
+	//show mac address
+	unsigned long long macaddr = (camerainfo->CamInfo->nMacAddrHigh);
+	macaddr=macaddr<<(2*8);
+	macaddr+=camerainfo->CamInfo->nMacAddrLow;
+	CMacAddr macAddrHelper(macaddr);
+	//m_eMAC.SetWindowTextW(macAddrHelper.macAddrStr);
 
-	if(devprop->camCnt>0&&devprop->camCnt)
-		prop.camCnt=devprop->camCnt;
-	sendProp(prop,board1,1);
-	SetDlgItemText(IDC_STATIC_TEXT,L"camera opened");
-	
+	CString str;
+	str.Format(L"Manufactor Name: %s \nModel Name: %s \nDeviceVer %s \nMAC Addr: %s"
+	, CString(camerainfo->CamInfo->stGigEInfo.chManufacturerName) \
+	,CString(camerainfo->CamInfo->stGigEInfo.chModelName)\
+	,CString(camerainfo->CamInfo->stGigEInfo.chDeviceVersion)\
+	,macAddrHelper.macAddrStr);
+	SetDlgItemText(IDC_STATIC_TEXT, str);
 }
 
-void CUsbControlDlg::OnBnClickedBtnInit()
+void CUsbControlDlg::OnBnClickedBtnSearch()
 {
-	board1=addInstance((LPVOID*)this,RawCallBack);
-	CString s_temp;
-	CStringA s_tempA;
-	m_eMAC.GetWindowTextW(s_temp);
-	s_tempA=s_temp;
-	const size_t newsizea = (s_tempA.GetLength()+1);
-	char * pc=new char [newsizea];
+	//search camera
 	
-	strcpy_s(pc,newsizea,s_tempA);
-	unsigned char byAddress[6] = {'\0'};
-	prop.MACaddr=ConverMacAddressStringIntoByte(pc,byAddress);
+	listbox.ResetContent();
 
-	DWORD addr;
-	m_eCAMIP.GetAddress(addr);
-	prop.camIP=addr;
-	m_ePCIP.GetAddress(addr);
-	prop.pcIP=addr;
+	try
+	{
+		searchCamera(cameralist);
+	}
+	catch(exception &e)
+	{
+		CString error(e.what());
+		SetDlgItemText(IDC_STATIC_TEXT, error);
+	}
 	
-	m_ePACK.GetWindowTextW(s_temp);
-	int tempint=_tstoi(s_temp);
-	if(tempint!=0)
-	prop.packetSize=tempint;
-
-	m_eINTV.GetWindowTextW(s_temp);
-	tempint=_tstoi(s_temp);
-	if(tempint!=0)
-	prop.interval_time=tempint;
-
-	prop.camCnt=6;
-
-	sendProp(prop,board1,1);
-	board1=initCCTAPI(board1);
-
-	prop.camIP=htonl(inet_addr("192.168.1.2"));
-	prop.pcIP=htonl(inet_addr("192.168.1.3"));
+	map_camera ::iterator itr;
+	for(itr=cameralist->begin();itr!=cameralist->end();++itr)
+	{
+		std::string temp=itr->first;
+		CString tempc(temp.c_str());
+		listbox.AddString(tempc);
+	}
+	UpdateData(TRUE);
+	
+	
 }
-
 
 void CUsbControlDlg::OnBnClickedBtnClosecon()
 {
+	gb_imgctrl.EnableWindow(0);
 	OnBnClickedBtnStopcapture();
 	closeConnection(board1);
+	closeConnection(board2);
 }
 
 
 void CUsbControlDlg::OnBnClickedBtnw()
 {
-		CString s_temp;
-	
-	m_eRegAddr.GetWindowTextW(s_temp);
-	
-	int tempaddr=_tstoi(s_temp);
-	m_eRegData.GetWindowTextW(s_temp);
-	int tempdata=_tstoi(s_temp);
-	WriteReg(tempaddr,tempdata,1);
+	int idx = listbox.GetCurSel();
+	if(idx>-1)
+	{
+	CString strtemp;
+		listbox.GetText(idx, strtemp);
+		CT2CA pszConvertedAnsiString(strtemp);
+		std::string strtemp2(pszConvertedAnsiString);
+		cameralist->find(strtemp2);
+
+		CCHCamera* c = cameralist->find(strtemp2)->second;
+
+		//connect button
+
+	Ce2Writer * eewriter = new Ce2Writer(c);
+	eewriter->startWriteEE("eefile.ini");
+	}
 }
 
-
-void CUsbControlDlg::OnBnClickedBtnr()
+void CUsbControlDlg::OnCbnSelchangeComboTrig()
 {
-	// TODO: 在此添加控件通知处理程序代码
+	//auto ,fpga,soft,extern
+
+}
+
+void CUsbControlDlg::OnBnClickedBtnTrig()
+{
+	sendSoftTrig(board1);
+}
+
+
+void CUsbControlDlg::OnBnClickedCheckGain()
+{
+	m_eGAIN.EnableWindow(!autogain.GetCheck());
+	UpdateData();
+}
+
+
+void CUsbControlDlg::OnBnClickedCheckExpo()
+{
+	m_eEXPO.EnableWindow(!autoexpo.GetCheck());
+	UpdateData();
+
+}
+
+
+void CUsbControlDlg::OnBnClickedButtonSendgain()
+{
+	CString cs_gain;
+	m_eGAIN.GetWindowTextW(cs_gain);
+	int rst=_ttoi(cs_gain);
+	int autovalue=autogain.GetCheck();
+		autovalue=autovalue<<1;
+		autovalue=autovalue+autoexpo.GetCheck();
+	setGain(rst,autovalue,board1);
+}
+
+
+void CUsbControlDlg::OnBnClickedButtonSendexpo()
+{
+	// TODO: Add your control notification handler code here
+	CString cs_expo;
+	m_eEXPO.GetWindowTextW(cs_expo);
+	int rst=_ttoi(cs_expo);
+	int autovalue=autogain.GetCheck();
+	autovalue=autovalue<<1;
+	autovalue=autovalue+autoexpo.GetCheck();
+	setExpo(rst,autovalue,board1);
+}
+
+
+void CUsbControlDlg::OnBnClickedBtnWbset()
+{
+
+}
+void CUsbControlDlg::OnBnClickedButtonSendgain2()
+{
+	int rst=0;
+	int idx=m_combo_trig.GetCurSel();
+	
+	if(idx>=0&&idx<3)
+	 rst=setTrigMode(idx);
+
+
+	CString cs_freq;
+	m_eFreq.GetWindowTextW(cs_freq);
+	uint32_t temp=_ttoi(cs_freq);
+	setFreq(temp,board1);
+
+	if (rst < 0)
+	{
+		SetDlgItemText(IDC_STATIC_TEXT, L"Set trig mode error.");
+	}
+	else
+	{
+		SetDlgItemText(IDC_STATIC_TEXT, L"Success");
+	}
+}
+
+
+void CUsbControlDlg::OnBnClickedBtnregread()
+{
+	/*
+	std::stringstream ss_addr, ss_value;
+	unsigned int ee_addr, ee_value;
+	ss_addr << std::hex << it_map->first;
+	ss_value << std::hex << it_map->second;
+
+	ss_addr >> ee_addr;
+	ss_value >> ee_value;
+	*/
+
+	std::stringstream ss_addr, ss_value;
+	uint32_t addr;
+	CString cs_regaddr;
+	m_eRegAddr.GetWindowTextW(cs_regaddr);
+	CT2CA pszConvertedAnsiString(cs_regaddr);
+	std::string str_addr(pszConvertedAnsiString);
+	ss_addr << std::hex << str_addr;
+	ss_addr >> addr;
+	uint32_t regdata;
+	if (ReadReg(addr, &regdata, board1))
+	{
+	
+		CString str;
+		str.Format(L"%x", regdata);
+		m_eRegData.SetWindowTextW(str);
+	}
+	else
+	{
+		m_eRegData.SetWindowTextW(L"error");
+	}
+
 }
 
 
 
+void CUsbControlDlg::OnBnClickedBtnregwrite()
+{
+	std::stringstream ss_addr, ss_value;
+	uint32_t regaddr, regdata;
+	CString cs_regaddr, cs_regdata;
+	m_eRegAddr.GetWindowTextW(cs_regaddr);
+	CT2CA pszConvertedAnsiString(cs_regaddr);
+	std::string str_addr(pszConvertedAnsiString);
+	ss_addr << std::hex << str_addr;
+	ss_addr >> regaddr;
+
+	m_eRegData.GetWindowTextW(cs_regaddr);
+	CT2CA pszConvertedAnsiString1(cs_regaddr);
+	std::string str_data(pszConvertedAnsiString1);
+	ss_value << std::hex << str_data;
+	ss_value >> regdata;
+
+	if (WriteReg(regaddr, regdata, board1))
+	{
+
+		SetDlgItemText(IDC_STATIC_TEXT, L"Success");
+	}
+	else
+	{
+		SetDlgItemText(IDC_STATIC_TEXT, L"error");
+	}
+}
+
+
+void CUsbControlDlg::OnBnClickedButtonSendcamsize()
+{
+	CString cs_camsize;
+	m_ecamsize.GetWindowTextW(cs_camsize);
+	int camsize = _ttoi(cs_camsize);
+	setCamSize(camsize,board1);
+	
+}
+
+
+void CUsbControlDlg::OnBnClickedBtnroiset()
+{
+	m_cb_binning.EnableWindow(!m_cb_roienable.GetCheck());
+	m_cb_skip.EnableWindow(!m_cb_roienable.GetCheck());
+
+	CString cs_xstart, cs_xend, cs_ystart, cs_yend;
+	m_eroixstart.GetWindowTextW(cs_xstart);
+	m_eroixend.GetWindowTextW(cs_xend);
+	m_eroiystart.GetWindowTextW(cs_ystart);
+	m_eroiyend.GetWindowTextW(cs_yend);
+	int xstart = _ttoi(cs_xstart);
+	int xend = _ttoi(cs_xend);
+	int ystart = _ttoi(cs_ystart);
+	int yend = _ttoi(cs_yend);
+	int roienable = m_cb_roienable.GetCheck();
+
+	setROI(xstart,xend,ystart, yend, roienable,board1);
+}
+
+
+void CUsbControlDlg::OnBnClickedCheckbinning()
+{
+	m_cb_roienable.EnableWindow(!m_cb_binning.GetCheck());
+	m_cb_skip.EnableWindow(!m_cb_binning.GetCheck());
+	setBinning(m_cb_binning.GetCheck(),board1);
+}
+
+
+void CUsbControlDlg::OnBnClickedCheckskip()
+{
+	m_cb_roienable.EnableWindow(!m_cb_skip.GetCheck());
+	m_cb_binning.EnableWindow(!m_cb_skip.GetCheck());
+	setSkip(m_cb_skip.GetCheck(),board1);
+}
+
+
+void CUsbControlDlg::OnBnClickedCheckroienable()
+{
+	m_cb_binning.EnableWindow(!m_cb_roienable.GetCheck());
+	m_cb_skip.EnableWindow(!m_cb_roienable.GetCheck());
+}
+
+
+void CUsbControlDlg::OnBnClickedBtnWbset2()
+{
+	CString cs_r, cs_g, cs_b, cs_g2;
+	m_eRGain.GetWindowTextW(cs_r);
+	m_eGGain.GetWindowTextW(cs_g);
+	m_eBGain.GetWindowTextW(cs_b);
+	m_eGGain2.GetWindowTextW(cs_g2);
+	setWB(_ttoi(cs_r), _ttoi(cs_g),_ttoi(cs_g2), _ttoi(cs_b), board1);
+}

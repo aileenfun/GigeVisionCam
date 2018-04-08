@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Socket.h"
 
 // Address.cpp
@@ -10,20 +11,12 @@ void Address::_address(Ip ip, Port port)
     this->SetAddressPort(port);
 }
 
-Address::Address()
-{
-    _address("0.0.0.0", 0);
-}
 
 Address::Address(Port port)
 {
     _address("0.0.0.0", port);
 }
 
-Address::Address(Ip ip, Port port)
-{
-    _address(ip, port);
-}
 
 Address::Address(struct sockaddr_in address)
 {
@@ -110,10 +103,6 @@ void CommonSocket::_socket(void)
 #endif
 }
 
-CommonSocket::CommonSocket(void)
-{
-    CommonSocket::_socket();
-}
 
 CommonSocket::CommonSocket(int socket_type)
 {
@@ -124,14 +113,7 @@ CommonSocket::CommonSocket(int socket_type)
     this->_binded = false;
 }
 
-CommonSocket::~CommonSocket(void)
-{
-#ifdef WINDOWS
-    this->_num_sockets--;
-    if (this->_num_sockets == 0)
-        WSACleanup();
-#endif
-}
+
 
 SocketId CommonSocket::GetSocketId(void)
 {
@@ -142,8 +124,11 @@ void CommonSocket::Open(void)
 {
     if (!this->_opened)
     {
-        if ((this->_socket_id = socket(AF_INET, this->_socket_type, 0)) == -1)
-            throw SocketException("[open] Cannot create socket");
+		if ((this->_socket_id = socket(AF_INET, this->_socket_type, 0)) == -1)
+		{
+			unsigned long dw = WSAGetLastError();
+			throw SocketException("[open] Cannot create socket");
+		}
         this->_opened = true;
         this->_binded = false;
     }
@@ -151,6 +136,7 @@ void CommonSocket::Open(void)
 
 void CommonSocket::Close(void)
 {
+	_num_sockets = 0;
     if (this->_opened)
     {
 #ifdef WINDOWS
@@ -184,7 +170,22 @@ void CommonSocket::BindOnPort(Port port)
 
     this->_binded = true;
 }
+void CommonSocket::BindAddr(Address addr)
+{
+	if (this->_binded)
+		throw SocketException("[bind_on_port] Socket already binded to a port, close the socket before to re-bind");
 
+	if (!this->_opened)
+		this->Open();
+	if (bind(this->_socket_id, (struct sockaddr*)&addr, sizeof(struct sockaddr)) == -1)
+	{
+		std::stringstream error;
+		error << "[bind_on_port] with [port=" << addr.GetAddressPort() << "] Cannot bind socket";
+		throw SocketException(error.str());
+	}
+
+	this->_binded = true;
+}
 int CommonSocket::SetOption(int level, int optname, const void* optval, socklen_t optlen)
 {
     int ret = 0;
@@ -409,7 +410,6 @@ int CommonSocket::SetDontfragment(bool isdf)
     return ret;
 }
 }
-
 // Datagram
 namespace MVComponent
 {
@@ -1014,9 +1014,9 @@ int TCP::ReceiveAll(TCP& client, unsigned int ms, T* buffer, size_t len) throw()
 // UDP
 namespace MVComponent
 {
-UDP::UDP(void) : CommonSocket(SOCK_DGRAM)
-{
-}
+//UDP::UDP(void) : CommonSocket(SOCK_DGRAM)
+//{
+//}
 
 UDP::UDP(const UDP &udp) : CommonSocket()
 {
@@ -1062,6 +1062,7 @@ int UDP::Send(Ip ip, Port port, const char* data, size_t len)
 
     if ((ret = sendto(this->_socket_id, (const char*)data, len, 0, (struct sockaddr*)&address, sizeof(struct sockaddr))) == -1)
     {
+		int errorcode = WSAGetLastError();
         std::stringstream error;
         error << "[send] with [ip=" << ip << "] [port=" << port << "] [data=" << data
               << "] [len=" << len << "] Cannot send";
@@ -1163,7 +1164,10 @@ int UDP::Receive(Address& address, char* data, unsigned int& len)
 int UDP::ReceiveTimeout(unsigned int ms, Address& address, char* data, unsigned int& len)
 {
     if (!this->_opened) this->Open();
-    if (!this->_binded) throw SocketException("[receive_timeout] Make the socket listening before receiving");
+	if (!this->_binded)
+	{
+		throw SocketException("[receive_timeout] Make the socket listening before receiving");
+	}
 
     if (len > SOCKET_MAX_BUFFER_BYTES)
     {

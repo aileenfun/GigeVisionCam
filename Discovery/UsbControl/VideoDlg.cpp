@@ -64,7 +64,7 @@ BOOL CVideoDlg::OnInitDialog()
 void CVideoDlg::OnShowWindow(BOOL bShow, UINT nStatus)
 {
 	CDialog::OnShowWindow(bShow, nStatus);
-	m_stcVideo.MoveWindow(0,0,g_width,g_height);
+	//m_stcVideo.MoveWindow(0,0,g_width,g_height);
 	// TODO: 在此处添加消息处理程序代码
 	if(bShow)
 	{

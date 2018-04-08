@@ -77,7 +77,7 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\CCTAPI\CCTAPI;..\..\..\..\opencv231\include;..\..\..\..\opencv231\include\opencv;..\..\..\..\opencv231\include\opencv2;$(ReferencePath)</ReferencePath>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\CCTAPI\CCTAPI;$(ReferencePath)</ReferencePath>
     <ReferencePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\CCTAPI\CCTAPI;..\..\..\..\opencv231\include;..\..\..\..\opencv231\include\opencv;..\..\..\..\opencv231\include\opencv2;$(ReferencePath)</ReferencePath>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)$(Configuration)\</OutDir>
@@ -85,10 +85,14 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Q:\github\GigeCam\CCTAPI\CCTAPI;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Q:\github\GigeVisionCam\CCTAPI\CCTAPI;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Q:\github\vs2010gv\CCTAPI\CCTAPI;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Q:\github\GigeCam\UsbControl\Debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Q:\github\GigeVisionCam\Discovery\Debug;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Q:\github\vs2010gv\UsbControl\Debug;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>Q:\github\GigeVisionCam\CCTAPI\CCTAPI;$(IncludePath)</IncludePath>
+    <LibraryPath>Q:\github\GigeVisionCam\Discovery\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -152,7 +156,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_W1280;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -171,6 +175,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>CCTAPI.lib;GdiPlus.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -202,7 +207,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Ce2Writer.cpp" />
     <ClCompile Include="Display.cpp" />
+    <ClCompile Include="ini.cpp" />
     <ClCompile Include="MACAddrEdit.cpp" />
     <ClCompile Include="PictureCtrl.cpp" />
     <ClCompile Include="ScreenShot.cpp" />
@@ -219,8 +226,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\CCTAPI\CCTAPI\CCTAPI.h" />
+    <ClInclude Include="Ce2Writer.h" />
     <ClInclude Include="Display.h" />
+    <ClInclude Include="ini.h" />
     <ClInclude Include="MACAddrEdit.h" />
+    <ClInclude Include="MVGiGEVisionGVCPRegisterDefine.h" />
     <ClInclude Include="PictureCtrl.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ScreenShot.h" />
@@ -228,6 +238,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="UsbControl.h" />
     <ClInclude Include="UsbControlDlg.h" />
+    <ClInclude Include="Utility.h" />
     <ClInclude Include="VideoDataFile.h" />
     <ClInclude Include="VideoDlg.h" />
   </ItemGroup>

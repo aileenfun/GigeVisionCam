@@ -9,6 +9,7 @@
  *
  *  @warning    当前使用的GPU模式，非单独解码，还包含编码;
  */
+#include "stdafx.h"
 #include "MV_CrossPlatform.h"
 
 #if defined(MV_WINDOWS)

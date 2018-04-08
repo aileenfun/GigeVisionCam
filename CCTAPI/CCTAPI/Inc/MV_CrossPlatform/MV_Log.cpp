@@ -1,5 +1,5 @@
 // -*- coding: gb2312-dos -*-
-
+#include "stdafx.h"
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
@@ -40,7 +40,7 @@ void    MV_PrintInfo(MV_PRINT_TYPE enType, char *szFormat, ...)
                 va_end(ArgumentList);
 
 #if defined(MV_WINDOWS)
-                OutputDebugString(szInfo);
+                //OutputDebugString(szInfo);
 #else
                 printf("%s", szInfo);
 #endif
@@ -57,7 +57,7 @@ void    MV_PrintInfo(MV_PRINT_TYPE enType, char *szFormat, ...)
                 va_end(ArgumentList);
 
 #if defined(MV_WINDOWS)
-                OutputDebugString(szInfo);
+               // OutputDebugString(szInfo);
 #else
                 printf("%s", szInfo);
 #endif

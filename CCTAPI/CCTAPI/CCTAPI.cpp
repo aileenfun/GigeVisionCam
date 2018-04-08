@@ -8,47 +8,39 @@
 #define new DEBUG_NEW
 #endif
 vector<camInstance*>vec_camins;
-
-
-int initCCTAPI(int camNum)
+camInstance searchCamIns;
+int addInstance(LPVOID *lpUser, LPMV_CALLBACK2 CallBackFunc, CCHCamera *info)
 {
-	//addInstance(lpUser,CallBackFunc);
-	if(camNum<1)return camNum;
-	camNum=camNum-1;
-	int status=vec_camins[camNum]->initEth();
-
-	if(status>=0)
+	camInstance*this_camInstance = new camInstance(lpUser, CallBackFunc, info );
+	int rst = 0;
+	if (this_camInstance->initEth(info)<0)
 	{
+		//rst=this_camInstance->connect(info);//move to start()
+		return -1;
+	}
+		vec_camins.push_back(this_camInstance);
+		
 		return vec_camins.size();
-	}
-	else
-	{
-		return -vec_camins.size();
-	}
-}
-int addInstance(LPVOID *lpUser,LPMV_CALLBACK2 CallBackFunc)
-{
-	//call back func could be the same
-	//you can not tell if that's the same cam by cbFunc
-	//cam should be set by ip address
-	camInstance*this_camInstance=new camInstance(lpUser,CallBackFunc);
-	vec_camins.push_back(this_camInstance);
-	return vec_camins.size();
+
+	
 }
 
-int startCap(int height,int width,int camNum)
+int startCap(int camNum)
 {
 	if(camNum<1)return camNum;
 	camNum=camNum-1;
 	
-	if(vec_camins[camNum]->b_initstatus)
+	if(vec_camins[camNum]->b_connected)
 	{
-		return vec_camins[camNum]->start(height,width);
+		return vec_camins[camNum]->start();
 	}
-	return 1;
+	return -1;
 }
-int setMirrorType(DataProcessType mirrortype)
+int setMirrorType(DataProcessType mirrortype,int camNum)
 {
+	if(camNum<1)return camNum;
+	camNum=camNum-1;
+	vec_camins[camNum]->setMirrorType(mirrortype);
 	return 0;
 }
 int stopCap(int camNum)
@@ -57,8 +49,8 @@ int stopCap(int camNum)
 	camNum=camNum-1;
 	if(camNum>=vec_camins.size())
 		return -1;
-	vec_camins[camNum]->stop();
-	return 1;
+	
+	return vec_camins[camNum]->stop();
 }
 int getFrameCnt(int camNum)
 {
@@ -94,45 +86,47 @@ int sendOrder(camPropStruct camprop,int camNum,int s)
 	return 0;
 }
 
-int sendProp(clientPropStruct prop,int camNum,int s)
+int sendProp(clientPropStruct prop,int camNum)
 {
 	if(camNum<1)return camNum;
 	camNum=camNum-1;
-	vec_camins[camNum]->sendProp(prop,s);
+	vec_camins[camNum]->sendProp(prop);
 	return 0;
 }
-int sendSoftTrig(int camNum,int s)
+int setTrigMode(int s,int camNum)
 {
 	if(camNum<1)return camNum;
 	camNum=camNum-1;
-	vec_camins[camNum]->sendSoftTrig(s);
+	vec_camins[camNum]->setTrigMode(s);
 	return 0;
 }
-int getProp(int camNum,clientPropStruct*prop)
-{
-	if(camNum<1)return camNum;
-	camNum=camNum-1;
-	return vec_camins[camNum]->getProp(prop);
-}
-int forceIP(int camNum,std::string ipaddr)
-{
-	camNum = camNum - 1;
-	if (vec_camins[camNum] == NULL)
-		return -(camNum+1);
-	vec_camins[camNum]->forceIP(ipaddr);
-	return camNum;
-}
+
 int closeConnection(int &camNum)
 {
 	if(camNum<1)return camNum;
 	camNum=camNum-1;
 	vec_camins[camNum]->closeConnection();
-	
 	delete vec_camins[camNum];
 	vector<camInstance*>::iterator k =vec_camins.begin()+camNum;
 	vec_camins.erase(k);
-	camNum=-camNum;
+	//camNum=-camNum;
 	return 0;
+}
+int setIP(CCHCamera *devinfo,int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setIP(devinfo);
+}
+int forceIP(CCHCamera *devinfo)
+{
+	return searchCamIns.forceIP(devinfo);
+}
+int searchCamera(map_camera * camlist)
+{
+	//may need to restart searchCamIns
+	 searchCamIns.searchCamera(camlist);
+	return camlist->size();
 }
 unsigned __int32 WriteReg(unsigned __int32 addr, unsigned __int32 data,int camNum)
 {
@@ -140,12 +134,67 @@ unsigned __int32 WriteReg(unsigned __int32 addr, unsigned __int32 data,int camNu
 	camNum=camNum-1;
 	return vec_camins[camNum]->WriteReg(addr,data);
 }
-unsigned __int32 ReadReg(unsigned __int32 addr,int camNum)
+unsigned __int32 ReadReg(unsigned __int32 addr,uint32_t *data,int camNum)
 {
 	if(camNum<1)return camNum;
 	camNum=camNum-1;
-	return vec_camins[camNum]->ReadReg(addr);
+	return vec_camins[camNum]->ReadReg(addr,data);
 }
+int sendSoftTrig(int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->sendSoftTrig();
+}
+int setGain(uint32_t value,int isauto,int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setGain(value,isauto);
+}
+int setExpo(uint32_t value,int isauto,int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setExpo(value,isauto);
+}
+int setFreq(uint32_t value,int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setFreq(value);
+}
+int setWB(uint32_t rvalue,uint32_t gvalue,uint32_t g2value,uint32_t bvalue,int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setWB(rvalue,gvalue,g2value,bvalue);
+}
+int setCamSize(int camsize,int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setCamSize(camsize);
+}
+int setROI(int xstart, int xend, int ystart, int yend, int enable, int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setROI(xstart, xend, ystart, yend, enable);
+}
+int setSkip(int enable,int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setSkip(enable);
+}
+int setBinning(int enable,int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setBinning(enable);
+}
+
 byte * pimagebuf=NULL;
 int imgready=0;
 int board1=0;
@@ -172,7 +221,7 @@ int csInit()
 {
 
 	pimagebuf=new byte[cs_width*cs_height];
-	board1=addInstance(NULL,csCallBack);
+	//board1=addInstance(NULL,csCallBack);
 	clientPropStruct prop;
 	prop.MACaddr=0xabcec0a8019b;
 	prop.camIP=htonl(inet_addr("192.168.1.2"));
@@ -182,9 +231,9 @@ int csInit()
 	prop.camCnt=6;
 	prop.width=cs_width;
 	prop.height=cs_height;
-	sendProp(prop,board1,1);
-	board1=initCCTAPI(board1);
-	startCap(cs_height,cs_width,board1);
+	sendProp(prop,board1);
+	//board1=initCCTAPI(board1);
+	startCap(board1);
 	camPropStruct camprop;
 	camprop.trigMode=1;//set softtrig as default
 	camprop.expo=300;
@@ -193,7 +242,7 @@ int csInit()
 	camprop.row=cs_height;
 	camprop.mirror=0;
 	sendOrder(camprop,board1,0);
-	sendSoftTrig(board1,1);//set soft trig as default
+	//sendSoftTrig(board1,1);//set soft trig as default
 	return 1;
 }
 int csStop()
@@ -203,7 +252,7 @@ int csStop()
 }
 int csGetFrame(unsigned char * buff)
 {
-	sendSoftTrig(board1,2);
+	//sendSoftTrig(board1,2);
 	while(!imgready)
 	{
 		Sleep(10);

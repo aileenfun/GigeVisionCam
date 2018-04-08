@@ -1,5 +1,5 @@
 // -*- coding: gb2312-dos -*-
-
+#include "stdafx.h"
 #include <stdio.h>
 #include "MV_CrossPlatform.h"
 

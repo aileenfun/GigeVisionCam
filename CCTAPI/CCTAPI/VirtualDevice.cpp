@@ -1,4 +1,5 @@
 // -*- coding: gb2312-dos -*-
+#include "stdafx.h"
 #include "stdint.h"
 #include <stdlib.h>
 #include <fstream>
@@ -78,16 +79,21 @@ VirtualDevice::VirtualDevice(const char* szXmlFileName, const char* szDeviceIni)
         : _bCancel(false), _strXmlFileName(szXmlFileName),
           _iniDeviceInfo(szDeviceIni), _pVtMem(NULL), _VtMemSize(MV_GEV_REG_MEMORY_SIZE+MV_GEV_XML_FILE_MAX_SIZE)
 {
-    _cp = cp_init();
 }
-
+VirtualDevice::VirtualDevice(MV_CC_DEVICE_INFO info)
+{
+	_DeviceInfo=info;
+}
+VirtualDevice::VirtualDevice()
+{
+}
 VirtualDevice::~VirtualDevice()
 {
-    cp_close(_cp);
 }
 
 int VirtualDevice::Init()
 {
+	//this func shouldn't be used by now
     int nRet = MV_OK;
 
     // Virtual memory
@@ -95,11 +101,10 @@ int VirtualDevice::Init()
 
 
     // Init virtual device memory
-    // CCP
+
     memset(_pVtMem, 0, _VtMemSize);
     if ((nRet = InitVtMem()) != MV_OK)
     {
-        cp_print(_cp, CP_FG_RED, "[WARN]");
         cout << "[VirtualDevice::InitVtMem] Init virtual device memory fail!!" << endl;
         return nRet;
     }
@@ -200,8 +205,6 @@ int VirtualDevice::InitVtMem()
     }
     else
     {
-        cp_print(_cp, CP_FG_RED, "[WARN]");
-        cout << "Read XML file (" << _strXmlFileName << ") fail!!" << endl;
         return -1;
     }
 
@@ -211,7 +214,6 @@ int VirtualDevice::InitVtMem()
 int VirtualDevice::DeInit()
 {
     int nRet = MV_OK;
-
     if (_pVtMem)
     {
         delete[] _pVtMem;
@@ -314,5 +316,11 @@ uint32_t VirtualDevice::GetHeartbeatTimeout()
 
 bool VirtualDevice::IsCancel()
 {
-    return this->_bCancel;
+    //return this->_bCancel;
+	return false;
+}
+bool VirtualDevice::Cancel()
+{
+	this->_bCancel = true;
+	return true;
 }

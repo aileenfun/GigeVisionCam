@@ -36,6 +36,7 @@ struct Level
 class Parser
 {
   public:
+	  Parser();
     Parser(const char* fn);
     Parser(std::istream& f);
     Level& top();
