@@ -22,7 +22,7 @@
     <ProjectGuid>{53C25538-529C-4145-91E6-D7304533BE8F}</ProjectGuid>
     <RootNamespace>CCTAPI</RootNamespace>
     <Keyword>MFCDLLProj</Keyword>
-    <ProjectName>CCHVAPI</ProjectName>
+    <ProjectName>CCTAPI</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">

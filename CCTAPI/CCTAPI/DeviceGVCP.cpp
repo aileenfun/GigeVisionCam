@@ -110,9 +110,9 @@ int DeviceGVCP::DeInit()
 
 	return nRet;
 }
-int DeviceGVCP::SetDeviceInfo(CCHCamera info)
+int DeviceGVCP::SetDeviceInfo(CCHCamera *info)
 {
-	devinfo = *info.CamInfo;
+	devinfo = *(info->CamInfo);
 	//_UdpSkt=info.udpSocket;
 	//_From=info.hostAddr;
 	return 1;
@@ -434,8 +434,32 @@ int DeviceGVCP::DiscoveryDone()
 	}
 	return 1;
 }
-
-int DeviceGVCP::ForceIP()
+int DeviceGVCP::ForceIP(CCHCamera *info)
+{
+	UDP tempudp;
+	tempudp.Open();
+	Address tempaddr;
+	tempaddr.SetAddressIp(info->hostaddr);
+	tempaddr.SetAddressPort(0);
+	tempudp.BindAddr(tempaddr);
+	tempudp.SetBroadcast(true);
+	tempudp.SetDontfragment(true);
+	try
+	{
+		ForceIP(tempudp);
+		decodePacket(tempudp);
+		if (ForceIPDone() == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	catch (SocketException& SktEx)
+	{
+		return -10;
+	}
+}
+	int DeviceGVCP::ForceIP(MVComponent::UDP udpskt)
 {
 
 	int nRet;
@@ -457,7 +481,7 @@ int DeviceGVCP::ForceIP()
 	try
 	{
 		size_t nLen = sizeof(CMD_MSG_HEADER) + sizeof(FORCEIP_CMD_MSG);
-		_UdpSkt.Send("255.255.255.255", MV_GVCP_PUBLIC_PORT, cSendData, nLen);
+		udpskt.Send("255.255.255.255", MV_GVCP_PUBLIC_PORT, cSendData, nLen);
 
 	}
 	catch (SocketException& SktEx)

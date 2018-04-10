@@ -55,7 +55,7 @@ class DeviceGVCP
 	//int Init(int Port = 0);//MV_GVCP_PUBLIC_PORT);
 	int Init(CCHCamera *c);
     int DeInit();
-	int SetDeviceInfo(CCHCamera info);
+	int SetDeviceInfo(CCHCamera *info);
     static ThreadReturnType MV_STDCALL HandlingAckPacket(void* Arg);
 	int Discovery();
 	int DiscoveryCmd();
@@ -64,7 +64,8 @@ class DeviceGVCP
 	int DiscoveryDone();
 	MvCamCtrl::MV_CC_DEVICE_INFO devinfo;
 	map_camera cameralist;
-	int ForceIP();
+	int ForceIP(MVComponent::UDP udpskt);
+	int ForceIP(CCHCamera *info);
 	int ForceIPDone();
 	
 	//success:1

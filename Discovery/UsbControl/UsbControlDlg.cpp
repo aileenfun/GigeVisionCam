@@ -833,7 +833,15 @@ void CUsbControlDlg::OnBnClickedButtonSetIP()
 	SetDlgItemText(IDC_STATIC_TEXT, str);
 	OnBnClickedBtnSearch();
 }
+std::string WStringToString(const std::wstring& wstr)
+{
+	std::string str(wstr.length(), ' ');
 
+	//std::copy(wstr.begin(), wstr.end(), str.begin());
+	WideCharToMultiByte(CP_ACP, 0, (LPCWSTR)wstr.c_str(), (int)wstr.length(), (LPSTR)str.c_str(), (int)str.length(), NULL, NULL);
+
+	return str;
+}
 void CUsbControlDlg::OnBnClickedButtonForceip()
 {
 	DWORD ipaddr, subnet, gateway;
@@ -859,8 +867,18 @@ void CUsbControlDlg::OnBnClickedButtonForceip()
 	deviceinfo->stGigEInfo.nDefultGateWay = gateway;
 	deviceinfo->stGigEInfo.nCurrentSubNetMask = subnet;
 	c->CamInfo = deviceinfo;
+	
 	m_ePCIp2.GetAddress(ipaddr);
-	c->hostaddr = ipaddr;
+	//TCHAR szBuf[24]={0};
+	//m_ePCIp2.GetWindowTextW(szBuf,24);
+
+	sockaddr_in socktemp;
+	char str[INET_ADDRSTRLEN];
+		socktemp.sin_addr.S_un.S_addr = ipaddr;
+		inet_ntop(AF_INET, &(socktemp.sin_addr), str, INET_ADDRSTRLEN);
+		std::string ipaddrstr(str);
+
+	c->hostaddr =ipaddrstr;
 	int rst = GigEforceIP(c);
 	CString str;
 	if (rst < 0)

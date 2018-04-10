@@ -242,13 +242,8 @@ public:
 	int forceIP(CCHCamera *devinfo)
 	{
 
-		m_DeviceGVCP.SetDeviceInfo(*devinfo);
-		m_DeviceGVCP.ForceIP();
-		if (!m_DeviceGVCP.ForceIPDone())
-		{
-			return -1;
-		}
-		Sleep(100);
+		m_DeviceGVCP.SetDeviceInfo(devinfo);
+		return m_DeviceGVCP.ForceIP(devinfo);
 	}
 	int setIP(CCHCamera *devinfo)
 	{
