@@ -1,15 +1,4 @@
 // -*- coding: gb2312-dos -*-
-/* @file           VirtualDevice.h
- * @copyright      HangZhou Hikvision System Technology Co., Ltd. All Right Reserved.
- * @brief          VirtualDevice ÐéÄâ GigEVision Éè±¸
- *
- * @author         zhenglinjun
- * @date           2015-10-10
- *
- * @note
- *
- * @warning
- */
 
 #ifndef _VIRTUALDEVICE_H
 #define _VIRTUALDEVICE_H

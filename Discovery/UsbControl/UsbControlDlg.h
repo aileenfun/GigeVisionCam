@@ -6,9 +6,8 @@
 //#include "DataProcess.h"
 //#include "DataCapture.h"
 #include "VideoDlg.h"
-#include "Display.h"
 #include "afxwin.h"
-#include "..\..\CCTAPI\CCTAPI\CCTAPI.h"
+#include "..\..\CCTAPI\CCTAPI\CCHVAPI.h"
 #include <cv.hpp>
 #include <opencv.hpp>
 #include <opencv2/core/core.hpp>
@@ -99,7 +98,6 @@ public:
 	CComboBox m_combo_trig;
 	CNetAddressCtrl m_MACAddr;
 	CPictureCtrl m_picCtrl;
-	CDisplay *m_pDisplay;
 	BITMAPINFO* m_bmi;
 	CString m_scamsize;
 	CEdit m_editcamsize;
@@ -133,8 +131,6 @@ public:
 	afx_msg void OnBnClickedButtonSendgain2();
 	CStatic gb_imgctrl;
 	CEdit m_eGGain2;
-	CEdit m_eRegAddr;
-	CEdit m_eRegData;
 	afx_msg void OnBnClickedBtnregread();
 	afx_msg void OnBnClickedBtnregwrite();
 	afx_msg void OnStnClickedStaticText();

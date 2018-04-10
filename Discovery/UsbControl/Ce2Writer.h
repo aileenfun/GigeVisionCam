@@ -2,7 +2,7 @@
 #include "ini.h"
 #include <sstream>
 #include <iostream>
-#include "..\..\CCTAPI\CCTAPI\CCTAPI.h"
+#include "..\..\CCTAPI\CCTAPI\CCHVAPI.h"
 typedef
 VOID
 (WINAPI * EECALLBACK)(LPVOID lpParam1,LPVOID lpParam2);
@@ -14,7 +14,7 @@ public:
 	Ce2Writer(CCHCamera*deviceinfo)
 	{
 	
-		burnerInstance = addInstance((LPVOID*)this, 0, deviceinfo);
+		burnerInstance = GigEaddInstance((LPVOID*)this, 0, deviceinfo);
 		//initCCTAPI(burnerInstance);
 		counter = 0;
 	}
@@ -35,7 +35,7 @@ public:
 			ss_addr >> ee_addr;
 			ss_value >> ee_value;
 
-			WriteReg(ee_addr, ee_value, burnerInstance);
+			GigEWriteReg(ee_addr, ee_value, burnerInstance);
 			Sleep(100);
 			counter++;
 		}

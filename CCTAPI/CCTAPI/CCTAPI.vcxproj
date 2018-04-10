@@ -22,6 +22,7 @@
     <ProjectGuid>{53C25538-529C-4145-91E6-D7304533BE8F}</ProjectGuid>
     <RootNamespace>CCTAPI</RootNamespace>
     <Keyword>MFCDLLProj</Keyword>
+    <ProjectName>CCHVAPI</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -201,10 +202,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camProp.cpp" />
-    <ClCompile Include="CCTAPI.cpp" />
+    <ClCompile Include="CCHVAPI.cpp" />
     <ClCompile Include="clientProp.cpp" />
-    <ClCompile Include="DataCapture.cpp" />
-    <ClCompile Include="DataProcess.cpp" />
+    <ClCompile Include="GigEDataCapture.cpp" />
+    <ClCompile Include="GigEDataProcess.cpp" />
     <ClCompile Include="DeviceGVCP.cpp" />
     <ClCompile Include="imgFrame.cpp" />
     <ClCompile Include="Inc\Iniparser\ini.cpp" />
@@ -233,10 +234,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camProp.h" />
-    <ClInclude Include="CCTAPI.h" />
+    <ClInclude Include="CCHVAPI.h" />
     <ClInclude Include="clientProp.h" />
-    <ClInclude Include="DataCapture.h" />
-    <ClInclude Include="DataProcess.h" />
+    <ClInclude Include="GigEDataCapture.h" />
+    <ClInclude Include="GigEDataProcess.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="DeviceGVCP.h" />
     <ClInclude Include="imgFrame.h" />

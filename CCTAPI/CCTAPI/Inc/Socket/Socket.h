@@ -1,15 +1,3 @@
-/* @file           Socket.h
- * @copyright      HangZhou Hikvision System Technology Co., Ltd. All Right Reserved.
- * @brief          Machine Vision Component Socket class
- *
- * @author         zhenglinjun
- * @date           2015-08-01
- *
- * @note
- *
- * @warning
- */
-
 
 #ifndef __SOCKET_H__
 #define __SOCKET_H__

@@ -3,12 +3,11 @@
 #include <vector>
 #include "imgFrame.h"
 #include <map>
-#include "Mutex.h"
 using namespace std;
 typedef
 VOID
 	(WINAPI * LPMV_CALLBACK2)(LPVOID lpParam, LPVOID lpUser);
-class CDataCapture;
+class GigECDataCapture;
 class TrigImgPack
 {
 private:
@@ -20,7 +19,6 @@ private:
 	int recved;
 	UINT_PTR id;
 	LPMV_CALLBACK2 h_callback;
-	C_Mutex m_Mutex_msg;
 	int lastget;
 	int softtrigmode;
 	int softtrig;
@@ -28,8 +26,8 @@ public:
 	bool timeup;
 	 static std::map<UINT_PTR, TrigImgPack*> m_TrigImgPackMap; //declaration
 	 bool b_getallpack;
-	 CDataCapture* this_dp;
-	TrigImgPack(int cs,int ap,CDataCapture *dp,LPMV_CALLBACK2 CallBackFunc)
+	 GigECDataCapture* this_dp;
+	TrigImgPack(int cs,int ap, GigECDataCapture *dp,LPMV_CALLBACK2 CallBackFunc)
 	{
 		recved=0;
 		camSize=cs;

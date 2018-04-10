@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "TrigImgPack.h"
-#include "DataCapture.h"
+#include "GigEDataCapture.h"
 std::map<UINT_PTR, TrigImgPack*> TrigImgPack::m_TrigImgPackMap;
 void TrigImgPack::add(imgFrame* imgFrame)
 {

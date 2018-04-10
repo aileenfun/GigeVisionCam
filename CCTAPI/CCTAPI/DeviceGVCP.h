@@ -1,15 +1,4 @@
-// -*- coding: gb2312-dos -*-
-/** @file           DeviceGVCP.h
- *  @copyright      HangZhou Hikvision System Technology Co., Ltd. All Right Reserved.
- *  @brief          设备端 GVCP 协议实现
- *
- *  @author         zhenglinjun
- *  @date           2015-09-21
- *
- *  @note
- *
- *  @warning
- **/
+
 
 #ifndef _DEVICEGVCP_H
 #define _DEVICEGVCP_H

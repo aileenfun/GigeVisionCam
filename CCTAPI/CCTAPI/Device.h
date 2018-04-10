@@ -1,15 +1,5 @@
 // -*- coding: gb2312-dos -*-
-/* @file           Device.h
- * @copyright      HangZhou Hikvision System Technology Co., Ltd. All Right Reserved.
- * @brief          Device 定义设备接口的纯虚类
- *
- * @author         zhenglinjun
- * @date           2015-10-10
- *
- * @note
- *
- * @warning
- */
+
 
 #ifndef _DEVICE_H
 #define _DEVICE_H
