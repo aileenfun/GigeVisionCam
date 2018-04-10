@@ -208,7 +208,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Ce2Writer.cpp" />
-    <ClCompile Include="Display.cpp" />
     <ClCompile Include="ini.cpp" />
     <ClCompile Include="MACAddrEdit.cpp" />
     <ClCompile Include="PictureCtrl.cpp" />
@@ -227,7 +226,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\CCTAPI\CCTAPI\CCTAPI.h" />
     <ClInclude Include="Ce2Writer.h" />
-    <ClInclude Include="Display.h" />
     <ClInclude Include="ini.h" />
     <ClInclude Include="MACAddrEdit.h" />
     <ClInclude Include="MVGiGEVisionGVCPRegisterDefine.h" />

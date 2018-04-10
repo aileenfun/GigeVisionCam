@@ -1,14 +1,5 @@
 // -*- coding: gb2312-dos -*-
-/** @file       MV_CrossPlatform.h
- *  @note       HangZhou Hikvision Digital Technology Co., Ltd. All Right Reserved.
- *  @brief      Machine Vision CrossPlatform define
- *
- *  @author     Machine Vision Team
- *  @date       2014/12/12
- *  @note       ´´½¨;
- *
- *  @warning
- */
+
 #ifndef _MV_CROSSPLATFORM_DEFINE_H_
 #define _MV_CROSSPLATFORM_DEFINE_H_
 

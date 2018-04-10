@@ -1,14 +1,5 @@
 // -*- coding: gb2312-dos -*-
-/** @file       MV_Thread.cpp
- *  @note       HangZhou Hikvision Digital Technology Co., Ltd. All Right Reserved.
- *  @brief      跨平台线程管理类
- *
- *  @author     Machine Vision Team
- *  @date       2014/12/12
- *  @note       创建;
- *
- *  @warning    当前使用的GPU模式，非单独解码，还包含编码;
- */
+
 #include "stdafx.h"
 #include "MV_CrossPlatform.h"
 

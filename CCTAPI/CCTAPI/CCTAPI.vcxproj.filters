@@ -24,16 +24,7 @@
     <ClCompile Include="camProp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CCTAPI.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="clientProp.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DataCapture.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DataProcess.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="imgFrame.cpp">
@@ -81,6 +72,15 @@
     <ClCompile Include="Inc\Iniparser\ini.cpp">
       <Filter>Inc</Filter>
     </ClCompile>
+    <ClCompile Include="CCHVAPI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GigEDataCapture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GigEDataProcess.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="CCTAPI.def">
@@ -92,28 +92,13 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camProp.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="CCTAPI.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="clientProp.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DataCapture.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DataProcess.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="imgFrame.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="MessageQueue.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Mutex.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
@@ -163,6 +148,21 @@
     </ClInclude>
     <ClInclude Include="Inc\MVGigEVisionDeviceDefine.h">
       <Filter>Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="CCHVAPI.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GigEDataProcess.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GigEDataCapture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="camProp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Mutex.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
