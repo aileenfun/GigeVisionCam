@@ -448,13 +448,6 @@ void _stdcall RawCallBack(LPVOID lpParam,LPVOID lpUser)
 		//cv::imshow(str,frame);
 	if(show_channel==thisFrame->m_camNum)
 	{
-		//BITMAPINFO* m_bmi;
-		//pDlg->BMPHeader(thisFrame->m_width,thisFrame->m_height,thisFrame->imgBuf,pDlg->m_bmi);
-		//StretchDIBits(pDlg->m_pDisplay->GetMemDC()->m_hDC,0,0,g_width,g_height,0,0,g_width,g_height,thisFrame->imgBuf,pDlg->m_bmi,DIB_RGB_COLORS,SRCCOPY);
-		//pDlg->m_pDisplay->Display();
-		//cv::Mat frameRGB;
-	//cv::cvtColor(frame,frameRGB,CV_BayerBG2BGR);
-		//cv::imshow("RGB",frameRGB);
 		cv::imshow("disp",frame);
 		cv::waitKey(1);
 	}
