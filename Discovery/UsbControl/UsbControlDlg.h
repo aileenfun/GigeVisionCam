@@ -131,6 +131,8 @@ public:
 	afx_msg void OnBnClickedButtonSendgain2();
 	CStatic gb_imgctrl;
 	CEdit m_eGGain2;
+	CEdit m_eRegAddr;
+	CEdit m_eRegData;
 	afx_msg void OnBnClickedBtnregread();
 	afx_msg void OnBnClickedBtnregwrite();
 	afx_msg void OnStnClickedStaticText();
