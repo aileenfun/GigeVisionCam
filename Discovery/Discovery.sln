@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UsbControl", "UsbControl\UsbControl.vcxproj", "{6A8FCB15-370E-4DDD-8F85-D348915ABFF0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Discovery", "UsbControl\UsbControl.vcxproj", "{6A8FCB15-370E-4DDD-8F85-D348915ABFF0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CCTAPI", "..\CCTAPI\CCTAPI\CCTAPI.vcxproj", "{53C25538-529C-4145-91E6-D7304533BE8F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CCHVAPI", "..\CCHVAPI_Ethernet\CCHVAPI\CCHVAPI.vcxproj", "{A8B5F764-E843-463A-AA60-A182F9F46074}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,14 +21,14 @@ Global
 		{6A8FCB15-370E-4DDD-8F85-D348915ABFF0}.Release|Win32.Build.0 = Release|Win32
 		{6A8FCB15-370E-4DDD-8F85-D348915ABFF0}.Release|x64.ActiveCfg = Release|x64
 		{6A8FCB15-370E-4DDD-8F85-D348915ABFF0}.Release|x64.Build.0 = Release|x64
-		{53C25538-529C-4145-91E6-D7304533BE8F}.Debug|Win32.ActiveCfg = Debug|Win32
-		{53C25538-529C-4145-91E6-D7304533BE8F}.Debug|Win32.Build.0 = Debug|Win32
-		{53C25538-529C-4145-91E6-D7304533BE8F}.Debug|x64.ActiveCfg = Debug|x64
-		{53C25538-529C-4145-91E6-D7304533BE8F}.Debug|x64.Build.0 = Debug|x64
-		{53C25538-529C-4145-91E6-D7304533BE8F}.Release|Win32.ActiveCfg = Release|Win32
-		{53C25538-529C-4145-91E6-D7304533BE8F}.Release|Win32.Build.0 = Release|Win32
-		{53C25538-529C-4145-91E6-D7304533BE8F}.Release|x64.ActiveCfg = Release|x64
-		{53C25538-529C-4145-91E6-D7304533BE8F}.Release|x64.Build.0 = Release|x64
+		{A8B5F764-E843-463A-AA60-A182F9F46074}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A8B5F764-E843-463A-AA60-A182F9F46074}.Debug|Win32.Build.0 = Debug|Win32
+		{A8B5F764-E843-463A-AA60-A182F9F46074}.Debug|x64.ActiveCfg = Debug|x64
+		{A8B5F764-E843-463A-AA60-A182F9F46074}.Debug|x64.Build.0 = Debug|x64
+		{A8B5F764-E843-463A-AA60-A182F9F46074}.Release|Win32.ActiveCfg = Release|Win32
+		{A8B5F764-E843-463A-AA60-A182F9F46074}.Release|Win32.Build.0 = Release|Win32
+		{A8B5F764-E843-463A-AA60-A182F9F46074}.Release|x64.ActiveCfg = Release|x64
+		{A8B5F764-E843-463A-AA60-A182F9F46074}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

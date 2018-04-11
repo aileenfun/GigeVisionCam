@@ -2,7 +2,7 @@
 #include "ini.h"
 #include <sstream>
 #include <iostream>
-#include "..\..\CCTAPI\CCTAPI\CCHVAPI.h"
+#include "..\..\CCHVAPI_Ethernet\CCHVAPI\CCHVAPI.h"
 typedef
 VOID
 (WINAPI * EECALLBACK)(LPVOID lpParam1,LPVOID lpParam2);

@@ -7,7 +7,7 @@
 //#include "DataCapture.h"
 #include "VideoDlg.h"
 #include "afxwin.h"
-#include "..\..\CCTAPI\CCTAPI\CCHVAPI.h"
+#include "..\..\CCHVAPI_Ethernet\CCHVAPI\CCHVAPI.h"
 #include <cv.hpp>
 #include <opencv.hpp>
 #include <opencv2/core/core.hpp>
@@ -18,7 +18,7 @@
 #include "atlstr.h"  
 #include "comutil.h" 
 #include "PictureCtrl.h"
-#include "..\..\CCTAPI\CCTAPI\Inc\Socket\Socket.h"
+#include "..\..\CCHVAPI_Ethernet\CCHVAPI\Inc\Socket\Socket.h"
 // CUsbControlDlg ¶Ô»°¿ò
 typedef
 	VOID
@@ -74,9 +74,9 @@ private:
 	CString       m_strDataFileName;
 	unsigned long lastDataCnt;
 	unsigned int lastFrameCnt;
-		clientPropStruct prop;
-		map_deviceInfo *devicelist;
-		map_camera *cameralist;
+	GigEclientPropStruct prop;
+	map_deviceInfo *devicelist;
+	map_camera *cameralist;
 public:
 	CEdit m_Edit_Width;
 	CEdit m_Edit_Height;

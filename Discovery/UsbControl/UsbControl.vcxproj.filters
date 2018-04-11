@@ -47,9 +47,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\CCTAPI\CCTAPI\CCTAPI.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="MACAddrEdit.h">
       <Filter>头文件</Filter>
     </ClInclude>

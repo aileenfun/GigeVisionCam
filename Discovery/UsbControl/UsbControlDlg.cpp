@@ -429,7 +429,7 @@ byte* imgBuf = NULL;
 void _stdcall RawCallBack(LPVOID lpParam,LPVOID lpUser)
 {
 	
-	imgFrame *thisFrame=(imgFrame*)lpParam;
+	GigEimgFrame *thisFrame=(GigEimgFrame*)lpParam;
 	if(thisFrame==NULL)
 		return;
 	//sendSoftTrig(board1,2);
@@ -480,7 +480,7 @@ void _stdcall RawCallBack(LPVOID lpParam,LPVOID lpUser)
 }
 void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
 {
-	imgFrame *thisFrame=(imgFrame*)lpParam;
+	GigEimgFrame *thisFrame=(GigEimgFrame*)lpParam;
 	if(thisFrame==NULL)
 		return;
 	
@@ -639,7 +639,7 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 void CUsbControlDlg::OnBnClickedRadioProcType()
 {
 	UpdateData(TRUE);
-	GigEsetMirrorType(DataProcessType(m_iProcType),board1);
+	GigEsetMirrorType(GigEDataProcessType(m_iProcType),board1);
 }
 
 
