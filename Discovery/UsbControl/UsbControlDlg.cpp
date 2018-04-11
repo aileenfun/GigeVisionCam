@@ -867,18 +867,18 @@ void CUsbControlDlg::OnBnClickedButtonForceip()
 	deviceinfo->stGigEInfo.nDefultGateWay = gateway;
 	deviceinfo->stGigEInfo.nCurrentSubNetMask = subnet;
 	c->CamInfo = deviceinfo;
-	
-	m_ePCIp2.GetAddress(ipaddr);
-	//TCHAR szBuf[24]={0};
-	//m_ePCIp2.GetWindowTextW(szBuf,24);
+	TCHAR szBuf[24] = { 0 };
+	m_ePCIp2.GetWindowTextW(szBuf, 24);
+	c->hostaddr = WStringToString(szBuf);
 
+	/*m_ePCIp2.GetAddress(ipaddr);
 	sockaddr_in socktemp;
-	char str[INET_ADDRSTRLEN];
-		socktemp.sin_addr.S_un.S_addr = ipaddr;
-		inet_ntop(AF_INET, &(socktemp.sin_addr), str, INET_ADDRSTRLEN);
-		std::string ipaddrstr(str);
-
-	c->hostaddr =ipaddrstr;
+	char str1[INET_ADDRSTRLEN];
+	socktemp.sin_addr.S_un.S_addr = ipaddr;
+	inet_ntop(AF_INET, &(socktemp.sin_addr), str1, INET_ADDRSTRLEN);
+	std::string ipaddrstr(str1);
+	c->hostaddr =ipaddrstr;*/
+	
 	int rst = GigEforceIP(c);
 	CString str;
 	if (rst < 0)

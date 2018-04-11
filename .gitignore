@@ -71,6 +71,7 @@ artifacts/
 *.jpg
 *.avi
 *.db
+*.opendb
 # Chutzpah Test files
 _Chutzpah*
 
