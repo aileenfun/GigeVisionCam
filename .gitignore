@@ -70,7 +70,7 @@ artifacts/
 *.scc
 *.jpg
 *.avi
-
+*.db
 # Chutzpah Test files
 _Chutzpah*
 
@@ -221,3 +221,5 @@ Debug/
 Release/
 ipch/
 *.sdf
+Discovery/Discovery.VC.db
+*.db
