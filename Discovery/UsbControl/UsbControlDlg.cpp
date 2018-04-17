@@ -1,7 +1,4 @@
 
-// UsbControlDlg.cpp : 实现文件
-//
-
 #include "stdafx.h"
 #include "UsbControl.h"	
 #include "UsbControlDlg.h"
@@ -17,7 +14,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 volatile int b_softtrig=-1;
-
+#define _SOFTTRIGCNT
 cv::VideoWriter h_vw;
 volatile bool snap;
 int board1=-1;//board id
@@ -26,21 +23,19 @@ int board2=-1;
 int g_width=640;
 int g_height=480;
 #endif
-#ifdef _W1280
-#endif
-
+unsigned long sendSoftCnt = 0;
+unsigned long recvSoftCnt = 0;
+int f_softtirg = 0;
 class CAboutDlg : public CDialog
 {
 public:
 	CAboutDlg();
 
-	// 对话框数据
 	enum { IDD = IDD_ABOUTBOX };
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
+	virtual void DoDataExchange(CDataExchange* pDX);   
 
-	// 实现
 protected:
 	DECLARE_MESSAGE_MAP()
 
@@ -476,8 +471,15 @@ void _stdcall RawCallBack(LPVOID lpParam,LPVOID lpUser)
 		snap=false;
 	}
 		//h_vw.write(frame);
-		
+#ifdef _SOFTTRIGCNT
+	if (f_softtirg)
+	{
+		recvSoftCnt++;
+//outfile << "timeStamp:" << thisFrame->timestamp << endl;
+	}
+#endif
 }
+
 void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
 {
 	imgFrame *thisFrame=(imgFrame*)lpParam;
@@ -571,7 +573,10 @@ void CUsbControlDlg::OnBnClickedBtnStopcapture()
 		SetDlgItemText(IDC_STATIC_TEXT,L"尚未采集");
 		
 	}
-
+#ifdef _SOFTTRIGCNT
+	f_softtirg = 0;
+//outfile.close();
+#endif
 	UpdateData(TRUE);
 	//cv::destroyWindow("disp");
 	SetDlgItemText(IDC_STATIC_TEXT,L" ");
@@ -617,18 +622,23 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 		{
 			iFrame= GigEgetFrameCnt()-lastFrameCnt;
 			m_lBytePerSecond= GigEgetDataCnt()-lastDataCnt;
+#ifdef _SOFTTRIGCNT
+			str.Format(L"%d Fps     %0.4f MBs \nreceive: %d, send: %d", iFrame, float(m_lBytePerSecond) / 1024.0 / 1024.0, recvSoftCnt, sendSoftCnt * 6);
+#else
 			str.Format(L"%d Fps     %0.4f MBs",iFrame,float(m_lBytePerSecond)/1024.0/1024.0);
+#endif
 			lastFrameCnt= GigEgetFrameCnt();
 			lastDataCnt= GigEgetDataCnt();
 			SetDlgItemText(IDC_STATIC_TEXT,str);
 		}
 	case 2:
+	{
+		if (f_softtirg)
 		{
-			if(m_combo_trig.GetCurSel()==1)
-			{
-				//sendSoftTrig(board1,2);
-			}
+			GigEsendSoftTrig(board1);
+			sendSoftCnt++;
 		}
+	}
 		break;
 	default:
 		break;
@@ -1081,6 +1091,12 @@ void CUsbControlDlg::OnCbnSelchangeComboTrig()
 
 void CUsbControlDlg::OnBnClickedBtnTrig()
 {
+#ifdef _SOFTTRIGCNT
+	recvSoftCnt = 0;
+	sendSoftCnt = 0;
+	f_softtirg = 1;
+#endif
+	//outfile.open("c:\\c6UDP\\SoftTrigCnt.txt");
 	GigEsendSoftTrig(board1);
 }
 
