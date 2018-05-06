@@ -1,4 +1,3 @@
-// CCHVAPI.h : main header file for the CCHVAPI DLL
 //TODO:
 //softTrig needs to be updated
 
@@ -52,7 +51,7 @@ public:
 		cb=CallBackFunc;
 		socketSrv=-1;
 		devprop = new GigEclientPropStruct();
-		/*m_pDataProcess->lpcb = lp;*/
+		m_pDataProcess->lpcb = lp;
 	}
 	GigEcamInstance(LPVOID*lp,LPMV_CALLBACK2 CallBackFunc,CCHCamera *info):m_DeviceGVCP()
 	{
@@ -65,7 +64,7 @@ public:
 		cb=CallBackFunc;
 		socketSrv=-1;
 		devprop = new GigEclientPropStruct();
-		/*m_pDataProcess->lpcb = lp;*/
+		m_pDataProcess->lpcb = lp;
 	}
 	GigEcamInstance() : m_DeviceGVCP()
 	{
@@ -400,3 +399,4 @@ CCT_API int GigEsetSkip(int enable,int camNum=1);
 CCT_API int csInit();
 CCT_API int csStop();
 CCT_API int csGetFrame(unsigned char * buff);
+//#endif 

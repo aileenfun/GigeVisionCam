@@ -116,8 +116,9 @@ void GigECDataProcess::ThreadProcessFunction()
 		
 	MSG msg;
 	 PeekMessage(&msg,   NULL,   NULL,   NULL,   PM_NOREMOVE);   
-	 this_trigimgpack=new TrigImgPack(camsize,500,this_dp,h_callback);
+	 this_trigimgpack=new GigETrigImgPack(camsize,500,this_dp,h_callback);
 	// hTimer=SetTimer(NULL,0,500,(TIMERPROC)TimerProc);
+	 this_trigimgpack->lpcb = lpcb;
 	while (m_bEnd==false)
 	{
 		/*if(PeekMessage(&msg,NULL,WM_TIMER,WM_USER+1,PM_NOREMOVE))

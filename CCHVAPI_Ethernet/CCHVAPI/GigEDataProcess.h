@@ -1,5 +1,5 @@
 #pragma once
-#include "TrigImgPack.h"
+#include "GigETrigImgPack.h"
 #include "GigEimgFrame.h"
 #include "GigEwqueue.h"
 #include <process.h>
@@ -67,11 +67,11 @@ public:
 	void softtrigonce();
 	int softtrigtimes();
 	int setCamSize(int cs);
-	//LPVOID lpcb;
+	LPVOID lpcb;
 private:
 	void ThreadProcessFunction();
 	static unsigned int __stdcall ThreadProcess(void *handle);
-	LPVOID *lpcb;
+	
 private:
 	//int ByteToRGB(byte pIn[Video_Height][Video_Width_L] ,tagRGB pOut[Video_Height][Video_Width]);
 	int	ProcessData();
@@ -108,7 +108,7 @@ private:
 	BOOL        m_bCreateBmp;
 	byte* m_temp;
 	GigEImageMetaStruct *imData;
-	TrigImgPack *this_trigimgpack;
+	GigETrigImgPack *this_trigimgpack;
 	GigECDataCapture* this_dp;
 	vector<LPMV_CALLBACK2> vec_callbackfunc;
 	int camsize;

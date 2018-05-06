@@ -55,8 +55,8 @@ return nRet;
 
 #ifdef WINDOWS
 // Windows UDP socket recvfrom return 10054
-// µ±UDP SocketÔÚÄ³´Î·¢ËÍºóÊÕµ½Ò»¸ö²»¿Éµ½´ïµÄICMP°üÊ±£¬Õâ¸ö´íÎó½«ÔÚÏÂÒ»¸ö½ÓÊÕÖÐ·µ»Ø£¬
-// ËùÒÔÉÏÃæµÄÌ×½Ó×ÖÔÚÏÂÒ»´ÎµÄ½ÓÊÕÖÐ·µ»ØÁËSOCKET_ERROR£¬´íÎóÊÇ10045¡£
+// ï¿½ï¿½UDP Socketï¿½ï¿½Ä³ï¿½Î·ï¿½ï¿½Íºï¿½ï¿½Õµï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Éµï¿½ï¿½ï¿½ï¿½ICMPï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½Ø£ï¿½
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ÎµÄ½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ï¿½ï¿½ï¿½SOCKET_ERRORï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½10045ï¿½ï¿½
 bool bNewBehavior = false;
 DWORD dwBytesReturned = 0;
 ::WSAIoctl(_UdpSkt.GetSocketId(), SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
@@ -86,8 +86,8 @@ int DeviceGVCP::Init(CCHCamera *c)
 
 #ifdef WINDOWS
 	// Windows UDP socket recvfrom return 10054
-	// µ±UDP SocketÔÚÄ³´Î·¢ËÍºóÊÕµ½Ò»¸ö²»¿Éµ½´ïµÄICMP°üÊ±£¬Õâ¸ö´íÎó½«ÔÚÏÂÒ»¸ö½ÓÊÕÖÐ·µ»Ø£¬
-	// ËùÒÔÉÏÃæµÄÌ×½Ó×ÖÔÚÏÂÒ»´ÎµÄ½ÓÊÕÖÐ·µ»ØÁËSOCKET_ERROR£¬´íÎóÊÇ10045¡£
+	// ï¿½ï¿½UDP Socketï¿½ï¿½Ä³ï¿½Î·ï¿½ï¿½Íºï¿½ï¿½Õµï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Éµï¿½ï¿½ï¿½ï¿½ICMPï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½Ø£ï¿½
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ÎµÄ½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ï¿½ï¿½ï¿½SOCKET_ERRORï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½10045ï¿½ï¿½
 	bool bNewBehavior = false;
 	DWORD dwBytesReturned = 0;
 	::WSAIoctl(_UdpSkt.GetSocketId(), SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
@@ -112,7 +112,8 @@ int DeviceGVCP::DeInit()
 }
 int DeviceGVCP::SetDeviceInfo(CCHCamera *info)
 {
-	devinfo = *(info->CamInfo);
+	devinfo = *(info->CamInfo);
+
 	//_UdpSkt=info.udpSocket;
 	//_From=info.hostAddr;
 	return 1;
@@ -434,32 +435,58 @@ int DeviceGVCP::DiscoveryDone()
 	}
 	return 1;
 }
-int DeviceGVCP::ForceIP(CCHCamera *info)
-{
-	UDP tempudp;
-	tempudp.Open();
-	Address tempaddr;
-	tempaddr.SetAddressIp(info->hostaddr);
-	tempaddr.SetAddressPort(0);
-	tempudp.BindAddr(tempaddr);
-	tempudp.SetBroadcast(true);
-	tempudp.SetDontfragment(true);
-	try
-	{
-		ForceIP(tempudp);
-		decodePacket(tempudp);
-		if (ForceIPDone() == -1)
-		{
-			return -1;
-		}
-		return 1;
-	}
-	catch (SocketException& SktEx)
-	{
-		return -10;
-	}
-}
-int DeviceGVCP::ForceIP(MVComponent::UDP udpskt)
+int DeviceGVCP::ForceIP(CCHCamera *info)
+
+{
+
+	UDP tempudp;
+
+	tempudp.Open();
+
+	Address tempaddr;
+
+	tempaddr.SetAddressIp(info->hostaddr);
+
+	tempaddr.SetAddressPort(0);
+
+	tempudp.BindAddr(tempaddr);
+
+	tempudp.SetBroadcast(true);
+
+	tempudp.SetDontfragment(true);
+
+	try
+
+	{
+
+		ForceIP(tempudp);
+
+		decodePacket(tempudp);
+
+		if (ForceIPDone() == -1)
+
+		{
+
+			return -1;
+
+		}
+
+		return 1;
+
+	}
+
+	catch (SocketException& SktEx)
+
+	{
+
+		return -10;
+
+	}
+
+}
+
+int DeviceGVCP::ForceIP(MVComponent::UDP udpskt)
+
 {
 
 	int nRet;
@@ -719,9 +746,6 @@ int DeviceGVCP::getInterface()
 			IP_ADAPTER_INFO* pAdapterInfo = (IP_ADAPTER_INFO*)&buf[0];
 			for (; pAdapterInfo != NULL; pAdapterInfo = pAdapterInfo->Next)
 			{
-				
-			
-
 				unsigned long ip = inet_addr(pAdapterInfo->IpAddressList.IpAddress.String);
 				//unsigned long mask = inet_addr(pAdapterInfo->IpAddressList.IpMask.String);
 				//unsigned long bcip = ip | ~mask;

@@ -1,8 +1,8 @@
 #include "StdAfx.h"
-#include "TrigImgPack.h"
+#include "GigETrigImgPack.h"
 #include "GigEDataCapture.h"
-std::map<UINT_PTR, TrigImgPack*> TrigImgPack::m_TrigImgPackMap;
-void TrigImgPack::add(GigEimgFrame* imgFrame)
+std::map<UINT_PTR, GigETrigImgPack*> GigETrigImgPack::m_TrigImgPackMap;
+void GigETrigImgPack::add(GigEimgFrame* imgFrame)
 {
 	if(imgFrame==NULL)
 	{
@@ -51,7 +51,7 @@ void TrigImgPack::add(GigEimgFrame* imgFrame)
 		resetPack();
 	}
 }
-bool  TrigImgPack::getAllPack()
+bool  GigETrigImgPack::getAllPack()
 {
 	if(recved==camSize)
 	{

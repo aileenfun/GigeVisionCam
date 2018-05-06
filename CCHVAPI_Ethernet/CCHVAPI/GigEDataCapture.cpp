@@ -8,7 +8,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 */
-//#define _SAVEFILE
+#define _SAVEFILE
 //#define _READFILE
 //#define _USELINE
 #ifdef _DEBUG
@@ -83,11 +83,35 @@ int GigECDataCapture::Open(int height,int width)//
 		unsigned long dw = WSAGetLastError();
 		return -dw;
 	}
+	Sleep(1000);
+	//clean socket
+	int r;
+    std::vector<char> buf(128*1024);
+	int cliaddr_len=sizeof(client_addr1); 
+    do {
+		r=recvfrom(socketSrv,  &buf[0], buf.size(), 0, (struct sockaddr*)&client_addr1, &cliaddr_len);
+       // r = recv(socketSrv, &buf[0], buf.size(),);
+        if (r < 0 && errno == EINTR) continue;
+    } while (r > 0);
+    if (r < 0 && errno != EWOULDBLOCK) {
+       
+        //... code to handle unexpected error
+    }
+	//end clean socket
+
+
 	m_hThread = (HANDLE)_beginthreadex(NULL,0,ThreadProcess,this,0,NULL);
 	int temp=SetThreadPriority(m_hThread,THREAD_PRIORITY_TIME_CRITICAL);
 #ifdef _SAVEFILE
-	//savefile.open("C:\\c6udp\\udpfileproces.bin",std::ios::out|std::ios::binary);
-	savefile2.open("C:\\c6udp\\udpfile.bin",std::ios::out|std::ios::binary);
+	sockaddr *tempsockaddr = new sockaddr();
+	sockaddr_in *fromsock = new sockaddr_in();
+	int fromsize;
+	getpeername(socketSrv, tempsockaddr, &fromsize);
+	fromsock = (sockaddr_in*)tempsockaddr;
+	char * bindipaddr = inet_ntoa(*(struct in_addr *)fromsock);
+	std::string str_filename(bindipaddr);
+	str_filename.insert(0, "C:\\c6udp\\");
+	savefile2.open(str_filename, std::ios::out | std::ios::binary);
 #endif
 	return 0;
 }
@@ -333,11 +357,13 @@ void GigECDataCapture::get_udp_data()
 
 				}
 				*/
+				/*
 				if (p_udpbuf[0] != 0x33 && p_udpbuf[0] != 0x34 && p_udpbuf[0] != 0x35 && p_udpbuf[0] != 0x30 && p_udpbuf[0] != 0x3f)
 				{
 					delete this_udpbuffer;
 					continue;
 				}
+				*/
 				camNum_last=camNum;
 				packnum_last=packnum;
 				timestamp_last=timestamp;
@@ -503,8 +529,7 @@ int GigECDataCapture::ThreadProcessFunction()
 							int k=0;
 						}
 						vframe[i]->packnum++;
-						packnum=this_udp_pack->packbuffer[11]-1;//£¿£¿£¿£¿
-						
+						packnum=this_udp_pack->packbuffer[11]-1;//ï¿½ï¿½ï¿½						
 						memcpy(vframe[i]->imgBuf+packnum*PAYLOADSIZE,this_udp_pack->packbuffer+16,cpylen);
 					}
 					if((vframe[i]->packnum>=TOTALPACK-1))//||(this_udp_pack->packbuffer[0]==0x3f))

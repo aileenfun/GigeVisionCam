@@ -11,6 +11,8 @@
 #include "Utility.h"
 #include <cstdlib>
 #include "Ce2Writer.h"
+#include <fstream>
+#include <iostream>
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -29,6 +31,10 @@ int g_height=480;
 #ifdef _W1280
 #endif
 
+unsigned long sendSoftCnt=0;
+unsigned long recvSoftCnt=0;
+int f_softtirg=0;
+ofstream outfile;
 class CAboutDlg : public CDialog
 {
 public:
@@ -432,8 +438,6 @@ void _stdcall RawCallBack(LPVOID lpParam,LPVOID lpUser)
 	GigEimgFrame *thisFrame=(GigEimgFrame*)lpParam;
 	if(thisFrame==NULL)
 		return;
-	//sendSoftTrig(board1,2);
-	
 	CUsbControlDlg *pDlg=(CUsbControlDlg*)lpUser;
 	if (imgBuf == NULL)
 	{
@@ -474,6 +478,12 @@ void _stdcall RawCallBack(LPVOID lpParam,LPVOID lpUser)
 	{
 		//cv::imwrite("snap.jpg",frame);
 		snap=false;
+	}
+	if(f_softtirg)
+	{
+		recvSoftCnt++;
+
+		outfile<<"timeStamp:"<<thisFrame->timestamp<<endl;
 	}
 		//h_vw.write(frame);
 		
@@ -571,7 +581,8 @@ void CUsbControlDlg::OnBnClickedBtnStopcapture()
 		SetDlgItemText(IDC_STATIC_TEXT,L"ÉÐÎ´²É¼¯");
 		
 	}
-
+	f_softtirg=0;
+	outfile.close();
 	UpdateData(TRUE);
 	//cv::destroyWindow("disp");
 	SetDlgItemText(IDC_STATIC_TEXT,L" ");
@@ -617,16 +628,17 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 		{
 			iFrame= GigEgetFrameCnt()-lastFrameCnt;
 			m_lBytePerSecond= GigEgetDataCnt()-lastDataCnt;
-			str.Format(L"%d Fps     %0.4f MBs",iFrame,float(m_lBytePerSecond)/1024.0/1024.0);
+			str.Format(L"%d Fps     %0.4f MBs \nreceive: %d, send: %d",iFrame,float(m_lBytePerSecond)/1024.0/1024.0,recvSoftCnt,sendSoftCnt*6);
 			lastFrameCnt= GigEgetFrameCnt();
 			lastDataCnt= GigEgetDataCnt();
 			SetDlgItemText(IDC_STATIC_TEXT,str);
 		}
 	case 2:
 		{
-			if(m_combo_trig.GetCurSel()==1)
+			if(f_softtirg)
 			{
-				//sendSoftTrig(board1,2);
+				GigEsendSoftTrig(board1);
+				sendSoftCnt++;
 			}
 		}
 		break;
@@ -1081,6 +1093,10 @@ void CUsbControlDlg::OnCbnSelchangeComboTrig()
 
 void CUsbControlDlg::OnBnClickedBtnTrig()
 {
+	recvSoftCnt=0;
+	sendSoftCnt=0;
+	f_softtirg=1;
+	outfile.open("c:\\c6UDP\\SoftTrigCnt.txt");
 	GigEsendSoftTrig(board1);
 }
 
