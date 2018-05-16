@@ -8,7 +8,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 */
-#define _SAVEFILE
+//#define _SAVEFILE
 //#define _READFILE
 //#define _USELINE
 #ifdef _DEBUG
@@ -22,7 +22,7 @@ static char THIS_FILE[]=__FILE__;
 #ifdef _W640
 //#define TOTALPACK 39	//for 640*480
 #endif
-#define MAX_RESEND_SIZE 3
+#define MAX_RESEND_SIZE 255
 GigECDataCapture::GigECDataCapture(GigEwqueue<GigEimgFrame*>&queue, GigECDataProcess *dp)
 	:m_queue(queue)
 {
@@ -39,6 +39,7 @@ GigECDataCapture::GigECDataCapture(GigEwqueue<GigEimgFrame*>&queue, GigECDataPro
 	this_camprop=new GigEcamProp();
 	softtrigmode=0;
 	m_pDataProcess=dp;
+	haveerror=0;
 }
 
 GigECDataCapture::~GigECDataCapture(void)
@@ -86,13 +87,15 @@ int GigECDataCapture::Open(int height,int width)//
 	Sleep(1000);
 	//clean socket
 	int r;
+	int total=0;
     std::vector<char> buf(128*1024);
 	int cliaddr_len=sizeof(client_addr1); 
     do {
 		r=recvfrom(socketSrv,  &buf[0], buf.size(), 0, (struct sockaddr*)&client_addr1, &cliaddr_len);
-       // r = recv(socketSrv, &buf[0], buf.size(),);
+       if(r>0)total+=r;
+		// r = recv(socketSrv, &buf[0], buf.size(),);
         if (r < 0 && errno == EINTR) continue;
-    } while (r > 0);
+    } while (total<1280*960);
     if (r < 0 && errno != EWOULDBLOCK) {
        
         //... code to handle unexpected error
@@ -274,7 +277,7 @@ void GigECDataCapture::get_udp_data()
 				}
 				
 				//todo: for single cam, camNum won't change. need better rules
-				if((camNum!=camNum_last)&&(p_udpbuf[0]==0x33))//boarder pack check,new frame came
+				if((camNum!=camNum_last)&&((p_udpbuf[0]==0x33)||(p_udpbuf[0]==0x30))//boarder pack check,new frame came
 				{
 					lostpacks=TOTALPACK-packnum_last-1;
 					if((lostpacks>0)&&(lostpacks<MAX_RESEND_SIZE))//last pack lost
@@ -357,20 +360,17 @@ void GigECDataCapture::get_udp_data()
 
 				}
 				*/
-				/*
-				if (p_udpbuf[0] != 0x33 && p_udpbuf[0] != 0x34 && p_udpbuf[0] != 0x35 && p_udpbuf[0] != 0x30 && p_udpbuf[0] != 0x3f)
-				{
-					delete this_udpbuffer;
-					continue;
-				}
-				*/
+				
 				camNum_last=camNum;
 				packnum_last=packnum;
 				timestamp_last=timestamp;
 				udp_queue.add(this_udpbuffer);
 				
 			}
-
+			/*else
+			{
+				unsigned long dw = WSAGetLastError();
+			}*/
 #endif
 	}//while
 
@@ -419,6 +419,7 @@ int GigECDataCapture::ThreadProcessFunction()
 		unsigned long cpylen=0;
 		vector<GigEimgFrame*> vframe;
 		long timestamp;
+		haveerror=0;
 		//while(!nRet&&m_bCapture)
 		//{
 		//	nRet=getData(m_pInData,0,ReadDataBytes);
@@ -429,35 +430,42 @@ int GigECDataCapture::ThreadProcessFunction()
 	while(m_bCapture )
 	{
 		
-		
 		this_udp_pack=udp_queue.remove();
 		if(this_udp_pack==NULL)
 		{
 			continue;
 		}
-#ifdef _SAVEFILE
-		savefile2.write((char*)this_udp_pack->packbuffer,16);//this_udp_pack->m_packsize);
-#endif
+		if (this_udp_pack->packbuffer[0] != 0x33 && this_udp_pack->packbuffer[0] != 0x34 && 
+			this_udp_pack->packbuffer[0] != 0x35 && this_udp_pack->packbuffer[0] != 0x30 && 
+			this_udp_pack->packbuffer[0] != 0x3f)
+		{
+			haveerror++;
+			goto CLEANUP;
+		}
 		if(this_udp_pack->packbuffer[0]!=0x34)
 		{//normal frame process
 			camNum=this_udp_pack->packbuffer[2];
 			timestamp=this_udp_pack->packbuffer[3]<<16;
 			timestamp+=this_udp_pack->packbuffer[4]<<8;
 			timestamp+=this_udp_pack->packbuffer[5];
+			packnum = this_udp_pack->packbuffer[10] << 8;
+			packnum += (unsigned int)this_udp_pack->packbuffer[11];
 
-			char pack1 = this_udp_pack->packbuffer[0];
-			char pack2 = this_udp_pack->packbuffer[1];
-			char whdebug = this_udp_pack->packbuffer[6];
-			char wldebug = this_udp_pack->packbuffer[7];
-			char hhdebug = this_udp_pack->packbuffer[8];
-			char hldebug = this_udp_pack->packbuffer[9];
+			unsigned char pack1 = this_udp_pack->packbuffer[0];
+			unsigned char pack2 = this_udp_pack->packbuffer[1];
+			unsigned char whdebug = this_udp_pack->packbuffer[6];
+			unsigned char wldebug = this_udp_pack->packbuffer[7];
+			unsigned char hhdebug = this_udp_pack->packbuffer[8];
+			unsigned char hldebug = this_udp_pack->packbuffer[9];
 			if (packnum>TOTALPACK)
 			{
-				continue;
+				haveerror++;
+				goto CLEANUP;
 			}
 			if (camNum>5)
 			{
-				continue;
+				haveerror++;
+				goto CLEANUP;
 			}
 			if(camNum!=camNum_last||timestamp!=timestamp_last)
 			{//new frame arrived, judged by camNum and timestamp
@@ -503,11 +511,13 @@ int GigECDataCapture::ThreadProcessFunction()
 			
 			if((packnum==0||packnum>TOTALPACK))
 			{
-				continue;
+				haveerror++;
+				goto CLEANUP;
 			}
 			if(camNum>5)
 			{
-				continue;
+				haveerror++;
+				goto CLEANUP;
 			}
 			cpylen=this_udp_pack->packbuffer[12]<<8;
 			cpylen+=(unsigned int)this_udp_pack->packbuffer[13];
@@ -529,7 +539,8 @@ int GigECDataCapture::ThreadProcessFunction()
 							int k=0;
 						}
 						vframe[i]->packnum++;
-						packnum=this_udp_pack->packbuffer[11]-1;//���						
+						packnum = this_udp_pack->packbuffer[10] << 8;
+						packnum += (unsigned int)this_udp_pack->packbuffer[11];
 						memcpy(vframe[i]->imgBuf+packnum*PAYLOADSIZE,this_udp_pack->packbuffer+16,cpylen);
 					}
 					if((vframe[i]->packnum>=TOTALPACK-1))//||(this_udp_pack->packbuffer[0]==0x3f))
@@ -546,9 +557,16 @@ int GigECDataCapture::ThreadProcessFunction()
 		}
 		camNum_last=camNum;
 		timestamp_last=timestamp;
-		delete this_udp_pack;
-		
+		CLEANUP:
 
+		/*if(haveerror)
+		{
+#ifdef _SAVEFILE
+		savefile2.write((char*)this_udp_pack->packbuffer,16);
+		haveerror=false;
+#endif
+		}*/
+		delete this_udp_pack;
 		/*
 		this_udp_pack=udp_queue.remove();
 		if(this_udp_pack==NULL)

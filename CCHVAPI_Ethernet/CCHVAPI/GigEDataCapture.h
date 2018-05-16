@@ -30,6 +30,7 @@ public:
 	int sendOrder(GigEcamPropStruct camprop,int s=0);
 	int sendSoftTrig(int s=0);
 	unsigned long dataCnt;
+	long haveerror;
 	unsigned int frameCnt;
 	long getData(byte * buffer,long startpos,long len,long packsize=1024);
 	void get_udp_data();

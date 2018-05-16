@@ -13,9 +13,11 @@ namespace GvCaller
 
     public partial class Form1 : Form
     {
-        [DllImport(@"CCTAPI.dll", EntryPoint = "csInit", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "csInit", CallingConvention = CallingConvention.Cdecl)]
         public static extern int csInit();
-        [DllImport(@"CCTAPI.dll", EntryPoint="csGetFrame",CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "csStart", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int csStart();
+        [DllImport(@"CCHVAPI.dll", EntryPoint="csGetFrame",CallingConvention = CallingConvention.Cdecl)]
         public static extern int csGetFrame(IntPtr imgbuf);
 
         public Form1()
@@ -28,11 +30,11 @@ namespace GvCaller
             Bitmap bmp = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
             ColorPalette monopalette = bmp.Palette;
             Color []ent=monopalette.Entries;
-            //for (int i = 0; i < 256; i++)
-            //{
-            //    ent[i] = Color.FromArgb(i, i, i);
-            //}
-            //bmp.Palette = monopalette;
+            for (int i = 0; i < 256; i++)
+            {
+                ent[i] = Color.FromArgb(i, i, i);
+            }
+            bmp.Palette = monopalette;
             Rectangle dimension = new Rectangle(0, 0, bmp.Width, bmp.Height);
             BitmapData picData = bmp.LockBits(dimension, ImageLockMode.ReadWrite, bmp.PixelFormat);
             IntPtr pixelStartAddress = picData.Scan0;
@@ -48,15 +50,22 @@ namespace GvCaller
 
             //int width = 1280;
             //int height = 960;
-            int width = 640;
-            int height = 480;
+            int width = 1280;
+            int height = 960;
             byte[] pixelValues = new byte[width * height];
             int size = Marshal.SizeOf(pixelValues[0]) * pixelValues.Length;
-            IntPtr p_temp = Marshal.AllocHGlobal(size);
+            IntPtr p_temp = new IntPtr();
+            p_temp = Marshal.AllocHGlobal(size);
             csGetFrame(p_temp);
             Marshal.Copy(p_temp, pixelValues, 0,width * height);
             var bmp = bitmap8bpp(pixelValues, width, height);
+
             pictureBox1.Image = bmp;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            csStart();
         }
     }
 }

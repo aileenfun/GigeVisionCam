@@ -13,6 +13,9 @@
 #include "Ce2Writer.h"
 #include <fstream>
 #include <iostream>
+#include "Mmsystem.h"
+#pragma comment(lib,"winmm.lib")
+
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -33,8 +36,10 @@ int g_height=480;
 
 unsigned long sendSoftCnt=0;
 unsigned long recvSoftCnt=0;
+unsigned long lastLostCnt=0;
 int f_softtirg=0;
 ofstream outfile;
+int g_camsize = 6;
 class CAboutDlg : public CDialog
 {
 public:
@@ -198,9 +203,6 @@ END_MESSAGE_MAP()
 BOOL CUsbControlDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-
-	// 将“关于...”菜单项添加到系统菜单中。
-
 	// IDM_ABOUTBOX 必须在系统命令范围内。
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
@@ -432,30 +434,46 @@ HCURSOR CUsbControlDlg::OnQueryDragIcon()
 volatile int show_channel;
 bool b_save_file;
 byte* imgBuf = NULL;
-void _stdcall RawCallBack(LPVOID lpParam,LPVOID lpUser)
+void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
-	
-	GigEimgFrame *thisFrame=(GigEimgFrame*)lpParam;
-	if(thisFrame==NULL)
+
+	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+	if (thisFrame == NULL)
 		return;
-	CUsbControlDlg *pDlg=(CUsbControlDlg*)lpUser;
+	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
+	int dispheight = thisFrame->m_height / g_camsize;
+	int dispwidth = thisFrame->m_width;
 	if (imgBuf == NULL)
 	{
-		imgBuf = new byte[thisFrame->m_height*thisFrame->m_width];
+		imgBuf = new byte[dispheight*dispwidth];
 	}
-	memcpy(imgBuf,thisFrame->imgBuf,thisFrame->m_height*thisFrame->m_width);
-	cv::Mat frame(thisFrame->m_height,thisFrame->m_width,CV_8UC1,imgBuf);
+
+	int offset = 0;
+	if (show_channel<=g_camsize - 1)
+	{
+		offset = show_channel;
+	}
+	else
+	{
+		offset = g_camsize-1;
+	}
+	offset=dispheight*dispwidth*offset;
+	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
+	cv::Mat frame(dispheight, dispwidth,CV_8UC1,imgBuf);
 	
 		//stringstream ss;
 		//ss<<thisFrame->m_camNum;
 		//string str=ss.str();
 		//cv::imshow(str,frame);
+	/*
 	if(show_channel==thisFrame->m_camNum)
 	{
 		cv::imshow("disp",frame);
 		cv::waitKey(1);
-	}
-	
+	}*/
+	cv::imshow("disp", frame);
+	cv::waitKey(1);
+
 	if(b_save_file)
 	{
 		CString strName;
@@ -542,8 +560,6 @@ void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 	{
 		SetDlgItemText(IDC_STATIC_TEXT, L"设备2打开失败！");
 	}
-
-
 		SetDlgItemText(IDC_STATIC_TEXT,L"采集中...");
 		CheckRadioButton(IDC_RADIO_NORMAL,IDC_RADIO_XYMIRROR,IDC_RADIO_NORMAL);
 		SetTimer(1,1000,NULL);
@@ -628,7 +644,17 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 		{
 			iFrame= GigEgetFrameCnt()-lastFrameCnt;
 			m_lBytePerSecond= GigEgetDataCnt()-lastDataCnt;
-			str.Format(L"%d Fps     %0.4f MBs \nreceive: %d, send: %d",iFrame,float(m_lBytePerSecond)/1024.0/1024.0,recvSoftCnt,sendSoftCnt*6);
+
+			str.Format(L"%d Fps     %0.4f MBs \nreceive: %d, send: %d \n Error Pack %d",
+				iFrame,float(m_lBytePerSecond)/1024.0/1024.0,
+				recvSoftCnt,sendSoftCnt,
+				GigEgetErrPackCnt());
+			
+			/*if(lastLostCnt-(recvSoftCnt-sendSoftCnt*6)!=0)
+			{
+				sndPlaySound(_T("trainhorn.WAV"),SND_ASYNC);
+				lastLostCnt=recvSoftCnt-sendSoftCnt*6;
+			}*/
 			lastFrameCnt= GigEgetFrameCnt();
 			lastDataCnt= GigEgetDataCnt();
 			SetDlgItemText(IDC_STATIC_TEXT,str);
@@ -935,6 +961,8 @@ void CUsbControlDlg::OnBnClickedBtnConnect()
 			str.Format(L"Device connected");
 			SetDlgItemText(IDC_STATIC_TEXT, str);
 			gb_imgctrl.EnableWindow(1);
+		
+
 
 		}
 		else
@@ -1305,7 +1333,7 @@ void CUsbControlDlg::OnBnClickedButtonSendcamsize()
 	m_ecamsize.GetWindowTextW(cs_camsize);
 	int camsize = _ttoi(cs_camsize);
 	GigEsetCamSize(camsize,board1);
-	
+	g_camsize = camsize;
 }
 
 

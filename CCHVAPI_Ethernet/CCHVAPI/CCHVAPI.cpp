@@ -76,6 +76,19 @@ int GigEgetDataCnt(int camNum)
 		return -1;
 	}
 }
+long GigEgetErrPackCnt(int camNum)
+{
+	if(camNum<1)return camNum;
+	camNum=camNum-1;
+	if(vec_camins[camNum]->isRunning())
+	{
+		return vec_camins[camNum]->getErrPackCnt();
+	}
+	else
+	{
+		return -1;
+	}
+}
 int GigEsendOrder(GigEcamPropStruct camprop,int camNum,int s)
 {
 	if(camNum<1)return camNum;
@@ -204,6 +217,7 @@ int cs_height=960;
 int cs_width=640;
 int cs_height=480;
 #endif
+map_camera *cameralist;
 void __stdcall csCallBack(LPVOID lpParam,LPVOID lpUser)
 {
 
@@ -219,29 +233,28 @@ int csInit()
 {
 
 	pimagebuf=new byte[cs_width*cs_height];
-	//board1=addInstance(NULL,csCallBack);
-	GigEclientPropStruct prop;
-	prop.MACaddr=0xabcec0a8019b;
-	prop.camIP=htonl(inet_addr("192.168.1.2"));
-	prop.pcIP=htonl(inet_addr("192.168.1.3"));
-	prop.interval_time=4096;
-	prop.packetSize=1024;
-	prop.camCnt=6;
-	prop.width=cs_width;
-	prop.height=cs_height;
-	GigEsendProp(prop,board1);
-	//board1=initCCTAPI(board1);
-	GigEstartCap(board1);
-	GigEcamPropStruct camprop;
-	camprop.trigMode=1;//set softtrig as default
-	camprop.expo=300;
-	camprop.brightness=16;
-	camprop.col=cs_width;
-	camprop.row=cs_height;
-	camprop.mirror=0;
-	GigEsendOrder(camprop,board1,0);
-	//sendSoftTrig(board1,1);//set soft trig as default
+
+		cameralist = new map_camera();
+		GigEsearchCamera(cameralist);//Ã¶¾ÙÏà»ú
+		int count = 0;
+		map_camera::iterator itr;
+		itr = cameralist->begin();
+
+
+		if (itr != cameralist->end())
+		{
+			CCHCamera *c0 = itr->second;
+			board1 = GigEaddInstance(NULL, csCallBack, c0);
+		}
+		
 	return 1;
+}
+int csStart()
+{
+	int temp =0;
+	if (board1>0)
+		 temp=GigEstartCap(board1);
+	return temp;
 }
 int csStop()
 {
@@ -253,9 +266,9 @@ int csGetFrame(unsigned char * buff)
 	//sendSoftTrig(board1,2);
 	while(!imgready)
 	{
-		Sleep(10);
+		Sleep(1);
 	}
-	Sleep(100);
+	//Sleep(100);
 	memcpy(buff,pimagebuf,cs_height*cs_width);
 	//cv::Mat frameGray(cv_height,cv_width,CV_8UC1,pimagebuf);
 	//cv::Mat frameRGB;

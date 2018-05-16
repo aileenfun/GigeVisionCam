@@ -207,6 +207,10 @@ public:
 	{
 		return m_pDataCapture->getDataCnt();
 	}
+	long getErrPackCnt()
+	{
+		return m_pDataCapture->haveerror;
+	}
 	int sendOrder(GigEcamPropStruct camprop,int s)
 	{
 
@@ -379,6 +383,7 @@ CCT_API int GigEstopCap(int camNum=1);
 CCT_API int GigEsetMirrorType(GigEDataProcessType mirrortype,int camNum=1);
 CCT_API int GigEgetFrameCnt(int camNum=1);
 CCT_API int GigEgetDataCnt(int camNum=1);
+CCT_API long GigEgetErrPackCnt(int camNum=1);
 CCT_API int GigEsetTrigMode(int s=0,int camNum=1);
 CCT_API int GigEsendSoftTrig(int camNum=1);
 CCT_API int GigEsetIP(CCHCamera *devinfo,int camNum=1);
@@ -397,6 +402,7 @@ CCT_API int GigEsetBinning(int enable,int camNum=1);
 CCT_API int GigEsetSkip(int enable,int camNum=1);
 
 CCT_API int csInit();
+CCT_API int csStart();
 CCT_API int csStop();
 CCT_API int csGetFrame(unsigned char * buff);
 //#endif 
