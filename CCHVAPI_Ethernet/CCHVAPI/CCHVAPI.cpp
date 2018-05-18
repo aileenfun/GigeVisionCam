@@ -218,42 +218,62 @@ int cs_width=640;
 int cs_height=480;
 #endif
 map_camera *cameralist;
-void __stdcall csCallBack(LPVOID lpParam,LPVOID lpUser)
+
+csCallBackFuncDel Handler = 0;
+
+void __stdcall csCallBack(LPVOID lpParam, LPVOID lpUser)
 {
 
-	GigEimgFrame *thisFrame=(GigEimgFrame*)lpParam;
-	if(thisFrame->m_camNum==0)
+	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+	if (thisFrame->m_camNum == 0)
 	{
-		memcpy(pimagebuf,thisFrame->imgBuf,thisFrame->m_width*thisFrame->m_height);
-		imgready=1;
+		memcpy(pimagebuf, thisFrame->imgBuf, thisFrame->m_width*thisFrame->m_height);
+		//imgready=1;
+		Handler(pimagebuf);
 	}
 
 }
-int csInit()
+int csInit(csCallBackFuncDel cb, int w = 1280, int h = 960)
 {
+	Handler = cb;
+	cs_width = w;
+	cs_height = h;
+	pimagebuf = new byte[cs_width*cs_height];
 
-	pimagebuf=new byte[cs_width*cs_height];
-
-		cameralist = new map_camera();
-		GigEsearchCamera(cameralist);//枚举相机
-		int count = 0;
-		map_camera::iterator itr;
-		itr = cameralist->begin();
+	cameralist = new map_camera();
+	GigEsearchCamera(cameralist);//枚举相机
+	int count = 0;
+	map_camera::iterator itr;
+	itr = cameralist->begin();
 
 
-		if (itr != cameralist->end())
-		{
-			CCHCamera *c0 = itr->second;
-			board1 = GigEaddInstance(NULL, csCallBack, c0);
-		}
-		
+	if (itr != cameralist->end())
+	{
+		CCHCamera *c0 = itr->second;
+		board1 = GigEaddInstance(NULL, csCallBack, c0);
+		return board1;
+	}
+	else
+	{
+		return -1;
+	}
+}
+int csSetROI(int xstart, int xend, int ystart, int yend, int enable)
+{
+	GigEsetROI(xstart, xend, ystart, yend, enable,board1);
+
+	return 1;
+}
+int csSetExpo(uint32_t value, int isauto)
+{
+	GigEsetGain(value, isauto, board1);
 	return 1;
 }
 int csStart()
 {
-	int temp =0;
+	int temp = 0;
 	if (board1>0)
-		 temp=GigEstartCap(board1);
+		temp = GigEstartCap(board1);
 	return temp;
 }
 int csStop()
@@ -264,15 +284,15 @@ int csStop()
 int csGetFrame(unsigned char * buff)
 {
 	//sendSoftTrig(board1,2);
-	while(!imgready)
+	while (!imgready)
 	{
 		Sleep(1);
 	}
 	//Sleep(100);
-	memcpy(buff,pimagebuf,cs_height*cs_width);
+	memcpy(buff, pimagebuf, cs_height*cs_width);
 	//cv::Mat frameGray(cv_height,cv_width,CV_8UC1,pimagebuf);
 	//cv::Mat frameRGB;
 	//cv::cvtColor(frameGray,frameRGB,CV_BayerBG2BGR);
-	imgready=0;
+	imgready = 0;
 	return cs_height*cs_width;
 }

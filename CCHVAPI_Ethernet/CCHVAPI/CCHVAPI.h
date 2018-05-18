@@ -401,7 +401,11 @@ CCT_API int GigEsetROI(int xstart, int xend, int ystart, int yend, int enable, i
 CCT_API int GigEsetBinning(int enable,int camNum=1);
 CCT_API int GigEsetSkip(int enable,int camNum=1);
 
-CCT_API int csInit();
+
+typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
+CCT_API int csInit(csCallBackFuncDel cb, int w, int h);
+CCT_API int csSetROI(int xstart, int xend, int ystart, int yend, int enable);
+CCT_API int csSetExpo(uint32_t value, int isauto);
 CCT_API int csStart();
 CCT_API int csStop();
 CCT_API int csGetFrame(unsigned char * buff);

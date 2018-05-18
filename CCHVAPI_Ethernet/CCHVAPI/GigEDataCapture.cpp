@@ -277,7 +277,7 @@ void GigECDataCapture::get_udp_data()
 				}
 				
 				//todo: for single cam, camNum won't change. need better rules
-				if((camNum!=camNum_last)&&((p_udpbuf[0]==0x33)||(p_udpbuf[0]==0x30))//boarder pack check,new frame came
+				if((camNum!=camNum_last)&&((p_udpbuf[0]==0x33)||(p_udpbuf[0]==0x30)))//boarder pack check,new frame came
 				{
 					lostpacks=TOTALPACK-packnum_last-1;
 					if((lostpacks>0)&&(lostpacks<MAX_RESEND_SIZE))//last pack lost

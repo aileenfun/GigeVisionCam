@@ -1,5 +1,6 @@
 rd /q /s ipch
 del *.sdf
+del *.db
 cd Debug
 del *.tlog
 del *.cod
