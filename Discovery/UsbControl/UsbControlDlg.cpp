@@ -563,6 +563,7 @@ void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 		SetDlgItemText(IDC_STATIC_TEXT,L"²É¼¯ÖÐ...");
 		CheckRadioButton(IDC_RADIO_NORMAL,IDC_RADIO_XYMIRROR,IDC_RADIO_NORMAL);
 		SetTimer(1,1000,NULL);
+		SetTimer(2, 500, NULL);
 		cv::namedWindow("disp");
 	
 
@@ -645,9 +646,9 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 			iFrame= GigEgetFrameCnt()-lastFrameCnt;
 			m_lBytePerSecond= GigEgetDataCnt()-lastDataCnt;
 
-			str.Format(L"%d Fps     %0.4f MBs \nreceive: %d, send: %d \n Error Pack %d",
+			str.Format(L"%d Fps     %0.4f MBs \nreceive: %d, send: %d,diff: %d \n Error Pack %d",
 				iFrame,float(m_lBytePerSecond)/1024.0/1024.0,
-				recvSoftCnt,sendSoftCnt,
+				recvSoftCnt,sendSoftCnt,sendSoftCnt-recvSoftCnt,
 				GigEgetErrPackCnt());
 			
 			/*if(lastLostCnt-(recvSoftCnt-sendSoftCnt*6)!=0)
@@ -658,6 +659,7 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 			lastFrameCnt= GigEgetFrameCnt();
 			lastDataCnt= GigEgetDataCnt();
 			SetDlgItemText(IDC_STATIC_TEXT,str);
+			break;
 		}
 	case 2:
 		{

@@ -31,6 +31,7 @@ public:
 	int sendSoftTrig(int s=0);
 	unsigned long dataCnt;
 	long haveerror;
+	bool f_errorpack;
 	unsigned int frameCnt;
 	long getData(byte * buffer,long startpos,long len,long packsize=1024);
 	void get_udp_data();
@@ -68,6 +69,7 @@ private:
 	struct sockaddr_in client_addr1;
 	std::ofstream savefile;
 	std::ofstream savefile2;
+	std::ofstream savefile3;
 	GigEclientProp *this_clientProp;
 	GigEcamProp *this_camprop;
 	int softtrigmode;

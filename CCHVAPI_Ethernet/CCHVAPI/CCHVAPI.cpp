@@ -251,6 +251,8 @@ int csInit(csCallBackFuncDel cb, int w = 1280, int h = 960)
 	{
 		CCHCamera *c0 = itr->second;
 		board1 = GigEaddInstance(NULL, csCallBack, c0);
+		if(board1>0)
+		GigEsetCamSize(1, board1);
 		return board1;
 	}
 	else

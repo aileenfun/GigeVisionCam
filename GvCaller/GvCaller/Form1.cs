@@ -31,6 +31,9 @@ namespace GvCaller
         public delegate int CallBack(IntPtr buff);
         public CallBack mInstance;
 
+        //change resolution here before set roi
+        //if xend-xstart=639, then imgwidth=640
+        //if yend-ystart=479, then imgheight=480
         int imgwidth = 1280;
         int imgheight = 960;
 
@@ -50,10 +53,7 @@ namespace GvCaller
         public int callbackfunc(IntPtr buff)
         {
 
-            //buff = new IntPtr();
             byte[] pixelValues = new byte[imgwidth * imgheight];
-            //int size = Marshal.SizeOf(pixelValues[0]) * pixelValues.Length;
-            // buff = Marshal.AllocHGlobal(size);
             Marshal.Copy(buff, pixelValues, 0, imgwidth * imgheight);
             var bmp2 = bitmap8bpp(pixelValues, imgwidth, imgheight);
 
@@ -71,11 +71,6 @@ namespace GvCaller
                 ent[i] = Color.FromArgb(i, i, i);
             }
             bmp.Palette = monopalette;
-
-            //  Rectangle dimension = new Rectangle(0, 0, bmp.Width, bmp.Height);
-            // picData = bmp.LockBits(dimension, ImageLockMode.ReadWrite, bmp.PixelFormat);
-
-            //           bmp.UnlockBits(picData);
             return 1;
         }
         private Bitmap bitmap8bpp(byte[] pixelValues, int width, int height)
@@ -91,18 +86,13 @@ namespace GvCaller
         private void button1_Click(object sender, EventArgs e)
         {
             Random r = new Random();
-
-            //int width = 1280;
-            //int height = 960;
-            int width = 1280;
-            int height = 960;
-            byte[] pixelValues = new byte[width * height];
+            byte[] pixelValues = new byte[imgwidth * imgheight];
             int size = Marshal.SizeOf(pixelValues[0]) * pixelValues.Length;
             IntPtr p_temp = new IntPtr();
             p_temp = Marshal.AllocHGlobal(size);
             csGetFrame(p_temp);
-            Marshal.Copy(p_temp, pixelValues, 0, width * height);
-            var bmp = bitmap8bpp(pixelValues, width, height);
+            Marshal.Copy(p_temp, pixelValues, 0, imgwidth * imgheight);
+            var bmp = bitmap8bpp(pixelValues, imgwidth, imgheight);
 
             pictureBox1.Image = bmp;
         }
