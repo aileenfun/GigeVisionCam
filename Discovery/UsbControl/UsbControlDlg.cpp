@@ -563,7 +563,7 @@ void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 		SetDlgItemText(IDC_STATIC_TEXT,L"²É¼¯ÖÐ...");
 		CheckRadioButton(IDC_RADIO_NORMAL,IDC_RADIO_XYMIRROR,IDC_RADIO_NORMAL);
 		SetTimer(1,1000,NULL);
-		SetTimer(2, 500, NULL);
+		SetTimer(2, 1000, NULL);
 		cv::namedWindow("disp");
 	
 

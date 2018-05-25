@@ -120,10 +120,10 @@ int GigECDataCapture::Open(int height,int width)//
 	savefile.open(filename, std::ios::out | std::ios::binary);
 #endif
 #ifdef _LOSTFRAME
-	std::stringstream ss;
-	string filename;
-	ss << "C:\\c6udp\\lostframe_" << socketSrv;
-	ss >> filename;
+	std::stringstream ss1;
+	string filename1;
+	ss1 << "C:\\c6udp\\lostframe_" << socketSrv;
+	ss1 >> filename1;
 	savefile3.open(filename, std::ios::out);
 #endif
 	return 0;
@@ -291,8 +291,8 @@ void GigECDataCapture::get_udp_data()
 					&&((p_udpbuf[0]==0x33)||(p_udpbuf[0]==0x30)))//boarder pack check,new frame came
 				{
 					lostpacks=TOTALPACK-packnum_last-1;
-					if (lostpacks > MAX_RESEND_SIZE)
-						lostpacks = MAX_RESEND_SIZE;
+					/*if (lostpacks > MAX_RESEND_SIZE)
+						lostpacks = MAX_RESEND_SIZE;*/
 					if(lostpacks>0)//last pack lost
 					{
 						resendbuf[2]=0x03;//resend cmd
@@ -303,7 +303,8 @@ void GigECDataCapture::get_udp_data()
 						packnum_last++;
 						resendbuf[7]=(packnum_last>>8)&0xff;//resend pack start numH
 						resendbuf[8]=packnum_last&0xff;//resend pack start num H
-						resendbuf[9]=lostpacks;//resend pack start num L
+						resendbuf[9] = (lostpacks >> 8) & 0xff; //lostpack cnt
+						resendbuf[10] = lostpacks & 0xff;
 						resendbuf[30]=0x57;
 						resendbuf[31]=0xac;
 						sendto(socketSrv,resendbuf,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
@@ -319,7 +320,8 @@ void GigECDataCapture::get_udp_data()
 						resendbuf[6]=p_udpbuf[5];//frame cnt L
 						resendbuf[7]=0;//resend pack start numH
 						resendbuf[8]=1;//resend pack start num H
-						resendbuf[9]=lostpacks;//resend pack cnt
+						resendbuf[9] = (lostpacks >> 8) & 0xff; //lostpack cnt
+						resendbuf[10] = lostpacks & 0xff;
 						resendbuf[30]=0x57;
 						resendbuf[31]=0xac;
 						sendto(socketSrv,resendbuf,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
@@ -330,8 +332,8 @@ void GigECDataCapture::get_udp_data()
 				else if(p_udpbuf[0]==0x33&&packnum!=0)
 				{
 					lostpacks=packnum-packnum_last-1;
-					if (lostpacks > MAX_RESEND_SIZE)
-						lostpacks = MAX_RESEND_SIZE;
+					/*if (lostpacks > MAX_RESEND_SIZE)
+						lostpacks = MAX_RESEND_SIZE;*/
 					if(lostpacks>0)
 					{
 						resendbuf[0]=0x56;
@@ -344,7 +346,8 @@ void GigECDataCapture::get_udp_data()
 						packnum_last++;
 						resendbuf[7]=(packnum_last>>8)&0xff;//resend pack start numH
 						resendbuf[8]=packnum_last&0xff;//resend pack start num H
-						resendbuf[9]=lostpacks;//resend pack start num L
+						resendbuf[9]= (lostpacks >> 8) & 0xff; //lostpack cnt
+						resendbuf[10] = lostpacks & 0xff;
 						resendbuf[30]=0x57;
 						resendbuf[31]=0xac;
 						sendto(socketSrv,resendbuf,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
