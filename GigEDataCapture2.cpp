@@ -4,7 +4,6 @@
 #include <windows.h>
 #include <string>
 #include <sstream>
-
 /*
 #include <cv.hpp>
 #include <opencv.hpp>
@@ -90,36 +89,44 @@ int GigECDataCapture::Open(int height,int width)//
 	}
 	Sleep(1000);
 	//clean socket
-	/*
 	int r;
 	int total=0;
     std::vector<char> buf(128*1024);
 	int cliaddr_len=sizeof(client_addr1); 
+	int retry = 0;
+	/*
     do {
 		r=recvfrom(socketSrv,  &buf[0], buf.size(), 0, (struct sockaddr*)&client_addr1, &cliaddr_len);
        if(r>0)total+=r;
 		// r = recv(socketSrv, &buf[0], buf.size(),);
-        if (r < 0 && errno == EINTR) continue;
-    } while (total<1280*960);
+	   if (r < 0 && errno == EINTR)
+	   {
+		   continue;
+	   }
+	   if (r <0)
+	   {
+		   Sleep(10);
+		   retry++;
+	   }
+    } while (total<1280*960&&retry<10);
     if (r < 0 && errno != EWOULDBLOCK) {
        
         //... code to handle unexpected error
     }
-	//end clean socket
 	*/
+	//end clean socket
+
 
 	m_hThread = (HANDLE)_beginthreadex(NULL,0,ThreadProcess,this,0,NULL);
 	int temp=SetThreadPriority(m_hThread,THREAD_PRIORITY_TIME_CRITICAL);
 #ifdef _SAVEFILE
-	std::stringstream ss2;
-	ss2 <<"C:\\c6udp\\headers_"<<socketSrv;
-	string filename2;
-	ss2 >> filename2;
-	savefile2.open(filename2, std::ios::out | std::ios::binary);
-
 	std::stringstream ss;
-	ss << "C:\\c6udp\\errorPacks_" << socketSrv;
+	ss <<"C:\\c6udp\\headers_"<<socketSrv;
 	string filename;
+	ss >> filename;
+	savefile2.open(filename, std::ios::out | std::ios::binary);
+
+	ss << "C:\\c6udp\\errorPacks_" << socketSrv;
 	ss >> filename;
 	savefile.open(filename, std::ios::out | std::ios::binary);
 #endif
@@ -128,7 +135,7 @@ int GigECDataCapture::Open(int height,int width)//
 	string filename1;
 	ss1 << "C:\\c6udp\\lostframe_" << socketSrv;
 	ss1 >> filename1;
-	savefile3.open(filename1, std::ios::out);
+	savefile3.open(filename, std::ios::out);
 #endif
 	return 0;
 }
@@ -389,10 +396,11 @@ void GigECDataCapture::get_udp_data()
 				udp_queue.add(this_udpbuffer);
 				
 			}
-			/*else
+			else
 			{
 				unsigned long dw = WSAGetLastError();
-			}*/
+				printf("%d", dw);
+			}
 #endif
 	}//while
 
