@@ -15,7 +15,10 @@
 #include <iostream>
 #include "Mmsystem.h"
 #pragma comment(lib,"winmm.lib")
-
+#define _CAM1
+#define _CAM2
+//#define _CAM3
+//#define _CAM4
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -27,6 +30,8 @@ cv::VideoWriter h_vw;
 volatile bool snap;
 int board1=-1;//board id
 int board2=-1;
+int board3 = -1;
+int board4 = -1;
 #ifdef _W640
 int g_width=640;
 int g_height=480;
@@ -36,9 +41,11 @@ int g_height=480;
 
 unsigned long sendSoftCnt=0;
 unsigned long recvSoftCnt=0;
+unsigned long recvSoftCnt2 = 0;
+unsigned long recvSoftCnt3 = 0;
+unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
-ofstream outfile;
 int g_camsize = 6;
 class CAboutDlg : public CDialog
 {
@@ -102,8 +109,18 @@ CUsbControlDlg::CUsbControlDlg(CWnd* pParent /*=NULL*/)
 	m_bSave=FALSE;
 	m_Init = FALSE;
 	snap=false;
-	lastDataCnt=0;
-	lastFrameCnt=0;
+	lastDataCnt = 0;
+	lastFrameCnt = 0;
+
+	lastDataCnt2 = 0;
+	lastFrameCnt2 = 0;
+
+	lastDataCnt3 = 0;
+	lastFrameCnt3 = 0;
+
+	lastDataCnt4 = 0;
+	lastFrameCnt4 = 0;
+
 	cameralist = new map_camera();
 }
 
@@ -196,6 +213,7 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(IDC_CHECK_roienable, &CUsbControlDlg::OnBnClickedCheckroienable)
 	ON_BN_CLICKED(IDC_BUTTON_ForceIp, &CUsbControlDlg::OnBnClickedButtonForceip)
 	ON_BN_CLICKED(IDC_BTN_WBSet2, &CUsbControlDlg::OnBnClickedBtnWbset2)
+	ON_BN_CLICKED(btn_test, &CUsbControlDlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
@@ -434,6 +452,9 @@ HCURSOR CUsbControlDlg::OnQueryDragIcon()
 volatile int show_channel;
 bool b_save_file;
 byte* imgBuf = NULL;
+byte* imgBuf2 = NULL;
+byte* imgBuf3 = NULL;
+byte* imgBuf4 = NULL;
 void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
 
@@ -460,17 +481,6 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	offset=dispheight*dispwidth*offset;
 	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
 	cv::Mat frame(dispheight, dispwidth,CV_8UC1,imgBuf);
-	
-		//stringstream ss;
-		//ss<<thisFrame->m_camNum;
-		//string str=ss.str();
-		//cv::imshow(str,frame);
-	/*
-	if(show_channel==thisFrame->m_camNum)
-	{
-		cv::imshow("disp",frame);
-		cv::waitKey(1);
-	}*/
 	cv::imshow("disp", frame);
 	cv::waitKey(1);
 
@@ -500,8 +510,6 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	if(f_softtirg)
 	{
 		recvSoftCnt++;
-
-		outfile<<"timeStamp:"<<thisFrame->timestamp<<endl;
 	}
 		//h_vw.write(frame);
 		
@@ -513,44 +521,103 @@ void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
 		return;
 	
 	CUsbControlDlg *pDlg=(CUsbControlDlg*)lpUser;
-	
-	cv::Mat frame(thisFrame->m_height,thisFrame->m_width,CV_8UC1,thisFrame->imgBuf);
-	if(show_channel==thisFrame->m_camNum)
+
+	int dispheight = thisFrame->m_height / g_camsize;
+	int dispwidth = thisFrame->m_width;
+	if (imgBuf2 == NULL)
 	{
-		cv::imshow("disp2",frame);
-		cv::waitKey(1);
-		//memset(imgBuf,0,g_width*g_height);
+		imgBuf2 = new byte[dispheight*dispwidth];
 	}
-			
-	if(b_save_file)
+	int offset = 0;
+	if (show_channel <= g_camsize - 1)
 	{
-		CString strName;
-		CString camFolder;
-		camFolder.Format(L"c:\\c6UDP\\cam%d",thisFrame->m_camNum);
-		if(CreateDirectory(camFolder,NULL)||ERROR_ALREADY_EXISTS == GetLastError())
-		{
-			int iFileIndex=1;
-			do 
-			{
-				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp",thisFrame->m_camNum,thisFrame->timestamp);
-				++iFileIndex;
-			} while (_waccess(strName,0)==0);
-			CT2CA pszConvertedAnsiString (strName);
-			std::string cvfilename(pszConvertedAnsiString);
-			cv::imwrite(cvfilename,frame);
-		}
+		offset = show_channel;
 	}
-	if(snap==true)
+	else
 	{
-		//cv::imwrite("snap.jpg",frame);
-		snap=false;
+		offset = g_camsize - 1;
 	}
-		//h_vw.write(frame);
+	offset = dispheight*dispwidth*offset;
+	memcpy(imgBuf2, thisFrame->imgBuf + offset, dispheight*dispwidth);
+	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf2);
+	cv::imshow("disp2", frame);
+	cv::waitKey(1);
+	if (f_softtirg)
+	{
+		recvSoftCnt2++;
+	}
+
+}
+void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
+{
+	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+	if (thisFrame == NULL)
+		return;
+
+	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
+
+	int dispheight = thisFrame->m_height / g_camsize;
+	int dispwidth = thisFrame->m_width;
+	if (imgBuf3 == NULL)
+	{
+		imgBuf3 = new byte[dispheight*dispwidth];
+	}
+	int offset = 0;
+	if (show_channel <= g_camsize - 1)
+	{
+		offset = show_channel;
+	}
+	else
+	{
+		offset = g_camsize - 1;
+	}
+	offset = dispheight*dispwidth*offset;
+	memcpy(imgBuf3, thisFrame->imgBuf + offset, dispheight*dispwidth);
+	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf3);
+	cv::imshow("disp3", frame);
+	cv::waitKey(1);
+	if (f_softtirg)
+	{
+		recvSoftCnt3++;
+	}
+
+}
+void _stdcall RawCallBack4(LPVOID lpParam, LPVOID lpUser)
+{
+	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+	if (thisFrame == NULL)
+		return;
+
+	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
+
+	int dispheight = thisFrame->m_height / g_camsize;
+	int dispwidth = thisFrame->m_width;
+	if (imgBuf4 == NULL)
+	{
+		imgBuf4 = new byte[dispheight*dispwidth];
+	}
+	int offset = 0;
+	if (show_channel <= g_camsize - 1)
+	{
+		offset = show_channel;
+	}
+	else
+	{
+		offset = g_camsize - 1;
+	}
+	offset = dispheight*dispwidth*offset;
+	memcpy(imgBuf4, thisFrame->imgBuf + offset, dispheight*dispwidth);
+	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf4);
+	cv::imshow("disp4", frame);
+	cv::waitKey(1);
+	if (f_softtirg)
+	{
+		recvSoftCnt4++;
+	}
+
 }
 void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 {
-
-	CUsbControlDlg *temp=this;
 	if(GigEstartCap(board1)<1)
 	{
 		SetDlgItemText(IDC_STATIC_TEXT,L"设备打开失败！");
@@ -599,7 +666,6 @@ void CUsbControlDlg::OnBnClickedBtnStopcapture()
 		
 	}
 	f_softtirg=0;
-	outfile.close();
 	UpdateData(TRUE);
 	//cv::destroyWindow("disp");
 	SetDlgItemText(IDC_STATIC_TEXT,L" ");
@@ -639,25 +705,74 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	int iFrame=0;
 	CString str;
+	stringstream sstemp;
 	switch(nIDEvent)
 	{
 	case 1://1s timer
 		{
-			iFrame= GigEgetFrameCnt()-lastFrameCnt;
-			m_lBytePerSecond= GigEgetDataCnt()-lastDataCnt;
+		unsigned int framecnttemp = GigEgetFrameCnt(board1);
+		unsigned int framecnttemp2 = GigEgetFrameCnt(board2);
+		unsigned int framecnttemp3 = GigEgetFrameCnt(board3);
+		unsigned int framecnttemp4 = GigEgetFrameCnt(board4);
 
-			str.Format(L"%d Fps     %0.4f MBs \nreceive: %d, send: %d,diff: %d \n Error Pack %d",
-				iFrame,float(m_lBytePerSecond)/1024.0/1024.0,
-				recvSoftCnt,sendSoftCnt,sendSoftCnt-recvSoftCnt,
-				GigEgetErrPackCnt());
-			
-			/*if(lastLostCnt-(recvSoftCnt-sendSoftCnt*6)!=0)
+		unsigned int bps = GigEgetDataCnt(board1);
+		unsigned int bps2 = GigEgetDataCnt(board2);
+		unsigned int bps3 = GigEgetDataCnt(board3);
+		unsigned int bps4 = GigEgetDataCnt(board4);
+		/*
+			str.Format(L" cam1: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
+cam2: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
+cam3: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
+cam4: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
+							",
+				framecnttemp - lastFrameCnt,float(bps- lastDataCnt)/1024.0/1024.0,recvSoftCnt,sendSoftCnt,sendSoftCnt-recvSoftCnt,GigEgetErrPackCnt(board1),
+				framecnttemp2 - lastFrameCnt2,float(bps2 - lastDataCnt2)/1024/1024, recvSoftCnt2, sendSoftCnt, sendSoftCnt - recvSoftCnt2, GigEgetErrPackCnt(board2),
+				framecnttemp3 - lastFrameCnt3, float(bps3 - lastDataCnt3) / 1024 / 1024, recvSoftCnt3, sendSoftCnt, sendSoftCnt - recvSoftCnt3, GigEgetErrPackCnt(board3),
+				framecnttemp4 - lastFrameCnt4, float(bps4 - lastDataCnt4) / 1024 / 1024, recvSoftCnt4, sendSoftCnt, sendSoftCnt - recvSoftCnt4, GigEgetErrPackCnt(board4));
+				*/
+#ifdef _CAM1
+			sstemp << "cam1: " << framecnttemp - lastFrameCnt << " FPS,"
+				<< float(bps - lastDataCnt) / 1024 / 1024 << "MB/s"
+				<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
+				<< ",ErrPack: " << GigEgetErrPackCnt(board1) << endl;
+#endif
+#ifdef _CAM2
+			sstemp << "cam2: " << framecnttemp2 - lastFrameCnt2 << " FPS," 
+				<< float(bps2 - lastDataCnt2) / 1024 / 1024 << "MB/s"
+				<< ",recv: " << recvSoftCnt2 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt2 
+				<< ",ErrPack: " << GigEgetErrPackCnt(board2) << endl;
+#endif
+#ifdef _CAM3
+			sstemp << "cam3: " << framecnttemp3 - lastFrameCnt3 << " FPS,"
+				<< float(bps3 - lastDataCnt3) / 1024 / 1024 << "MB/s"
+				<< ",recv: " << recvSoftCnt3 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt3
+				<< ",ErrPack: " << GigEgetErrPackCnt(board3) << endl;
+#endif
+#ifdef _CAM4
+			sstemp << "cam4: " << framecnttemp4 - lastFrameCnt4 << " FPS,"
+				<< float(bps4 - lastDataCnt4) / 1024 / 1024 << "MB/s"
+				<< ",recv: " << recvSoftCnt4 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt4
+				<< ",ErrPack: " << GigEgetErrPackCnt(board4) << endl;
+#endif
+			str=sstemp.str().c_str();
+
+			/*if(lastLostCnt-(recvSoftCnt-sendSoftCnt*6)!=0
 			{
 				sndPlaySound(_T("trainhorn.WAV"),SND_ASYNC);
 				lastLostCnt=recvSoftCnt-sendSoftCnt*6;
 			}*/
-			lastFrameCnt= GigEgetFrameCnt();
-			lastDataCnt= GigEgetDataCnt();
+			lastFrameCnt= framecnttemp;
+			lastDataCnt= bps;
+
+			lastFrameCnt2 = framecnttemp2;
+			lastDataCnt2 = bps2;
+
+			lastFrameCnt3 = framecnttemp3;
+			lastDataCnt3 = bps3;
+
+			lastFrameCnt4 = framecnttemp4;
+			lastDataCnt4 = bps4;
+
 			SetDlgItemText(IDC_STATIC_TEXT,str);
 			break;
 		}
@@ -665,7 +780,18 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 		{
 			if(f_softtirg)
 			{
+#ifdef _CAM1
 				GigEsendSoftTrig(board1);
+#endif
+#ifdef _CAM2
+				GigEsendSoftTrig(board2);
+#endif
+#ifdef _CAM3
+				GigEsendSoftTrig(board3);
+#endif
+#ifdef _CAM4
+				GigEsendSoftTrig(board4);
+#endif
 				sendSoftCnt++;
 			}
 		}
@@ -843,7 +969,7 @@ void CUsbControlDlg::OnBnClickedButtonSetIP()
 	int idx = listbox.GetCurSel();
 	if (idx <0)
 	{
-		SetDlgItemText(IDC_STATIC_TEXT, _T("please select a item"));
+		SetDlgItemText(IDC_STATIC_TEXT, _T("please select an item"));
 		return;
 	}
 	CString strtemp;
@@ -911,14 +1037,6 @@ void CUsbControlDlg::OnBnClickedButtonForceip()
 	m_ePCIp2.GetWindowTextW(szBuf, 24);
 	c->hostaddr = WStringToString(szBuf);
 
-	/*m_ePCIp2.GetAddress(ipaddr);
-	sockaddr_in socktemp;
-	char str1[INET_ADDRSTRLEN];
-	socktemp.sin_addr.S_un.S_addr = ipaddr;
-	inet_ntop(AF_INET, &(socktemp.sin_addr), str1, INET_ADDRSTRLEN);
-	std::string ipaddrstr(str1);
-	c->hostaddr =ipaddrstr;*/
-	
 	int rst = GigEforceIP(c);
 	CString str;
 	if (rst < 0)
@@ -942,37 +1060,8 @@ void CUsbControlDlg::OnBnClickedBtnConnect()
 
 	if (idx <= -1)
 	{
-		map_camera::iterator itr;
-		itr = cameralist->begin(); 
-		if (itr != cameralist->end())
-		{
-			CCHCamera *c0 = itr->second;
-			board1 = GigEaddInstance((LPVOID*)this, RawCallBack, c0);
-			itr++;
-		}
-		
-		if (itr != cameralist->end())
-		{
-			CCHCamera *c1 = itr->second;
-			board2 = GigEaddInstance((LPVOID*)this, RawCallBack2, c1);
-		}
-		
-		
-		if (board1&&board2>0)
-		{
-			str.Format(L"Device connected");
-			SetDlgItemText(IDC_STATIC_TEXT, str);
-			gb_imgctrl.EnableWindow(1);
-		
+		SetDlgItemText(IDC_STATIC_TEXT, _T("please select an item"));
 
-
-		}
-		else
-		{
-			str.Format(L"connect error %d", board1);
-			SetDlgItemText(IDC_STATIC_TEXT, str);
-		}
-		return;
 	}
 	else
 	{
@@ -1124,9 +1213,11 @@ void CUsbControlDlg::OnCbnSelchangeComboTrig()
 void CUsbControlDlg::OnBnClickedBtnTrig()
 {
 	recvSoftCnt=0;
+	recvSoftCnt2 = 0;
+	recvSoftCnt3 = 0;
+	recvSoftCnt4 = 0;
 	sendSoftCnt=0;
 	f_softtirg=1;
-	outfile.open("c:\\c6UDP\\SoftTrigCnt.txt");
 	GigEsendSoftTrig(board1);
 }
 
@@ -1200,131 +1291,59 @@ void CUsbControlDlg::OnBnClickedButtonSendgain2()
 }
 
 void CUsbControlDlg::OnBnClickedBtnregread()
- 
 {
- 
   /*
- 
   std::stringstream ss_addr, ss_value;
- 
   unsigned int ee_addr, ee_value;
- 
   ss_addr << std::hex << it_map->first;
- 
   ss_value << std::hex << it_map->second;
- 
-
- 
   ss_addr >> ee_addr;
- 
   ss_value >> ee_value;
- 
   */
- 
-
- 
   std::stringstream ss_addr, ss_value;
- 
   uint32_t addr;
- 
   CString cs_regaddr;
- 
   m_eRegAddr.GetWindowTextW(cs_regaddr);
- 
   CT2CA pszConvertedAnsiString(cs_regaddr);
- 
   std::string str_addr(pszConvertedAnsiString);
- 
   ss_addr << std::hex << str_addr;
- 
   ss_addr >> addr;
- 
   uint32_t regdata;
- 
   if (GigEReadReg(addr, &regdata, board1))
- 
   {
- 
-  
- 
     CString str;
- 
     str.Format(L"%x", regdata);
- 
     m_eRegData.SetWindowTextW(str);
- 
   }
- 
   else
- 
   {
- 
     m_eRegData.SetWindowTextW(L"error");
- 
   }
- 
-
- 
 }
  
-
- 
-
- 
-
- 
 void CUsbControlDlg::OnBnClickedBtnregwrite()
- 
 {
- 
   std::stringstream ss_addr, ss_value;
- 
   uint32_t regaddr, regdata;
- 
   CString cs_regaddr, cs_regdata;
- 
   m_eRegAddr.GetWindowTextW(cs_regaddr);
- 
   CT2CA pszConvertedAnsiString(cs_regaddr);
- 
   std::string str_addr(pszConvertedAnsiString);
- 
   ss_addr << std::hex << str_addr;
- 
   ss_addr >> regaddr;
- 
-
- 
   m_eRegData.GetWindowTextW(cs_regaddr);
- 
   CT2CA pszConvertedAnsiString1(cs_regaddr);
- 
   std::string str_data(pszConvertedAnsiString1);
- 
   ss_value << std::hex << str_data;
- 
   ss_value >> regdata;
- 
-
- 
   if (GigEWriteReg(regaddr, regdata, board1))
- 
   {
- 
-
- 
     SetDlgItemText(IDC_STATIC_TEXT, L"Success");
- 
   }
- 
   else
- 
   {
- 
     SetDlgItemText(IDC_STATIC_TEXT, L"error");
- 
   }
- 
 }
  
 
@@ -1390,4 +1409,123 @@ void CUsbControlDlg::OnBnClickedBtnWbset2()
 	m_eBGain.GetWindowTextW(cs_b);
 	m_eGGain2.GetWindowTextW(cs_g2);
 	GigEsetWB(_ttoi(cs_r), _ttoi(cs_g),_ttoi(cs_g2), _ttoi(cs_b), board1);
+}
+
+
+void CUsbControlDlg::OnBnClickedButton1()
+{
+	CString str;
+		map_camera::iterator itr;
+		itr = cameralist->begin();
+#ifdef _CAM1
+		if (itr != cameralist->end())
+		{
+			CCHCamera *c0 = itr->second;
+			board1 = GigEaddInstance((LPVOID*)this, RawCallBack, c0);
+			if (board1 <= 0)
+			{
+				str.Format(L"connect error cam1");
+				SetDlgItemText(IDC_STATIC_TEXT, str);
+				return;
+			}
+			itr++;
+		}
+#endif
+
+#ifdef _CAM2
+		if (itr != cameralist->end())
+		{
+			CCHCamera *c1 = itr->second;
+			board2 = GigEaddInstance((LPVOID*)this, RawCallBack2, c1);
+			if (board2 <= 0)
+			{
+				str.Format(L"connect error cam2");
+				SetDlgItemText(IDC_STATIC_TEXT, str);
+				return;
+			}
+			itr++;
+		}
+#endif
+
+#ifdef _CAM3
+		if (itr != cameralist->end())
+		{
+			CCHCamera *c1 = itr->second;
+			board3 = GigEaddInstance((LPVOID*)this, RawCallBack3, c1);
+			if (board3 <= 0)
+			{
+				str.Format(L"connect error cam3");
+				SetDlgItemText(IDC_STATIC_TEXT, str);
+				return;
+			}
+			itr++;
+		}
+#endif
+
+#ifdef _CAM4
+		if (itr != cameralist->end())
+		{
+			CCHCamera *c1 = itr->second;
+			board4 = GigEaddInstance((LPVOID*)this, RawCallBack4, c1);
+			if (board4 <= 0)
+			{
+				str.Format(L"connect error cam4");
+				SetDlgItemText(IDC_STATIC_TEXT, str);
+				return;
+			}
+
+		}
+#endif
+		str.Format(L"Device connected");
+		SetDlgItemText(IDC_STATIC_TEXT, str);
+		gb_imgctrl.EnableWindow(1);
+	
+		sendSoftCnt = 0;
+		f_softtirg = 1;
+
+
+		
+#ifdef _CAM1
+		recvSoftCnt = 0;
+		GigEsetTrigMode(2, board1);
+		if (GigEstartCap(board1)<1)
+		{
+			SetDlgItemText(IDC_STATIC_TEXT, L"设备打开失败！");
+			return;
+		}
+#endif
+
+#ifdef _CAM2
+		recvSoftCnt2 = 0;
+		GigEsetTrigMode(2, board2);
+		if (GigEstartCap(board2)<0)
+		{
+			SetDlgItemText(IDC_STATIC_TEXT, L"设备2打开失败！");
+			return;
+		}
+#endif
+
+#ifdef _CAM3
+		recvSoftCnt3 = 0;
+		GigEsetTrigMode(2, board3);
+		if (GigEstartCap(board3)<0)
+		{
+			SetDlgItemText(IDC_STATIC_TEXT, L"设备2打开失败！");
+			return;
+		}
+#endif
+
+#ifdef _CAM4
+		recvSoftCnt4 = 0;
+		GigEsetTrigMode(2, board4);
+		if (GigEstartCap(board4)<0)
+		{
+			SetDlgItemText(IDC_STATIC_TEXT, L"设备2打开失败！");
+			return;
+		}
+#endif
+		SetDlgItemText(IDC_STATIC_TEXT, L"采集中...");
+		CheckRadioButton(IDC_RADIO_NORMAL, IDC_RADIO_XYMIRROR, IDC_RADIO_NORMAL);
+		SetTimer(1, 1000, NULL);
+		SetTimer(2, 500, NULL);
 }

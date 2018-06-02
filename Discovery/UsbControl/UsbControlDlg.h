@@ -72,8 +72,19 @@ private:
 	BOOL          m_bSave;
 	BOOL          m_Init;
 	CString       m_strDataFileName;
+	
 	unsigned long lastDataCnt;
 	unsigned int lastFrameCnt;
+
+	unsigned long lastDataCnt2;
+	unsigned int lastFrameCnt2;
+
+	unsigned long lastDataCnt3;
+	unsigned int lastFrameCnt3;
+
+	unsigned long lastDataCnt4;
+	unsigned int lastFrameCnt4;
+	
 	GigEclientPropStruct prop;
 	map_deviceInfo *devicelist;
 	map_camera *cameralist;
@@ -156,4 +167,5 @@ public:
 	CIPAddressCtrl m_eSUBNET2;
 	CIPAddressCtrl m_eGATE2;
 	afx_msg void OnBnClickedBtnWbset2();
+	afx_msg void OnBnClickedButton1();
 };
