@@ -11,10 +11,10 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 */
-#define _SAVEFILE
+//#define _SAVEFILE
 //#define _READFILE
 //#define _USELINE
-#define _LOSTFRAME
+//#define _LOSTFRAME
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -26,7 +26,7 @@ static char THIS_FILE[]=__FILE__;
 #ifdef _W640
 //#define TOTALPACK 39	//for 640*480
 #endif
-#define MAX_RESEND_SIZE 255
+//#define MAX_RESEND_SIZE 255
 GigECDataCapture::GigECDataCapture(GigEwqueue<GigEimgFrame*>&queue, GigECDataProcess *dp)
 	:m_queue(queue)
 {
@@ -770,7 +770,6 @@ int GigECDataCapture::getProp(GigEclientPropStruct* prop)
 						return -1;
 					return camnum;
 				}
-			
 		}
 	}
 	return -2;
@@ -793,11 +792,7 @@ int GigECDataCapture::sendOrder(GigEcamPropStruct camprop,int s)
 	sendto(socketSrv,sendbuff,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
 	return 0;
 }
-unsigned __int32 GigECDataCapture::ReadReg(unsigned __int32 addr)
-{
 
-	return -1;
-}
 unsigned __int32 GigECDataCapture::WriteReg(unsigned __int32 addr, unsigned __int32 data)
 {
 	char *sendbuff=new char[32];

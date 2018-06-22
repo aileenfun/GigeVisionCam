@@ -187,6 +187,12 @@ int GigEsetCamSize(int camsize,int camNum)
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setCamSize(camsize);
 }
+int GigEgetCamSize(unsigned int *camsize, int camNum)
+{
+	if (camNum<1)return camNum;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->getCamSize(camsize);
+}
 int GigEsetROI(int xstart, int xend, int ystart, int yend, int enable, int camNum)
 {
 	if (camNum<1)return camNum;

@@ -347,6 +347,11 @@ public:
 		m_pDataProcess->setCamSize(camsize);
 		return (m_DeviceGVCP.WriteReg(0x33bb0010,camsize));
 	}
+	int getCamSize(unsigned int  *camsize)
+	{
+		 m_DeviceGVCP.ReadReg(0x33bb0010, camsize);
+		 return *camsize;
+	}
 	int setROI(int xstart, int xend, int ystart, int yend, int enable)
 	{
 		if (!enable)
@@ -397,11 +402,12 @@ CCT_API int GigEsetExpo(uint32_t value,int isauto,int camNum=1);
 CCT_API int GigEsetFreq(uint32_t value,int camNum=1);
 CCT_API int GigEsetWB(uint32_t rvalue,uint32_t gvalue,uint32_t g2value,uint32_t bvalue,int camNum=1);
 CCT_API int GigEsetCamSize(int camsize,int camNum=1);
+CCT_API int GigEgetCamSize(unsigned int *camsize,int camNum = 1);
 CCT_API int GigEsetROI(int xstart, int xend, int ystart, int yend, int enable, int camNum = 1);
 CCT_API int GigEsetBinning(int enable,int camNum=1);
 CCT_API int GigEsetSkip(int enable,int camNum=1);
 
-
+//C#使用的包裹层函数列表
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);
 CCT_API int csSetROI(int xstart, int xend, int ystart, int yend, int enable);

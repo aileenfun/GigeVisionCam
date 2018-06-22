@@ -12,6 +12,7 @@
 #include <opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include "MACAddrEdit.h"
 #include "afxcmn.h"
 #include "atlbase.h"  
@@ -168,4 +169,5 @@ public:
 	CIPAddressCtrl m_eGATE2;
 	afx_msg void OnBnClickedBtnWbset2();
 	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedBtnTrig2();
 };

@@ -104,7 +104,7 @@
 #define IDC_IPADDRESS_PCIP2             1068
 #define IDC_BTN_roiset                  1069
 #define btn_test                        1070
-
+#define IDC_BTN_TRIG2                   1071
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
