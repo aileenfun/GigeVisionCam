@@ -214,7 +214,7 @@ int GigEsetBinning(int enable,int camNum)
 
 byte * pimagebuf=NULL;
 int imgready=0;
-int board1=0;
+int board1=1;
 #ifdef _W1280
 int cs_width=1280;
 int cs_height=960;
@@ -303,4 +303,41 @@ int csGetFrame(unsigned char * buff)
 	//cv::cvtColor(frameGray,frameRGB,CV_BayerBG2BGR);
 	imgready = 0;
 	return cs_height*cs_width;
+}
+/*
+Gaussian parameters:
+
+----------------
+| c  | b | c  |
+----------------
+| b  | a | b  |
+----------------
+| c  | b | c  |
+----------------
+*/
+
+int csSetGaussianA(uint8_t a)
+{
+
+	return GigEWriteReg(0x33bb0100,a,board1);
+}
+int csSetGaussianB(uint8_t b)
+{
+	return GigEWriteReg(0x33bb0104, b, board1);
+}
+int csSetGaussianC(uint8_t c)
+{
+	return GigEWriteReg(0x33bb0108, c, board1);
+}
+int csSetMaxBrightnessThreshold(uint8_t data)
+{
+	return GigEWriteReg(0x33bb010c, data, board1);
+}
+int csSetMaxLineWidth(uint32_t data)
+{
+	return GigEWriteReg(0x33bb0110, data, board1);
+}
+int csSetMinLineWidth(uint32_t data)
+{
+	return GigEWriteReg(0x33bb0114, data, board1);
 }

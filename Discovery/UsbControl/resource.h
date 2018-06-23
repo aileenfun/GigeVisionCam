@@ -37,7 +37,9 @@
 #define IDC_RADIO_GB_CHANGE             1017
 #define IDC_BUTTON_TRIG                 1018
 #define IDC_EDIT1                       1019
+#define IDC_EDITA                       1019
 #define IDC_EDIT2                       1020
+#define IDC_EDITB                       1020
 #define IDC_BUTTON_SETIP                1021
 #define IDC_BUTTON3                     1022
 #define IDC_PipeReset                   1022
@@ -52,6 +54,7 @@
 #define IDC_text2                       1026
 #define IDC_BUTTON_ForceIp              1026
 #define IDC_I2CRead                     1027
+#define IDC_EDITC                       1027
 #define IDC_I2CWrite                    1028
 #define IDC_COMBO1                      1028
 #define IDC_COMBO_CHANNEL               1028
@@ -77,6 +80,7 @@
 #define IDC_STATIC_PACK2                1043
 #define IDC_BTN_TRIG                    1044
 #define IDC_BTN_WBSet                   1045
+#define IDC_EDITMAXP                    1045
 #define IDC_BTNW                        1046
 #define IDC_EDITCAMSIZE                 1047
 #define IDC_EDIT_regdata                1047
@@ -105,6 +109,11 @@
 #define IDC_BTN_roiset                  1069
 #define btn_test                        1070
 #define IDC_BTN_TRIG2                   1071
+#define IDC_EDITMAXW                    1072
+#define IDC_EDITMINW                    1073
+#define IDC_BTN_roiset2                 1074
+#define IDC_BTN_minset                  1074
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

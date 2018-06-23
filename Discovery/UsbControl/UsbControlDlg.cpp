@@ -215,6 +215,7 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(IDC_BTN_WBSet2, &CUsbControlDlg::OnBnClickedBtnWbset2)
 	ON_BN_CLICKED(btn_test, &CUsbControlDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BTN_TRIG2, &CUsbControlDlg::OnBnClickedBtnTrig2)
+	ON_BN_CLICKED(IDC_BTN_minset, &CUsbControlDlg::OnBnClickedBtnminset)
 END_MESSAGE_MAP()
 
 
@@ -276,6 +277,13 @@ BOOL CUsbControlDlg::OnInitDialog()
 	m_eGAIN.SetWindowTextW(_T("16"));
 
 	m_ecamsize.SetWindowTextW(_T("6"));
+	
+	SetDlgItemText(IDC_EDITA, _T("152"));
+	SetDlgItemText(IDC_EDITB, _T("121"));
+	SetDlgItemText(IDC_EDITC, _T("97"));
+	SetDlgItemText(IDC_EDITMAXP, _T("200"));
+	SetDlgItemText(IDC_EDITMAXW, _T("150"));
+	SetDlgItemText(IDC_EDITMINW, _T("1"));
 	autogain.SetCheck(1);
 	autoexpo.SetCheck(1);
 	m_eEXPO.EnableWindow(0);
@@ -1626,4 +1634,35 @@ void CUsbControlDlg::OnBnClickedBtnTrig2()
 	sendSoftCnt = 0;
 	f_softtirg = 1;
 	GigEsendSoftTrig(board1);
+}
+
+
+void CUsbControlDlg::OnBnClickedBtnminset()
+{
+	CString str;
+	int data;
+	GetDlgItemText(IDC_EDITA,str);
+	data = _ttoi(str);
+	csSetGaussianA(data);
+
+	GetDlgItemText(IDC_EDITB, str);
+	data = _ttoi(str);
+	csSetGaussianB(data);
+
+	GetDlgItemText(IDC_EDITC, str);
+	data = _ttoi(str);
+	csSetGaussianC(data);
+
+	GetDlgItemText(IDC_EDITMAXP, str);
+	data = _ttoi(str);
+	csSetMaxBrightnessThreshold(data);
+
+	GetDlgItemText(IDC_EDITMAXW, str);
+	data = _ttoi(str);
+	csSetMaxLineWidth(data);
+
+	GetDlgItemText(IDC_EDITMINW, str);
+	data = _ttoi(str);
+	csSetMinLineWidth(data);
+
 }
