@@ -1,4 +1,3 @@
-
 // UsbControlDlg.cpp : 实现文件
 //
 
@@ -490,18 +489,25 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	{
 		CString strName;
 		CString camFolder;
-		camFolder.Format(L"c:\\c6UDP\\cam%d",thisFrame->m_camNum);
+
+		for(int cameranumber=0;cameranumber<g_camsize;cameranumber++)
+		{
+		camFolder.Format(L"c:\\c6UDP\\cam%d",cameranumber);
 		if(CreateDirectory(camFolder,NULL)||ERROR_ALREADY_EXISTS == GetLastError())
 		{
 			int iFileIndex=1;
 			do 
 			{
-				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp",thisFrame->m_camNum,thisFrame->timestamp);
+				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp",cameranumber,thisFrame->timestamp);
 				++iFileIndex;
 			} while (_waccess(strName,0)==0);
 			CT2CA pszConvertedAnsiString (strName);
 			std::string cvfilename(pszConvertedAnsiString);
-			cv::imwrite(cvfilename,frame);
+			offset=cameranumber*dispheight*dispwidth;
+			memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
+			cv::Mat framesave(dispheight, dispwidth, CV_8UC1, imgBuf);
+			cv::imwrite(cvfilename, framesave);
+			
 		}
 	}
 	if(snap==true)
@@ -516,7 +522,7 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 		//h_vw.write(frame);
 		
 }
-#endif
+#else
 void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
 	/*相机传上来的数据保存在thisFrame中，数据的长度为height*width*camsize,
@@ -587,23 +593,24 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 		b_save_file = false;
 		CString strName;
 		CString camFolder;
-		camFolder.Format(L"c:\\c6UDP\\cam%d", thisFrame->m_camNum);
+		camFolder.Format(L"c:\\c6UDP\\cam%d", g_camsize);
 		if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
 		{
 			int iFileIndex = 1;
 			do
 			{
-				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", thisFrame->m_camNum, thisFrame->timestamp);
+				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", g_camsize, thisFrame->timestamp);
 				++iFileIndex;
 			} while (_waccess(strName, 0) == 0);
 			CT2CA pszConvertedAnsiString(strName);
 			std::string cvfilename(pszConvertedAnsiString);
-			cv::imwrite(cvfilename, frame);
+
 
 			int pos=cvfilename.length() - 4;
 			cvfilename.insert(pos,"RGB");
 			cv::imwrite(cvfilename, frameRGB);
 		}
+		
 	}
 	if (snap == true)
 	{
@@ -617,6 +624,8 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	//h_vw.write(frame);
 
 }
+#endif
+#ifdef _CAM2
 void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
 {
 	GigEimgFrame *thisFrame=(GigEimgFrame*)lpParam;
@@ -651,6 +660,8 @@ void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
 	}
 
 }
+#endif
+#ifdef _CAM3
 void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
 {
 	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
@@ -685,6 +696,8 @@ void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
 	}
 
 }
+#endif
+#ifdef _CAM4
 void _stdcall RawCallBack4(LPVOID lpParam, LPVOID lpUser)
 {
 	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
@@ -719,6 +732,7 @@ void _stdcall RawCallBack4(LPVOID lpParam, LPVOID lpUser)
 	}
 
 }
+#endif
 void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 {
 	if(GigEstartCap(board1)<1)
