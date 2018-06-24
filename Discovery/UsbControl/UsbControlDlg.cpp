@@ -465,50 +465,61 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	}
 
 	int offset = 0;
-	if (show_channel<=g_camsize - 1)//选择显示哪一个相机的图像。
+	if (show_channel <= g_camsize - 1)//选择显示哪一个相机的图像。
 	{
 		offset = show_channel;
 	}
 	else
 	{
-		offset = g_camsize-1;
+		offset = g_camsize - 1;
 	}
-	offset=dispheight*dispwidth*offset;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像
-	cv::Mat frame(dispheight, dispwidth,CV_8UC1,imgBuf);
+	offset = dispheight*dispwidth*offset;
+	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
+	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
 	cv::imshow("disp", frame);
 	cv::waitKey(1);
 
-	if(b_save_file)
+
+
+	if (b_save_file)
 	{
 		CString strName;
 		CString camFolder;
-		camFolder.Format(L"c:\\c6UDP\\cam%d",thisFrame->m_camNum);
-		if(CreateDirectory(camFolder,NULL)||ERROR_ALREADY_EXISTS == GetLastError())
+
+		for (int cameranumber = 0; cameranumber<g_camsize; cameranumber++)
 		{
-			int iFileIndex=1;
-			do 
+			camFolder.Format(L"c:\\c6UDP\\cam%d", cameranumber);
+			if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
 			{
-				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp",thisFrame->m_camNum,thisFrame->timestamp);
-				++iFileIndex;
-			} while (_waccess(strName,0)==0);
-			CT2CA pszConvertedAnsiString (strName);
-			std::string cvfilename(pszConvertedAnsiString);
-			cv::imwrite(cvfilename,frame);
+				int iFileIndex = 1;
+				do
+				{
+					strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", cameranumber, thisFrame->timestamp);
+					++iFileIndex;
+				} while (_waccess(strName, 0) == 0);
+				CT2CA pszConvertedAnsiString(strName);
+				std::string cvfilename(pszConvertedAnsiString);
+				offset = cameranumber*dispheight*dispwidth;
+				memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
+				cv::Mat framesave(dispheight, dispwidth, CV_8UC1, imgBuf);
+				cv::imwrite(cvfilename, framesave);
+
+			}
 		}
-	}
-	if(snap==true)
-	{
-		//cv::imwrite("snap.jpg",frame);
-		snap=false;
-	}
-	if(f_softtirg)
-	{
-		recvSoftCnt++;
-	}
+		if (snap == true)
+		{
+			//cv::imwrite("snap.jpg",frame);
+			snap = false;
+		}
+		if (f_softtirg)
+		{
+			recvSoftCnt++;
+		}
 		//h_vw.write(frame);
-		
+
 }
+}
+#ifdef _CAM2
 void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
 {
 	GigEimgFrame *thisFrame=(GigEimgFrame*)lpParam;
@@ -543,6 +554,8 @@ void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
 	}
 
 }
+#endif
+#ifdef _CAM3
 void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
 {
 	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
@@ -577,6 +590,8 @@ void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
 	}
 
 }
+#endif
+#ifdef _CAM4
 void _stdcall RawCallBack4(LPVOID lpParam, LPVOID lpUser)
 {
 	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
@@ -611,6 +626,7 @@ void _stdcall RawCallBack4(LPVOID lpParam, LPVOID lpUser)
 	}
 
 }
+#endif
 void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 {
 	if(GigEstartCap(board1)<1)
