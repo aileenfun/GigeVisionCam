@@ -770,6 +770,7 @@ int GigECDataCapture::getProp(GigEclientPropStruct* prop)
 						return -1;
 					return camnum;
 				}
+			
 		}
 	}
 	return -2;

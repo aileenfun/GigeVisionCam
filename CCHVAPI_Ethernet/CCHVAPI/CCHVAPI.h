@@ -415,11 +415,4 @@ CCT_API int csSetExpo(uint32_t value, int isauto);
 CCT_API int csStart();
 CCT_API int csStop();
 CCT_API int csGetFrame(unsigned char * buff);
-
-CCT_API int csSetGaussianA(uint8_t a);
-CCT_API int csSetGaussianB(uint8_t b);
-CCT_API int csSetGaussianC(uint8_t c);
-CCT_API int csSetMaxBrightnessThreshold(uint8_t data);
-CCT_API int csSetMaxLineWidth(uint32_t data);
-CCT_API int csSetMinLineWidth(uint32_t data);
 //#endif 

@@ -46,7 +46,7 @@ unsigned long recvSoftCnt3 = 0;
 unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
-unsigned int g_camsize = 1;
+int g_camsize = 6;
 class CAboutDlg : public CDialog
 {
 public:
@@ -214,8 +214,6 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_ForceIp, &CUsbControlDlg::OnBnClickedButtonForceip)
 	ON_BN_CLICKED(IDC_BTN_WBSet2, &CUsbControlDlg::OnBnClickedBtnWbset2)
 	ON_BN_CLICKED(btn_test, &CUsbControlDlg::OnBnClickedButton1)
-	ON_BN_CLICKED(IDC_BTN_TRIG2, &CUsbControlDlg::OnBnClickedBtnTrig2)
-	ON_BN_CLICKED(IDC_BTN_minset, &CUsbControlDlg::OnBnClickedBtnminset)
 END_MESSAGE_MAP()
 
 
@@ -246,7 +244,8 @@ BOOL CUsbControlDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-
+	// TODO: 在此添加额外的初始化代码
+	//------------------------------------
 	CRect cRect,wRect,mRect;
 	GetDesktopWindow()->GetWindowRect(wRect);
 	GetWindowRect(cRect);
@@ -276,14 +275,11 @@ BOOL CUsbControlDlg::OnInitDialog()
 	m_eEXPO.SetWindowTextW(_T("300"));
 	m_eGAIN.SetWindowTextW(_T("16"));
 
+	//m_eCAMIP.SetWindowTextW(_T("192.168.1.10"));
+	//m_eSUBNET.SetWindowTextW(_T("255.255.255.0"));
+	//m_eGATE.SetWindowTextW(_T("192.168.1.1"));
 	m_ecamsize.SetWindowTextW(_T("6"));
-	
-	SetDlgItemText(IDC_EDITA, _T("152"));
-	SetDlgItemText(IDC_EDITB, _T("121"));
-	SetDlgItemText(IDC_EDITC, _T("97"));
-	SetDlgItemText(IDC_EDITMAXP, _T("200"));
-	SetDlgItemText(IDC_EDITMAXW, _T("150"));
-	SetDlgItemText(IDC_EDITMINW, _T("1"));
+//	m_ePCIp.SetWindowTextW(_T("192.168.1.3"));
 	autogain.SetCheck(1);
 	autoexpo.SetCheck(1);
 	m_eEXPO.EnableWindow(0);
@@ -449,7 +445,6 @@ byte* imgBuf = NULL;
 byte* imgBuf2 = NULL;
 byte* imgBuf3 = NULL;
 byte* imgBuf4 = NULL;
-#ifdef ORG
 void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
 	/*相机传上来的数据保存在thisFrame中，数据的长度为height*width*camsize,
@@ -479,12 +474,10 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 		offset = g_camsize-1;
 	}
 	offset=dispheight*dispwidth*offset;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
+	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像
 	cv::Mat frame(dispheight, dispwidth,CV_8UC1,imgBuf);
 	cv::imshow("disp", frame);
 	cv::waitKey(1);
-
-
 
 	if(b_save_file)
 	{
@@ -515,107 +508,6 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	}
 		//h_vw.write(frame);
 		
-}
-#endif
-void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
-{
-	/*相机传上来的数据保存在thisFrame中，数据的长度为height*width*camsize,
-	例如，假如您的系统为6个相机，每个相机的分辨率为1280*960，那么传上来的数据总长度就是1280*960*6，
-	各个相机的图像数据从0号相机到5号相机依次排列，例如2号相机的图像就位于1280*960*2,长度为1280*960,
-	只需要对该数据块按照分辨率进行切割，就是对应的相机的图像。*/
-	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
-	if (thisFrame == NULL)
-		return;
-	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
-	int dispheight = thisFrame->m_height / g_camsize;
-	//图像的高度为m_height，因此单个图像的高度就是m_height/g_camsize
-	int dispwidth = thisFrame->m_width;
-	//数据块的宽度与图像宽度相等。
-	if (imgBuf == NULL)
-	{
-		imgBuf = new byte[dispheight*dispwidth];
-	}
-
-	int offset = 0;
-	if (show_channel <= g_camsize - 1)//选择显示哪一个相机的图像。
-	{
-		offset = show_channel;
-	}
-	else
-	{
-		offset = g_camsize - 1;
-	}
-	offset = dispheight*dispwidth*offset;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
-	cv::Mat frameRGB;
-	cv::cvtColor(frame, frameRGB, CV_GRAY2BGR);
-
-	int coords_height = 4;
-	int imageheight = dispheight - coords_height;
-	int coords_len = imageheight*4;
-	int imagewidth = dispwidth;
-	byte * coords = new byte[coords_len];//1
-	memcpy(coords, thisFrame->imgBuf + offset + imageheight *imagewidth, coords_len);
-	
-	cv::Point pt;
-	int xtemp, ytemp;
-	for (int i = 0; i < coords_len; i+=4)
-	{
-		ytemp = coords[i];
-		ytemp=ytemp<<8;
-		ytemp += coords[i + 1];
-		xtemp = coords[i + 2];
-		xtemp=xtemp<<8;
-		xtemp += coords[i + 3];
-		if (xtemp > imagewidth)
-		{
-			continue;
-		}
-		pt.x = xtemp;
-		pt.y = ytemp-1;
-		circle(frameRGB, pt, 1, cv::Scalar(0, 0, 255));
-	}
-	//cv::imshow("disp", frame);
-	cv::imshow("RGB", frameRGB);
-	cv::waitKey(1);
-
-
-
-	if (b_save_file)
-	{
-		b_save_file = false;
-		CString strName;
-		CString camFolder;
-		camFolder.Format(L"c:\\c6UDP\\cam%d", thisFrame->m_camNum);
-		if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
-		{
-			int iFileIndex = 1;
-			do
-			{
-				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", thisFrame->m_camNum, thisFrame->timestamp);
-				++iFileIndex;
-			} while (_waccess(strName, 0) == 0);
-			CT2CA pszConvertedAnsiString(strName);
-			std::string cvfilename(pszConvertedAnsiString);
-			cv::imwrite(cvfilename, frame);
-
-			int pos=cvfilename.length() - 4;
-			cvfilename.insert(pos,"RGB");
-			cv::imwrite(cvfilename, frameRGB);
-		}
-	}
-	if (snap == true)
-	{
-		//cv::imwrite("snap.jpg",frame);
-		snap = false;
-	}
-	if (f_softtirg)
-	{
-		recvSoftCnt++;
-	}
-	//h_vw.write(frame);
-
 }
 void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
 {
@@ -733,6 +625,7 @@ void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 		SetDlgItemText(IDC_STATIC_TEXT,L"采集中...");
 		CheckRadioButton(IDC_RADIO_NORMAL,IDC_RADIO_XYMIRROR,IDC_RADIO_NORMAL);
 		SetTimer(1,1000,NULL);
+		SetTimer(2, 1000, NULL);
 		cv::namedWindow("disp");
 	
 
@@ -821,44 +714,59 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 		unsigned int bps2 = GigEgetDataCnt(board2);
 		unsigned int bps3 = GigEgetDataCnt(board3);
 		unsigned int bps4 = GigEgetDataCnt(board4);
-
+		/*
+			str.Format(L" cam1: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
+cam2: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
+cam3: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
+cam4: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
+							",
+				framecnttemp - lastFrameCnt,float(bps- lastDataCnt)/1024.0/1024.0,recvSoftCnt,sendSoftCnt,sendSoftCnt-recvSoftCnt,GigEgetErrPackCnt(board1),
+				framecnttemp2 - lastFrameCnt2,float(bps2 - lastDataCnt2)/1024/1024, recvSoftCnt2, sendSoftCnt, sendSoftCnt - recvSoftCnt2, GigEgetErrPackCnt(board2),
+				framecnttemp3 - lastFrameCnt3, float(bps3 - lastDataCnt3) / 1024 / 1024, recvSoftCnt3, sendSoftCnt, sendSoftCnt - recvSoftCnt3, GigEgetErrPackCnt(board3),
+				framecnttemp4 - lastFrameCnt4, float(bps4 - lastDataCnt4) / 1024 / 1024, recvSoftCnt4, sendSoftCnt, sendSoftCnt - recvSoftCnt4, GigEgetErrPackCnt(board4));
+				*/
 #ifdef _CAM1
 			sstemp << "cam1: " << framecnttemp - lastFrameCnt << " FPS,"
 				<< float(bps - lastDataCnt) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
 				<< ",ErrPack: " << GigEgetErrPackCnt(board1) << endl;
-
-			lastFrameCnt = framecnttemp;
-			lastDataCnt = bps;
 #endif
 #ifdef _CAM2
 			sstemp << "cam2: " << framecnttemp2 - lastFrameCnt2 << " FPS," 
 				<< float(bps2 - lastDataCnt2) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt2 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt2 
 				<< ",ErrPack: " << GigEgetErrPackCnt(board2) << endl;
-
-			lastFrameCnt2 = framecnttemp2;
-			lastDataCnt2 = bps2;
 #endif
 #ifdef _CAM3
 			sstemp << "cam3: " << framecnttemp3 - lastFrameCnt3 << " FPS,"
 				<< float(bps3 - lastDataCnt3) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt3 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt3
 				<< ",ErrPack: " << GigEgetErrPackCnt(board3) << endl;
-
-			lastFrameCnt3 = framecnttemp3;
-			lastDataCnt3 = bps3;
 #endif
 #ifdef _CAM4
 			sstemp << "cam4: " << framecnttemp4 - lastFrameCnt4 << " FPS,"
 				<< float(bps4 - lastDataCnt4) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt4 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt4
 				<< ",ErrPack: " << GigEgetErrPackCnt(board4) << endl;
+#endif
+			str=sstemp.str().c_str();
+
+			/*if(lastLostCnt-(recvSoftCnt-sendSoftCnt*6)!=0
+			{
+				sndPlaySound(_T("trainhorn.WAV"),SND_ASYNC);
+				lastLostCnt=recvSoftCnt-sendSoftCnt*6;
+			}*/
+			lastFrameCnt= framecnttemp;
+			lastDataCnt= bps;
+
+			lastFrameCnt2 = framecnttemp2;
+			lastDataCnt2 = bps2;
+
+			lastFrameCnt3 = framecnttemp3;
+			lastDataCnt3 = bps3;
 
 			lastFrameCnt4 = framecnttemp4;
 			lastDataCnt4 = bps4;
-#endif
-			str=sstemp.str().c_str();
 
 			SetDlgItemText(IDC_STATIC_TEXT,str);
 			break;
@@ -1163,7 +1071,7 @@ void CUsbControlDlg::OnBnClickedBtnConnect()
 
 		//connect button
 		board1 = GigEaddInstance((LPVOID*)this, RawCallBack, c);
-		//GigEgetCamSize(&g_camsize, board1);
+
 		if (board1 > 0)
 		{
 			str.Format(L"Device connected");
@@ -1304,6 +1212,7 @@ void CUsbControlDlg::OnBnClickedBtnTrig()
 	recvSoftCnt3 = 0;
 	recvSoftCnt4 = 0;
 	sendSoftCnt=0;
+	f_softtirg=1;
 	GigEsendSoftTrig(board1);
 }
 
@@ -1365,6 +1274,7 @@ void CUsbControlDlg::OnBnClickedButtonSendgain2()
 	m_eFreq.GetWindowTextW(cs_freq);
 	uint32_t temp=_ttoi(cs_freq);
 	GigEsetFreq(temp,board1);
+
 	if (rst < 0)
 	{
 		SetDlgItemText(IDC_STATIC_TEXT, L"Set trig mode error.");
@@ -1612,57 +1522,5 @@ void CUsbControlDlg::OnBnClickedButton1()
 		SetDlgItemText(IDC_STATIC_TEXT, L"采集中...");
 		CheckRadioButton(IDC_RADIO_NORMAL, IDC_RADIO_XYMIRROR, IDC_RADIO_NORMAL);
 		SetTimer(1, 1000, NULL);
-		
-}
-
-
-void CUsbControlDlg::OnBnClickedBtnTrig2()
-{
-	int rst = 0;
-	int idx = m_combo_trig.GetCurSel();
-
-	CString cs_freq;
-	m_eFreq.GetWindowTextW(cs_freq);
-	uint32_t temp = _ttoi(cs_freq);
-	if(idx==2)
-	SetTimer(2, temp, NULL);
-
-	recvSoftCnt = 0;
-	recvSoftCnt2 = 0;
-	recvSoftCnt3 = 0;
-	recvSoftCnt4 = 0;
-	sendSoftCnt = 0;
-	f_softtirg = 1;
-	GigEsendSoftTrig(board1);
-}
-
-
-void CUsbControlDlg::OnBnClickedBtnminset()
-{
-	CString str;
-	int data;
-	GetDlgItemText(IDC_EDITA,str);
-	data = _ttoi(str);
-	csSetGaussianA(data);
-
-	GetDlgItemText(IDC_EDITB, str);
-	data = _ttoi(str);
-	csSetGaussianB(data);
-
-	GetDlgItemText(IDC_EDITC, str);
-	data = _ttoi(str);
-	csSetGaussianC(data);
-
-	GetDlgItemText(IDC_EDITMAXP, str);
-	data = _ttoi(str);
-	csSetMaxBrightnessThreshold(data);
-
-	GetDlgItemText(IDC_EDITMAXW, str);
-	data = _ttoi(str);
-	csSetMaxLineWidth(data);
-
-	GetDlgItemText(IDC_EDITMINW, str);
-	data = _ttoi(str);
-	csSetMinLineWidth(data);
-
+		SetTimer(2, 500, NULL);
 }

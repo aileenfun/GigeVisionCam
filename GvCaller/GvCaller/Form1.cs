@@ -21,25 +21,13 @@ namespace GvCaller
         public static extern int csGetFrame(IntPtr imgbuf);
         [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetROI", CallingConvention = CallingConvention.Cdecl)]
         public static extern int csSetROI(int xstart, int xend, int ystart, int yend, int enable);
-        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetGaussianA", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int csSetGaussianA(char a);
-        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetGaussianB", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int csSetGaussianB(char b);
-        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetGaussianC", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int csSetGaussianC(char c);
-        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetMaxBrightnessThreshold", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int csSetMaxBrightnessThreshold(char c);
-        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetMaxLineWidth", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int csSetMaxLineWidth(int data);
-        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetMinLineWidth", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int csSetMinLineWidth(char data);
         //enable=1, roi is open. enable =0, roi is close;
         //xend-xstart=odd number, yend-ystart=odd number, 
         //for example, xstart=0. xend=639, ystart=0, yend=479, enable=1;
         [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetExpo", CallingConvention = CallingConvention.Cdecl)]
         public static extern int csSetExpo(uint value, int isauto);
         //isauto=1,->auto expo. isauto=0,->expo=value;
-
+        Rectangle dimension;
         public delegate int CallBack(IntPtr buff);
         public CallBack mInstance;
 
@@ -47,63 +35,63 @@ namespace GvCaller
         //if xend-xstart=639, then imgwidth=640
         //if yend-ystart=479, then imgheight=480
         int imgwidth = 1280;
-        int imgheight = 1024;
-        int coordlen = 1280 * 4;
+        int imgheight = 960;
+        int camerasize = 6;
         IntPtr pixelStartAddress;
         Bitmap bmp;
-
-        int xtemp;
-        int ytemp;
+        Bitmap bmp2;
+        int idx = 0;
+        byte[] imgbuff;
+        byte[] pixelValues;
+        int dispidx = 0;
+        Bitmap dispbmp;
         public Form1()
         {
 
             InitializeComponent();
+            listBox1.Items.Add("0");
+            listBox1.Items.Add("1");
+            listBox1.Items.Add("2");
+            listBox1.Items.Add("3");
+            listBox1.Items.Add("4");
+            listBox1.Items.Add("5");
             initBitMap();
             mInstance = new CallBack(callbackfunc);
             csInit(mInstance, imgwidth, imgheight);
-
+            imgbuff = new byte[imgwidth * imgheight * camerasize];
+              pixelValues= new byte[imgwidth * imgheight];
+            dimension = new Rectangle(0, 0, imgwidth, imgheight);
         }
 
         public int callbackfunc(IntPtr buff)
         {
-            //buffer stores [1280*1024+1280*4]
-            //in which 1280*1024 is image data
-            //1280*4 is coordinates.
-            //coords data formates is [16b y, 16b x]
-            //[0x00 0x01, 0x00 0x03]; 
-            //On y=1, x= 3, is the laser point.
-            //if the result is invalid, x will be 0x07 0xff,
-            // such as
-            //[0x00 0x01, 0x07 0xff]
-            byte[] coords = new byte[coordlen];//stores 
-            byte[] pixelValues = new byte[imgwidth * imgheight];
-            Marshal.Copy(buff, pixelValues, 0, imgwidth * imgheight);
-            Marshal.Copy(buff, coords, imgwidth * imgheight, coordlen);
-            var bmp2 = bitmap8bpp(pixelValues, imgwidth, imgheight);
-            var dispbmp = new Bitmap(bmp2);
-            pictureBox1.Image = dispbmp;
-
-            for (int i = 0; i < coordlen; i += 4)
+            /*相机传上来的数据保存在buff中，数据的长度为height*width*camsize,
+	例如，假如您的系统为6个相机，每个相机的分辨率为1280*960，那么传上来的数据总长度就是1280*960*6，
+	各个相机的图像数据从0号相机到5号相机依次排列，例如2号相机的图像就位于1280*960*2,长度为1280*960,
+	只需要对该数据块按照分辨率进行切割，就是对应的相机的图像。*/
+            if (idx < 0)
+                idx = 0;
+            int offset = idx * imgwidth * imgheight;
+           
+            
+            Marshal.Copy(buff, imgbuff, 0, imgwidth * imgheight*camerasize);
+            Buffer.BlockCopy(imgbuff, offset, pixelValues, 0,imgheight*imgwidth);
+            try
             {
-                ytemp = coords[i] << 8;
-                ytemp += coords[i + 1];
-                xtemp = coords[i + 2] << 8;
-                xtemp += coords[i + 3];
-                if (xtemp > imgwidth)
-                {
-                    //for invalide result
-                    continue;
-                }
-                //pseudocode:
-                /*
-                 * cv::Point pt;
-                 * pt.x = xtemp;
-		         * pt.y = ytemp-1;
-                 * circle(frameRGB, pt, 1, cv::Scalar(0, 0, 255));
-                 */
+                 bmp2 = bitmap8bpp(pixelValues, imgwidth, imgheight);
+            }
+            catch
+            {
 
             }
+            finally
+            {
 
+            }
+            
+            dispbmp =(Bitmap) bmp2.Clone();
+           //var dispbmp = new Bitmap(bmp2);
+            pictureBox1.Image = dispbmp;
             return 1;
         }
         int initBitMap()
@@ -120,7 +108,6 @@ namespace GvCaller
         }
         private Bitmap bitmap8bpp(byte[] pixelValues, int width, int height)
         {
-            Rectangle dimension = new Rectangle(0, 0, bmp.Width, bmp.Height);
             BitmapData picData = bmp.LockBits(dimension, ImageLockMode.ReadWrite, bmp.PixelFormat);
             pixelStartAddress = picData.Scan0;
             System.Runtime.InteropServices.Marshal.Copy(pixelValues, 0, pixelStartAddress, pixelValues.Length);
@@ -160,10 +147,17 @@ namespace GvCaller
 
         private void button3_Click(object sender, EventArgs e)
         {
+
+
             int value;
             int.TryParse(tb_expo.Text, out value);
             int auto = cb_expoauto.Checked == true ? 1 : 0;
             csSetExpo((uint)value, auto);
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            idx = listBox1.SelectedIndex;
         }
     }
 }
