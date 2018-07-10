@@ -1228,7 +1228,6 @@ void CUsbControlDlg::OnBnClickedBtnTrig()
 	recvSoftCnt3 = 0;
 	recvSoftCnt4 = 0;
 	sendSoftCnt=0;
-	f_softtirg=1;
 	GigEsendSoftTrig(board1);
 }
 

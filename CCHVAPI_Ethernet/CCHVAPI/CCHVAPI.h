@@ -185,8 +185,8 @@ public:
 	}
 	int stop()
 	{
-		if(!b_opened)
-			return -2;
+		//if(!b_opened)
+		//	return -2;
 		b_opened=false;
 		m_pDataCapture->Close();
 		//m_pDataCapture=NULL;

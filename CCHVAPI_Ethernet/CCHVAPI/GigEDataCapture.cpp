@@ -456,6 +456,7 @@ int GigECDataCapture::ThreadProcessFunction()
 		this_udp_pack=udp_queue.remove();
 		if(this_udp_pack==NULL)
 		{
+			Sleep(1);
 			continue;
 		}
 #ifdef _SAVEFILE
