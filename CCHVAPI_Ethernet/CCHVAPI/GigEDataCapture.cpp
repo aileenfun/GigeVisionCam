@@ -26,7 +26,7 @@ static char THIS_FILE[]=__FILE__;
 #ifdef _W640
 //#define TOTALPACK 39	//for 640*480
 #endif
-//#define MAX_RESEND_SIZE 255
+unsigned int MAX_RESEND_SIZE = 1024;
 GigECDataCapture::GigECDataCapture(GigEwqueue<GigEimgFrame*>&queue, GigECDataProcess *dp)
 	:m_queue(queue)
 {
@@ -65,6 +65,7 @@ int GigECDataCapture::Open(int height,int width)//
 	{
 		TOTALPACK++;
 	}
+	MAX_RESEND_SIZE = TOTALPACK;
 	g_width_L=g_width;
 	//m_pOutData=new byte[g_height*g_width_L];
 	//m_pInData=new byte[(ReadDataBytes+g_width_L+3)];
@@ -295,8 +296,8 @@ void GigECDataCapture::get_udp_data()
 					&&((p_udpbuf[0]==0x33)||(p_udpbuf[0]==0x30)))//boarder pack check,new frame came
 				{
 					lostpacks=TOTALPACK-packnum_last-1;
-					/*if (lostpacks > MAX_RESEND_SIZE)
-						lostpacks = MAX_RESEND_SIZE;*/
+					if (lostpacks > MAX_RESEND_SIZE)
+						lostpacks = MAX_RESEND_SIZE;
 					if(lostpacks>0)//last pack lost
 					{
 						resendbuf[2]=0x03;//resend cmd
@@ -336,8 +337,8 @@ void GigECDataCapture::get_udp_data()
 				else if(p_udpbuf[0]==0x33&&packnum!=0)
 				{
 					lostpacks=packnum-packnum_last-1;
-					/*if (lostpacks > MAX_RESEND_SIZE)
-						lostpacks = MAX_RESEND_SIZE;*/
+					if (lostpacks > MAX_RESEND_SIZE)
+						lostpacks = MAX_RESEND_SIZE;
 					if(lostpacks>0)
 					{
 						resendbuf[0]=0x56;
@@ -359,40 +360,16 @@ void GigECDataCapture::get_udp_data()
 
 					}
 				}
-
-
-				/*
-				lostpacks=packnum-packnum_last-1;
-				if(p_udpbuf[0]==0x33&&packnum!=0&&(lostpacks>0)&&(lostpacks<3))
-				{
-					resendbuf[0]=0x56;
-					resendbuf[1]=0xab;
-					resendbuf[2]=0x03;//resend order
-					resendbuf[3]=p_udpbuf[2];//camNum
-					resendbuf[4]=p_udpbuf[3];//frame cnt H
-					resendbuf[5]=p_udpbuf[4];
-					resendbuf[6]=p_udpbuf[5];//frame cnt L
-					packnum_last++;
-					resendbuf[7]=(packnum_last>>8)&0xff;//resend pack start numH
-					resendbuf[8]=packnum_last&0xff;//resend pack start num H
-					resendbuf[9]=lostpacks;//resend pack start num L
-					resendbuf[30]=0x57;
-					resendbuf[31]=0xac;
-					sendto(socketSrv,resendbuf,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
-
-				}
-				*/
-				
 				camNum_last=camNum;
 				packnum_last=packnum;
 				timestamp_last=timestamp;
 				udp_queue.add(this_udpbuffer);
 				
 			}
-			/*else
+			else
 			{
-				unsigned long dw = WSAGetLastError();
-			}*/
+				Sleep(1);
+			}
 #endif
 	}//while
 

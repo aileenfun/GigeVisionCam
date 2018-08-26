@@ -46,7 +46,7 @@ unsigned long recvSoftCnt3 = 0;
 unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
-int g_camsize = 6;
+int g_camsize = 12;
 class CAboutDlg : public CDialog
 {
 public:
@@ -256,13 +256,18 @@ BOOL CUsbControlDlg::OnInitDialog()
 	MoveWindow(mRect);
 
 	m_pBrush=new CBrush[2];
-
-	select_channel.InsertString(0,_T("0"));
-	select_channel.InsertString(1,_T("1"));
-	select_channel.InsertString(2,_T("2"));
-	select_channel.InsertString(3,_T("3"));
-	select_channel.InsertString(4,_T("4"));
-	select_channel.InsertString(5,_T("5"));
+	CString str;
+	for (int i = 0; i < g_camsize; i++)
+	{
+		str.Format(L"%d", i);
+		select_channel.InsertString(i, str);
+		/*select_channel.InsertString(0, _T("0"));
+		select_channel.InsertString(1, _T("1"));
+		select_channel.InsertString(2, _T("2"));
+		select_channel.InsertString(3, _T("3"));
+		select_channel.InsertString(4, _T("4"));
+		select_channel.InsertString(5, _T("5"));*/
+	}
 	select_channel.SetCurSel(0);
 	check_save_file.SetCheck(0);
 
