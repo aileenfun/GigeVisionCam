@@ -1,6 +1,9 @@
 rd /q /s ipch
 del *.sdf
 del *.db
+cd UsbControl/Debug
+del *.*
+cd ../..
 cd Debug
 del *.tlog
 del *.cod

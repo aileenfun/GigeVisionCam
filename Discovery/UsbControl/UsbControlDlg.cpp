@@ -46,7 +46,7 @@ unsigned long recvSoftCnt3 = 0;
 unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
-int g_camsize = 12;
+int g_camsize = 6;
 class CAboutDlg : public CDialog
 {
 public:
