@@ -11,10 +11,10 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 */
-//#define _SAVEFILE
+#define _SAVEFILE
 //#define _READFILE
 //#define _USELINE
-//#define _LOSTFRAME
+#define _LOSTFRAME
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -26,7 +26,7 @@ static char THIS_FILE[]=__FILE__;
 #ifdef _W640
 //#define TOTALPACK 39	//for 640*480
 #endif
-unsigned int MAX_RESEND_SIZE = 1024;
+unsigned int MAX_RESEND_SIZE = 100;
 GigECDataCapture::GigECDataCapture(GigEwqueue<GigEimgFrame*>&queue, GigECDataProcess *dp)
 	:m_queue(queue)
 {
@@ -60,12 +60,12 @@ int GigECDataCapture::Open(int height,int width)//
 	g_width=width;
 #endif
 	TOTALPACK = height*width / 8176+1;
-	unsigned int residue = (height*width) % 8176;//residue//8192-16
+	residue= (height*width) % 8176;//residue//8192-16
 	if (residue > 0)
 	{
 		TOTALPACK++;
 	}
-	MAX_RESEND_SIZE = TOTALPACK;
+//	MAX_RESEND_SIZE = TOTALPACK;
 	g_width_L=g_width;
 	//m_pOutData=new byte[g_height*g_width_L];
 	//m_pInData=new byte[(ReadDataBytes+g_width_L+3)];
@@ -242,7 +242,7 @@ void GigECDataCapture::get_udp_data()
 	unsigned int camNum_last=0;
 	long timestamp=0;
 	long timestamp_last=0;
-	//udp_queue.setlimit(4096);
+	udp_queue.setlimit(4096);
 	unsigned int trailpacknum=39;
 	int lostpacks=0;
 	bool b_init=false;
@@ -268,6 +268,7 @@ void GigECDataCapture::get_udp_data()
 				this_udpbuffer=new GigEudp_buffer(nRet);
 				p_udpbuf=this_udpbuffer->packbuffer; 
 				memcpy(p_udpbuf,recv_buf,this_udpbuffer->m_packsize);
+				p_udpbuf[2] = 0;
 				if(p_udpbuf[0]==0x34)
 				{
 					getResendPackCnt++;
@@ -315,7 +316,10 @@ void GigECDataCapture::get_udp_data()
 						sendto(socketSrv,resendbuf,32,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
 						resendPackCnt+=lostpacks;
 					}
+
 					lostpacks=packnum-1;
+					if (lostpacks > MAX_RESEND_SIZE)
+						lostpacks = MAX_RESEND_SIZE;
 					if(lostpacks>0)//new frame's head lost
 					{
 						resendbuf[2]=0x03;//resend order
@@ -359,6 +363,10 @@ void GigECDataCapture::get_udp_data()
 						resendPackCnt+=lostpacks;
 
 					}
+				}
+				if (lostpacks == 903)
+				{
+					ASSERT(1);
 				}
 				camNum_last=camNum;
 				packnum_last=packnum;
@@ -530,18 +538,33 @@ int GigECDataCapture::ThreadProcessFunction()
 			}
 			cpylen=this_udp_pack->packbuffer[12]<<8;
 			cpylen+=(unsigned int)this_udp_pack->packbuffer[13];
-			for(int i=0;i<vframe.size();i++)
+			this_udp_pack->m_packsize = cpylen;
+			if (cpylen > PACKSIZE)
+			{
+				haveerror++;
+				f_errorpack = true;
+				goto CLEANUP;
+			}
+			if (packnum == TOTALPACK - 1 && cpylen > residue)
+			{
+				haveerror++;
+				f_errorpack = true;
+				goto CLEANUP;
+			}
+			for (int i = 0; i < vframe.size(); i++)
 			{
 				//house keeping
-				if(timestamp-vframe[i]->timestamp>3)
+				if (timestamp - vframe[i]->timestamp > 3)
 				{
 #ifdef _LOSTFRAME
-					savefile3 << "packnum:" << vframe[i]->packnum << " ts:" << vframe[i]->timestamp << endl;
+					savefile3 << "packnum:" << vframe[i]->packnum << " ts:" << vframe[i]->timestamp << "idx:" << i << endl;
 #endif
 					delete vframe[i];
-					vframe.erase(vframe.begin()+i);
+					vframe.erase(vframe.begin() + i);
 				}
-
+			}
+			for (int i = 0; i < vframe.size(); i++)
+			{
 				if((vframe[i]->m_camNum==camNum)&&(vframe[i]->timestamp==timestamp))
 				{
 					if(this_udp_pack->packbuffer[0]!=0x3f)
@@ -554,7 +577,13 @@ int GigECDataCapture::ThreadProcessFunction()
 						packnum = this_udp_pack->packbuffer[10] ;
 						packnum = packnum << 8;
 						packnum += (unsigned int)this_udp_pack->packbuffer[11]-1;
-						memcpy(vframe[i]->imgBuf+packnum*PAYLOADSIZE,this_udp_pack->packbuffer+16,cpylen);
+						if (packnum == TOTALPACK - 1 && this_udp_pack->m_packsize > residue)
+						{
+							haveerror++;
+							f_errorpack = true;
+							goto CLEANUP;
+						}
+						memcpy(vframe[i]->imgBuf+packnum*PAYLOADSIZE,this_udp_pack->packbuffer+16,this_udp_pack->m_packsize);
 					}
 					if((vframe[i]->packnum>=TOTALPACK-1))//||(this_udp_pack->packbuffer[0]==0x3f))
 					{

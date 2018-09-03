@@ -73,4 +73,5 @@ private:
 	GigEcamProp *this_camprop;
 	int softtrigmode;
 	unsigned int TOTALPACK;
+	unsigned int residue;
 };
