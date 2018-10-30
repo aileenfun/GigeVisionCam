@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.button2 = new System.Windows.Forms.Button();
             this.tb_expo = new System.Windows.Forms.TextBox();
@@ -46,8 +47,12 @@
             this.cb_roienable = new System.Windows.Forms.CheckBox();
             this.cb_expoauto = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
-            this.listBox1 = new System.Windows.Forms.ListBox();
-            this.label8 = new System.Windows.Forms.Label();
+            this.SavePicButton = new System.Windows.Forms.Button();
+            this.StopButton = new System.Windows.Forms.Button();
+            this.TestButton = new System.Windows.Forms.Button();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.FrameRateLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -56,12 +61,13 @@
             this.pictureBox1.Location = new System.Drawing.Point(12, 40);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(711, 619);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 1;
             this.pictureBox1.TabStop = false;
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(796, 334);
+            this.button2.Location = new System.Drawing.Point(839, 335);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 2;
@@ -75,6 +81,7 @@
             this.tb_expo.Name = "tb_expo";
             this.tb_expo.Size = new System.Drawing.Size(100, 21);
             this.tb_expo.TabIndex = 3;
+            this.tb_expo.Text = "200";
             // 
             // tb_xend
             // 
@@ -82,6 +89,7 @@
             this.tb_xend.Name = "tb_xend";
             this.tb_xend.Size = new System.Drawing.Size(100, 21);
             this.tb_xend.TabIndex = 4;
+            this.tb_xend.Text = "1279";
             // 
             // tb_xstart
             // 
@@ -89,6 +97,7 @@
             this.tb_xstart.Name = "tb_xstart";
             this.tb_xstart.Size = new System.Drawing.Size(100, 21);
             this.tb_xstart.TabIndex = 5;
+            this.tb_xstart.Text = "0";
             // 
             // tb_ystart
             // 
@@ -96,6 +105,7 @@
             this.tb_ystart.Name = "tb_ystart";
             this.tb_ystart.Size = new System.Drawing.Size(100, 21);
             this.tb_ystart.TabIndex = 6;
+            this.tb_ystart.Text = "0";
             // 
             // tb_yend
             // 
@@ -103,6 +113,7 @@
             this.tb_yend.Name = "tb_yend";
             this.tb_yend.Size = new System.Drawing.Size(100, 21);
             this.tb_yend.TabIndex = 7;
+            this.tb_yend.Text = "1023";
             // 
             // label1
             // 
@@ -152,7 +163,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(737, 367);
+            this.label6.Location = new System.Drawing.Point(780, 368);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(131, 12);
             this.label6.TabIndex = 13;
@@ -191,6 +202,8 @@
             // cb_expoauto
             // 
             this.cb_expoauto.AutoSize = true;
+            this.cb_expoauto.Checked = true;
+            this.cb_expoauto.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cb_expoauto.Location = new System.Drawing.Point(769, 459);
             this.cb_expoauto.Name = "cb_expoauto";
             this.cb_expoauto.Size = new System.Drawing.Size(48, 16);
@@ -201,40 +214,65 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(737, 345);
+            this.label7.Location = new System.Drawing.Point(780, 346);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(53, 12);
             this.label7.TabIndex = 18;
             this.label7.Text = "开始采集";
             // 
-            // listBox1
+            // SavePicButton
             // 
-            this.listBox1.AllowDrop = true;
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.ItemHeight = 12;
-            this.listBox1.Location = new System.Drawing.Point(888, 316);
-            this.listBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(76, 76);
-            this.listBox1.TabIndex = 19;
-            this.listBox1.SelectedIndexChanged += new System.EventHandler(this.listBox1_SelectedIndexChanged);
+            this.SavePicButton.Location = new System.Drawing.Point(769, 527);
+            this.SavePicButton.Name = "SavePicButton";
+            this.SavePicButton.Size = new System.Drawing.Size(75, 23);
+            this.SavePicButton.TabIndex = 19;
+            this.SavePicButton.Text = "SavePic";
+            this.SavePicButton.UseVisualStyleBackColor = true;
+            this.SavePicButton.Click += new System.EventHandler(this.SavePicButton_Click);
             // 
-            // label8
+            // StopButton
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(886, 302);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(65, 12);
-            this.label8.TabIndex = 20;
-            this.label8.Text = "显示相机号";
+            this.StopButton.Location = new System.Drawing.Point(769, 493);
+            this.StopButton.Name = "StopButton";
+            this.StopButton.Size = new System.Drawing.Size(75, 23);
+            this.StopButton.TabIndex = 20;
+            this.StopButton.Text = "Stop";
+            this.StopButton.UseVisualStyleBackColor = true;
+            this.StopButton.Click += new System.EventHandler(this.StopButton_Click);
+            // 
+            // TestButton
+            // 
+            this.TestButton.Location = new System.Drawing.Point(876, 493);
+            this.TestButton.Name = "TestButton";
+            this.TestButton.Size = new System.Drawing.Size(75, 23);
+            this.TestButton.TabIndex = 21;
+            this.TestButton.Text = "Test";
+            this.TestButton.UseVisualStyleBackColor = true;
+            this.TestButton.Click += new System.EventHandler(this.TestButton_Click);
+            // 
+            // timer1
+            // 
+            this.timer1.Interval = 1000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // FrameRateLabel
+            // 
+            this.FrameRateLabel.AutoSize = true;
+            this.FrameRateLabel.Location = new System.Drawing.Point(767, 297);
+            this.FrameRateLabel.Name = "FrameRateLabel";
+            this.FrameRateLabel.Size = new System.Drawing.Size(65, 12);
+            this.FrameRateLabel.TabIndex = 22;
+            this.FrameRateLabel.Text = "FrameRate:";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(980, 692);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.listBox1);
+            this.ClientSize = new System.Drawing.Size(1009, 692);
+            this.Controls.Add(this.FrameRateLabel);
+            this.Controls.Add(this.TestButton);
+            this.Controls.Add(this.StopButton);
+            this.Controls.Add(this.SavePicButton);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.cb_expoauto);
             this.Controls.Add(this.cb_roienable);
@@ -280,8 +318,12 @@
         private System.Windows.Forms.CheckBox cb_roienable;
         private System.Windows.Forms.CheckBox cb_expoauto;
         private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.ListBox listBox1;
-        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Button SavePicButton;
+        private System.Windows.Forms.Button StopButton;
+        private System.Windows.Forms.Button TestButton;
+        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.Label FrameRateLabel;
     }
 }
 

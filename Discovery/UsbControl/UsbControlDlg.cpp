@@ -1,4 +1,4 @@
-// UsbControlDlg.cpp : Êµï¿½ï¿½ï¿½Ä¼ï¿½
+// UsbControlDlg.cpp : ÊµÏÖÎÄ¼þ
 //
 
 #include "stdafx.h"
@@ -24,7 +24,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 volatile int b_softtrig=-1;
-
+#define _ORG
 cv::VideoWriter h_vw;
 volatile bool snap;
 int board1=-1;//board id
@@ -45,19 +45,19 @@ unsigned long recvSoftCnt3 = 0;
 unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
-int g_camsize = 6;
+unsigned int g_camsize = 1;
 class CAboutDlg : public CDialog
 {
 public:
 	CAboutDlg();
 
-	// ï¿½Ô»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ¶Ô»°¿òÊý¾Ý
 	enum { IDD = IDD_ABOUTBOX };
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§ï¿½ï¿½
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
 
-	// Êµï¿½ï¿½
+	// ÊµÏÖ
 protected:
 	DECLARE_MESSAGE_MAP()
 
@@ -77,7 +77,7 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-// CUsbControlDlg ï¿½Ô»ï¿½ï¿½ï¿½
+// CUsbControlDlg ¶Ô»°¿ò
 
 
 
@@ -213,14 +213,16 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_ForceIp, &CUsbControlDlg::OnBnClickedButtonForceip)
 	ON_BN_CLICKED(IDC_BTN_WBSet2, &CUsbControlDlg::OnBnClickedBtnWbset2)
 	ON_BN_CLICKED(btn_test, &CUsbControlDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BTN_TRIG2, &CUsbControlDlg::OnBnClickedBtnTrig2)
+	ON_BN_CLICKED(IDC_BTN_minset, &CUsbControlDlg::OnBnClickedBtnminset)
 END_MESSAGE_MAP()
 
 
-// CUsbControlDlg ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// CUsbControlDlg ÏûÏ¢´¦Àí³ÌÐò
 BOOL CUsbControlDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	// IDM_ABOUTBOX ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÏµÍ³ï¿½ï¿½ï¿½î·¶Î§ï¿½Ú¡ï¿½
+	// IDM_ABOUTBOX ±ØÐëÔÚÏµÍ³ÃüÁî·¶Î§ÄÚ¡£
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
@@ -238,13 +240,12 @@ BOOL CUsbControlDlg::OnInitDialog()
 		}
 	}
 
-	// ï¿½ï¿½ï¿½Ã´Ë¶Ô»ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ê¡£ï¿½ï¿½Ó¦ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½Ç¶Ô»ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Ü½ï¿½ï¿½Ô¶ï¿½
-	//  Ö´ï¿½Ð´Ë²ï¿½ï¿½ï¿½
-	SetIcon(m_hIcon, TRUE);			// ï¿½ï¿½ï¿½Ã´ï¿½Í¼ï¿½ï¿½
-	SetIcon(m_hIcon, FALSE);		// ï¿½ï¿½ï¿½ï¿½Ð¡Í¼ï¿½ï¿½
+	// ÉèÖÃ´Ë¶Ô»°¿òµÄÍ¼±ê¡£µ±Ó¦ÓÃ³ÌÐòÖ÷´°¿Ú²»ÊÇ¶Ô»°¿òÊ±£¬¿ò¼Ü½«×Ô¶¯
+	//  Ö´ÐÐ´Ë²Ù×÷
+	SetIcon(m_hIcon, TRUE);			// ÉèÖÃ´óÍ¼±ê
+	SetIcon(m_hIcon, FALSE);		// ÉèÖÃÐ¡Í¼±ê
 
-	// TODO: ï¿½Ú´ï¿½ï¿½ï¿½Ó¶ï¿½ï¿½ï¿½Ä³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	//------------------------------------
+
 	CRect cRect,wRect,mRect;
 	GetDesktopWindow()->GetWindowRect(wRect);
 	GetWindowRect(cRect);
@@ -255,18 +256,13 @@ BOOL CUsbControlDlg::OnInitDialog()
 	MoveWindow(mRect);
 
 	m_pBrush=new CBrush[2];
-	CString str;
-	for (int i = 0; i < g_camsize; i++)
-	{
-		str.Format(L"%d", i);
-		select_channel.InsertString(i, str);
-		/*select_channel.InsertString(0, _T("0"));
-		select_channel.InsertString(1, _T("1"));
-		select_channel.InsertString(2, _T("2"));
-		select_channel.InsertString(3, _T("3"));
-		select_channel.InsertString(4, _T("4"));
-		select_channel.InsertString(5, _T("5"));*/
-	}
+
+	select_channel.InsertString(0,_T("0"));
+	select_channel.InsertString(1,_T("1"));
+	select_channel.InsertString(2,_T("2"));
+	select_channel.InsertString(3,_T("3"));
+	select_channel.InsertString(4,_T("4"));
+	select_channel.InsertString(5,_T("5"));
 	select_channel.SetCurSel(0);
 	check_save_file.SetCheck(0);
 
@@ -279,11 +275,14 @@ BOOL CUsbControlDlg::OnInitDialog()
 	m_eEXPO.SetWindowTextW(_T("300"));
 	m_eGAIN.SetWindowTextW(_T("16"));
 
-	//m_eCAMIP.SetWindowTextW(_T("192.168.1.10"));
-	//m_eSUBNET.SetWindowTextW(_T("255.255.255.0"));
-	//m_eGATE.SetWindowTextW(_T("192.168.1.1"));
 	m_ecamsize.SetWindowTextW(_T("6"));
-//	m_ePCIp.SetWindowTextW(_T("192.168.1.3"));
+	
+	SetDlgItemText(IDC_EDITA, _T("152"));
+	SetDlgItemText(IDC_EDITB, _T("121"));
+	SetDlgItemText(IDC_EDITC, _T("97"));
+	SetDlgItemText(IDC_EDITMAXP, _T("200"));
+	SetDlgItemText(IDC_EDITMAXW, _T("150"));
+	SetDlgItemText(IDC_EDITMINW, _T("1"));
 	autogain.SetCheck(1);
 	autoexpo.SetCheck(1);
 	m_eEXPO.EnableWindow(0);
@@ -294,7 +293,7 @@ BOOL CUsbControlDlg::OnInitDialog()
 	m_eroixend.EnableWindow(1);
 	m_eroiystart.EnableWindow(1);
 	m_eroiyend.EnableWindow(1);
-	return TRUE;  // ï¿½ï¿½ï¿½Ç½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ò·µ»ï¿½ TRUE
+	return TRUE;  // ³ý·Ç½«½¹µãÉèÖÃµ½¿Ø¼þ£¬·ñÔò·µ»Ø TRUE
 }
 
 void CUsbControlDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -302,7 +301,7 @@ void CUsbControlDlg::OnSysCommand(UINT nID, LPARAM lParam)
 	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
 	{
 		CAboutDlg dlgAbout;
-		dlgAbout.DoModal();//ï¿½ï¿½ï¿½Ø¿ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
+		dlgAbout.DoModal();//¼ÓÔØ¿ØÖÆÌ¨´°¿ÚÄ£ÐÍ
 		int temp1 = 1;
 	}
 	else
@@ -311,9 +310,9 @@ void CUsbControlDlg::OnSysCommand(UINT nID, LPARAM lParam)
 	}
 }
 
-// ï¿½ï¿½ï¿½ï¿½ï¿½Ô»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½Å¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½
-//  ï¿½ï¿½ï¿½ï¿½ï¿½Æ¸ï¿½Í¼ï¿½ê¡£ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½Äµï¿½/ï¿½ï¿½Í¼Ä£ï¿½Íµï¿½ MFC Ó¦ï¿½Ã³ï¿½ï¿½ï¿½
-//  ï¿½â½«ï¿½É¿ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½É¡ï¿½
+// Èç¹ûÏò¶Ô»°¿òÌí¼Ó×îÐ¡»¯°´Å¥£¬ÔòÐèÒªÏÂÃæµÄ´úÂë
+//  À´»æÖÆ¸ÃÍ¼±ê¡£¶ÔÓÚÊ¹ÓÃÎÄµµ/ÊÓÍ¼Ä£ÐÍµÄ MFC Ó¦ÓÃ³ÌÐò£¬
+//  Õâ½«ÓÉ¿ò¼Ü×Ô¶¯Íê³É¡£
 void CUsbControlDlg::BMPHeader(int lWidth, int lHeight,byte* m_buf,BITMAPINFO* m_bmi)
 {
 	int mlBpp=8;
@@ -325,17 +324,17 @@ void CUsbControlDlg::BMPHeader(int lWidth, int lHeight,byte* m_buf,BITMAPINFO* m
 	memset(&bhh,0,sizeof(BITMAPFILEHEADER));
 	memset(&bih,0,sizeof(BITMAPINFOHEADER));
 
-	int widthStep				=	(((lWidth * mlBpp) + 31) & (~31)) / 8; //Ã¿ï¿½ï¿½Êµï¿½ï¿½Õ¼ï¿½ÃµÄ´ï¿½Ð¡ï¿½ï¿½Ã¿ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½ï¿½äµ½Ò»ï¿½ï¿½4ï¿½Ö½Ú±ß½ç£©
+	int widthStep				=	(((lWidth * mlBpp) + 31) & (~31)) / 8; //Ã¿ÐÐÊµ¼ÊÕ¼ÓÃµÄ´óÐ¡£¨Ã¿ÐÐ¶¼±»Ìî³äµ½Ò»¸ö4×Ö½Ú±ß½ç£©
 	int QUADSize 				= 	mlBpp==8?sizeof(RGBQUAD)*256:0;
 
-	//ï¿½ï¿½ï¿½ï¿½ï¿½É«Í¼ï¿½ï¿½ï¿½Ä¼ï¿½Í·
+	//¹¹Ôì²ÊÉ«Í¼µÄÎÄ¼þÍ·
 	bhh.bfOffBits				=	(DWORD)sizeof(BITMAPFILEHEADER) + (DWORD)sizeof(BITMAPINFOHEADER) + QUADSize; 
 	bhh.bfSize					=	sizeof(m_bmi->bmiHeader);//(DWORD)sizeof(BITMAPFILEHEADER) + (DWORD)sizeof(BITMAPINFOHEADER) + QUADSize + widthStep*lHeight;  
 	bhh.bfReserved1				=	0; 
 	bhh.bfReserved2				=	0;
 	bhh.bfType					=	0x4d42;  
 
-	//ï¿½ï¿½ï¿½ï¿½ï¿½É«Í¼ï¿½ï¿½ï¿½ï¿½Ï¢Í·
+	//¹¹Ôì²ÊÉ«Í¼µÄÐÅÏ¢Í·
 	bih.biBitCount				=	mlBpp;
 	bih.biSize					=	sizeof(BITMAPINFOHEADER);
 	bih.biHeight				=	(lReverse?-1:1)*lHeight;
@@ -348,7 +347,7 @@ void CUsbControlDlg::BMPHeader(int lWidth, int lHeight,byte* m_buf,BITMAPINFO* m
 	bih.biClrUsed				=	0;  
 	bih.biClrImportant			=	0;  
 	
-	//ï¿½ï¿½ï¿½ï¿½Ò¶ï¿½Í¼ï¿½Äµï¿½É«ï¿½ï¿½
+	//¹¹Ôì»Ò¶ÈÍ¼µÄµ÷É«°æ
 	RGBQUAD rgbquad[256];
 	if(mlBpp==8)
 	{
@@ -415,11 +414,11 @@ void CUsbControlDlg::OnPaint()
 {
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // ï¿½ï¿½ï¿½Ú»ï¿½ï¿½Æµï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		CPaintDC dc(this); // ÓÃÓÚ»æÖÆµÄÉè±¸ÉÏÏÂÎÄ
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// Ê¹Í¼ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¾ï¿½ï¿½ï¿½
+		// Ê¹Í¼±êÔÚ¹¤×÷Çø¾ØÐÎÖÐ¾ÓÖÐ
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
@@ -427,7 +426,7 @@ void CUsbControlDlg::OnPaint()
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½
+		// »æÖÆÍ¼±ê
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
@@ -436,8 +435,8 @@ void CUsbControlDlg::OnPaint()
 	}
 }
 
-//ï¿½ï¿½ï¿½Ã»ï¿½ï¿½Ï¶ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ÏµÍ³ï¿½ï¿½ï¿½Ã´Ëºï¿½ï¿½ï¿½È¡ï¿½Ã¹ï¿½ï¿½
-//ï¿½ï¿½Ê¾ï¿½ï¿½
+//µ±ÓÃ»§ÍÏ¶¯×îÐ¡»¯´°¿ÚÊ±ÏµÍ³µ÷ÓÃ´Ëº¯ÊýÈ¡µÃ¹â±ê
+//ÏÔÊ¾¡£
 HCURSOR CUsbControlDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
@@ -449,101 +448,28 @@ byte* imgBuf = NULL;
 byte* imgBuf2 = NULL;
 byte* imgBuf3 = NULL;
 byte* imgBuf4 = NULL;
+#ifdef _ORG
 void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
-	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½ï¿½ï¿½ï¿½thisFrameï¿½Ð£ï¿½ï¿½ï¿½ï¿½ÝµÄ³ï¿½ï¿½ï¿½Îªheight*width*camsize,
-	ï¿½ï¿½ï¿½ç£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÏµÍ³Îª6ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä·Ö±ï¿½ï¿½ï¿½Îª1280*960ï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü³ï¿½ï¿½È¾ï¿½ï¿½ï¿½1280*960*6ï¿½ï¿½
-	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½5ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½Î»ï¿½ï¿½1280*960*2,ï¿½ï¿½ï¿½ï¿½Îª1280*960,
-	Ö»ï¿½ï¿½Òªï¿½Ô¸ï¿½ï¿½ï¿½ï¿½Ý¿é°´ï¿½Õ·Ö±ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½Ð¸î£¬ï¿½ï¿½ï¿½Ç¶ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½*/
+	/*Ïà»ú´«ÉÏÀ´µÄÊý¾Ý±£´æÔÚthisFrameÖÐ£¬Êý¾ÝµÄ³¤¶ÈÎªheight*width*camsize,
+	ÀýÈç£¬¼ÙÈçÄúµÄÏµÍ³Îª6¸öÏà»ú£¬Ã¿¸öÏà»úµÄ·Ö±æÂÊÎª1280*960£¬ÄÇÃ´´«ÉÏÀ´µÄÊý¾Ý×Ü³¤¶È¾ÍÊÇ1280*960*6£¬
+	¸÷¸öÏà»úµÄÍ¼ÏñÊý¾Ý´Ó0ºÅÏà»úµ½5ºÅÏà»úÒÀ´ÎÅÅÁÐ£¬ÀýÈç2ºÅÏà»úµÄÍ¼Ïñ¾ÍÎ»ÓÚ1280*960*2,³¤¶ÈÎª1280*960,
+	Ö»ÐèÒª¶Ô¸ÃÊý¾Ý¿é°´ÕÕ·Ö±æÂÊ½øÐÐÇÐ¸î£¬¾ÍÊÇ¶ÔÓ¦µÄÏà»úµÄÍ¼Ïñ¡£*/
 	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
 	if (thisFrame == NULL)
 		return;
 	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
 	int dispheight = thisFrame->m_height / g_camsize;
-	//Í¼ï¿½ï¿½Ä¸ß¶ï¿½Îªm_heightï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ä¸ß¶È¾ï¿½ï¿½ï¿½m_height/g_camsize
+	//Í¼ÏñµÄ¸ß¶ÈÎªm_height£¬Òò´Ëµ¥¸öÍ¼ÏñµÄ¸ß¶È¾ÍÊÇm_height/g_camsize
 	int dispwidth = thisFrame->m_width;
-	//ï¿½ï¿½ï¿½Ý¿ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½
+	//Êý¾Ý¿éµÄ¿í¶ÈÓëÍ¼Ïñ¿í¶ÈÏàµÈ¡£
 	if (imgBuf == NULL)
 	{
 		imgBuf = new byte[dispheight*dispwidth];
 	}
 
 	int offset = 0;
-	if (show_channel<=g_camsize - 1)//Ñ¡ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½
-	{
-		offset = show_channel;
-	}
-	else
-	{
-		offset = g_camsize-1;
-	}
-	offset=dispheight*dispwidth*offset;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ê¾ï¿½ï¿½Í¼ï¿½ï¿½	byte *coords=new byte[dispheight];
-	cv::Mat frame(dispheight, dispwidth,CV_8UC1,imgBuf);
-	cv::imshow("disp", frame);
-	cv::waitKey(1);
-
-
-
-	if(b_save_file)
-	{
-		CString strName;
-		CString camFolder;
-
-		for(int cameranumber=0;cameranumber<g_camsize;cameranumber++)
-		{
-		camFolder.Format(L"c:\\c6UDP\\cam%d",cameranumber);
-		if(CreateDirectory(camFolder,NULL)||ERROR_ALREADY_EXISTS == GetLastError())
-		{
-			int iFileIndex=1;
-			do 
-			{
-				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp",cameranumber,thisFrame->timestamp);
-				++iFileIndex;
-			} while (_waccess(strName,0)==0);
-			CT2CA pszConvertedAnsiString (strName);
-			std::string cvfilename(pszConvertedAnsiString);
-			offset=cameranumber*dispheight*dispwidth;
-			memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
-			cv::Mat framesave(dispheight, dispwidth, CV_8UC1, imgBuf);
-			cv::imwrite(cvfilename, framesave);
-			
-		}
-	}
-	if(snap==true)
-	{
-		//cv::imwrite("snap.jpg",frame);
-		snap=false;
-	}
-	if(f_softtirg)
-	{
-		recvSoftCnt++;
-	}
-		//h_vw.write(frame);
-		
-}
-#else
-void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
-{
-	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½ï¿½ï¿½ï¿½thisFrameï¿½Ð£ï¿½ï¿½ï¿½ï¿½ÝµÄ³ï¿½ï¿½ï¿½Îªheight*width*camsize,
-	ï¿½ï¿½ï¿½ç£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÏµÍ³Îª6ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä·Ö±ï¿½ï¿½ï¿½Îª1280*960ï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü³ï¿½ï¿½È¾ï¿½ï¿½ï¿½1280*960*6ï¿½ï¿½
-	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½5ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½Î»ï¿½ï¿½1280*960*2,ï¿½ï¿½ï¿½ï¿½Îª1280*960,
-	Ö»ï¿½ï¿½Òªï¿½Ô¸ï¿½ï¿½ï¿½ï¿½Ý¿é°´ï¿½Õ·Ö±ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½Ð¸î£¬ï¿½ï¿½ï¿½Ç¶ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½*/
-	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
-	if (thisFrame == NULL)
-		return;
-	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
-	int dispheight = thisFrame->m_height / g_camsize;
-	//Í¼ï¿½ï¿½Ä¸ß¶ï¿½Îªm_heightï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ä¸ß¶È¾ï¿½ï¿½ï¿½m_height/g_camsize
-	int dispwidth = thisFrame->m_width;
-	//ï¿½ï¿½ï¿½Ý¿ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½
-	if (imgBuf == NULL)
-	{
-		imgBuf = new byte[dispheight*dispwidth];
-	}
-
-	int offset = 0;
-	if (show_channel <= g_camsize - 1)//Ñ¡ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½
+	if (show_channel <= g_camsize - 1)//Ñ¡ÔñÏÔÊ¾ÄÄÒ»¸öÏà»úµÄÍ¼Ïñ¡£
 	{
 		offset = show_channel;
 	}
@@ -552,7 +478,7 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 		offset = g_camsize - 1;
 	}
 	offset = dispheight*dispwidth*offset;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ê¾ï¿½ï¿½Í¼ï¿½ï¿½	byte *coords=new byte[dispheight];
+	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//´ÓÊý¾Ý¿éÖÐÖ»¿½±´ÐèÒªÏÔÊ¾µÄÍ¼Ïñ	byte *coords=new byte[dispheight];
 	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
 	cv::imshow("disp", frame);
 	cv::waitKey(1);
@@ -563,165 +489,268 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	{
 		CString strName;
 		CString camFolder;
-		camFolder.Format(L"c:\\c6UDP\\cam%d", g_camsize);
-		if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+
+		for (int cameranumber = 0; cameranumber < g_camsize; cameranumber++)
 		{
 			camFolder.Format(L"c:\\c6UDP\\cam%d", cameranumber);
 			if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
 			{
-				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", g_camsize, thisFrame->timestamp);
-				++iFileIndex;
-			} while (_waccess(strName, 0) == 0);
-			CT2CA pszConvertedAnsiString(strName);
-			std::string cvfilename(pszConvertedAnsiString);
+				int iFileIndex = 1;
+				do
+				{
+					strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", cameranumber, thisFrame->timestamp);
+					++iFileIndex;
+				} while (_waccess(strName, 0) == 0);
+				CT2CA pszConvertedAnsiString(strName);
+				std::string cvfilename(pszConvertedAnsiString);
+				offset = cameranumber*dispheight*dispwidth;
+				memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
+				cv::Mat framesave(dispheight, dispwidth, CV_8UC1, imgBuf);
+				cv::imwrite(cvfilename, framesave);
 
-
-			int pos=cvfilename.length() - 4;
-			cvfilename.insert(pos,"RGB");
-			cv::imwrite(cvfilename, frameRGB);
+			}
 		}
-		
-	}
-	if (snap == true)
-	{
-		//cv::imwrite("snap.jpg",frame);
-		snap = false;
-	}
-	if (f_softtirg)
-	{
-		recvSoftCnt++;
-	}
-	//h_vw.write(frame);
+		if (snap == true)
+		{
+			//cv::imwrite("snap.jpg",frame);
+			snap = false;
+		}
+		if (f_softtirg)
+		{
+			recvSoftCnt++;
+		}
+		//h_vw.write(frame);
 
+	}
+}
+#else
+void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
+{
+	/*Ïà»ú´«ÉÏÀ´µÄÊý¾Ý±£´æÔÚthisFrameÖÐ£¬Êý¾ÝµÄ³¤¶ÈÎªheight*width*camsize,
+	ÀýÈç£¬¼ÙÈçÄúµÄÏµÍ³Îª6¸öÏà»ú£¬Ã¿¸öÏà»úµÄ·Ö±æÂÊÎª1280*960£¬ÄÇÃ´´«ÉÏÀ´µÄÊý¾Ý×Ü³¤¶È¾ÍÊÇ1280*960*6£¬
+	¸÷¸öÏà»úµÄÍ¼ÏñÊý¾Ý´Ó0ºÅÏà»úµ½5ºÅÏà»úÒÀ´ÎÅÅÁÐ£¬ÀýÈç2ºÅÏà»úµÄÍ¼Ïñ¾ÍÎ»ÓÚ1280*960*2,³¤¶ÈÎª1280*960,
+	Ö»ÐèÒª¶Ô¸ÃÊý¾Ý¿é°´ÕÕ·Ö±æÂÊ½øÐÐÇÐ¸î£¬¾ÍÊÇ¶ÔÓ¦µÄÏà»úµÄÍ¼Ïñ¡£*/
+	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+	if (thisFrame == NULL)
+		return;
+	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
+	int dispheight = thisFrame->m_height / g_camsize;
+	//Í¼ÏñµÄ¸ß¶ÈÎªm_height£¬Òò´Ëµ¥¸öÍ¼ÏñµÄ¸ß¶È¾ÍÊÇm_height/g_camsize
+	int dispwidth = thisFrame->m_width;
+	//Êý¾Ý¿éµÄ¿í¶ÈÓëÍ¼Ïñ¿í¶ÈÏàµÈ¡£
+	if (imgBuf == NULL)
+	{
+		imgBuf = new byte[dispheight*dispwidth];
+	}
+
+	int offset = 0;
+	if (show_channel <= g_camsize - 1)//Ñ¡ÔñÏÔÊ¾ÄÄÒ»¸öÏà»úµÄÍ¼Ïñ¡£
+	{
+		offset = show_channel;
+	}
+	else
+	{
+		offset = g_camsize - 1;
+	}
+	offset = dispheight*dispwidth*offset;
+	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//´ÓÊý¾Ý¿éÖÐÖ»¿½±´ÐèÒªÏÔÊ¾µÄÍ¼Ïñ	byte *coords=new byte[dispheight];
+	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
+	cv::Mat frameRGB;
+	cv::cvtColor(frame, frameRGB, CV_GRAY2BGR);
+
+	int coords_height = 4;
+	int imageheight = dispheight - coords_height;
+	int coords_len = imageheight * 4;
+	int imagewidth = dispwidth;
+	byte * coords = new byte[coords_len];//1
+	memcpy(coords, thisFrame->imgBuf + offset + imageheight *imagewidth, coords_len);
+
+	cv::Point pt;
+	int xtemp, ytemp;
+	for (int i = 0; i < coords_len; i += 4)
+	{
+		ytemp = coords[i];
+		ytemp = ytemp << 8;
+		ytemp += coords[i + 1];
+		xtemp = coords[i + 2];
+		xtemp = xtemp << 8;
+		xtemp += coords[i + 3];
+		if (xtemp > imagewidth)
+		{
+			continue;
+		}
+		pt.x = xtemp;
+		pt.y = ytemp - 1;
+		circle(frameRGB, pt, 1, cv::Scalar(0, 0, 255));
+	}
+	//cv::imshow("disp", frame);
+	cv::imshow("RGB", frameRGB);
+	cv::waitKey(1);
+
+	if (b_save_file)
+	{
+		CString strName;
+		CString camFolder;
+
+		for (int cameranumber = 0; cameranumber < g_camsize; cameranumber++)
+		{
+			camFolder.Format(L"c:\\c6UDP\\cam%d", cameranumber);
+			if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+			{
+				int iFileIndex = 1;
+				do
+				{
+					strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", cameranumber, thisFrame->timestamp);
+					++iFileIndex;
+				} while (_waccess(strName, 0) == 0);
+				CT2CA pszConvertedAnsiString(strName);
+				std::string cvfilename(pszConvertedAnsiString);
+				offset = cameranumber*dispheight*dispwidth;
+				memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
+				cv::Mat framesave(dispheight, dispwidth, CV_8UC1, imgBuf);
+				cv::imwrite(cvfilename, framesave);
+
+			}
+		}
+		if (snap == true)
+		{
+			//cv::imwrite("snap.jpg",frame);
+			snap = false;
+		}
+		if (f_softtirg)
+		{
+			recvSoftCnt++;
+		}
+		//h_vw.write(frame);
+
+	}
 }
 #endif
 #ifdef _CAM2
-void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
-{
-	GigEimgFrame *thisFrame=(GigEimgFrame*)lpParam;
-	if(thisFrame==NULL)
-		return;
-	
-	CUsbControlDlg *pDlg=(CUsbControlDlg*)lpUser;
+	void _stdcall RawCallBack2(LPVOID lpParam, LPVOID lpUser)
+	{
+		GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+		if (thisFrame == NULL)
+			return;
 
-	int dispheight = thisFrame->m_height / g_camsize;
-	int dispwidth = thisFrame->m_width;
-	if (imgBuf2 == NULL)
-	{
-		imgBuf2 = new byte[dispheight*dispwidth];
-	}
-	int offset = 0;
-	if (show_channel <= g_camsize - 1)
-	{
-		offset = show_channel;
-	}
-	else
-	{
-		offset = g_camsize - 1;
-	}
-	offset = dispheight*dispwidth*offset;
-	memcpy(imgBuf2, thisFrame->imgBuf + offset, dispheight*dispwidth);
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf2);
-	cv::imshow("disp2", frame);
-	cv::waitKey(1);
-	if (f_softtirg)
-	{
-		recvSoftCnt2++;
-	}
+		CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
 
-}
+		int dispheight = thisFrame->m_height / g_camsize;
+		int dispwidth = thisFrame->m_width;
+		if (imgBuf2 == NULL)
+		{
+			imgBuf2 = new byte[dispheight*dispwidth];
+		}
+		int offset = 0;
+		if (show_channel <= g_camsize - 1)
+		{
+			offset = show_channel;
+		}
+		else
+		{
+			offset = g_camsize - 1;
+		}
+		offset = dispheight*dispwidth*offset;
+		memcpy(imgBuf2, thisFrame->imgBuf + offset, dispheight*dispwidth);
+		cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf2);
+		cv::imshow("disp2", frame);
+		cv::waitKey(1);
+		if (f_softtirg)
+		{
+			recvSoftCnt2++;
+		}
+
+	}
 #endif
 #ifdef _CAM3
-void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
-{
-	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
-	if (thisFrame == NULL)
-		return;
+	void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
+	{
+		GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+		if (thisFrame == NULL)
+			return;
 
-	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
+		CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
 
-	int dispheight = thisFrame->m_height / g_camsize;
-	int dispwidth = thisFrame->m_width;
-	if (imgBuf3 == NULL)
-	{
-		imgBuf3 = new byte[dispheight*dispwidth];
-	}
-	int offset = 0;
-	if (show_channel <= g_camsize - 1)
-	{
-		offset = show_channel;
-	}
-	else
-	{
-		offset = g_camsize - 1;
-	}
-	offset = dispheight*dispwidth*offset;
-	memcpy(imgBuf3, thisFrame->imgBuf + offset, dispheight*dispwidth);
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf3);
-	cv::imshow("disp3", frame);
-	cv::waitKey(1);
-	if (f_softtirg)
-	{
-		recvSoftCnt3++;
-	}
+		int dispheight = thisFrame->m_height / g_camsize;
+		int dispwidth = thisFrame->m_width;
+		if (imgBuf3 == NULL)
+		{
+			imgBuf3 = new byte[dispheight*dispwidth];
+		}
+		int offset = 0;
+		if (show_channel <= g_camsize - 1)
+		{
+			offset = show_channel;
+		}
+		else
+		{
+			offset = g_camsize - 1;
+		}
+		offset = dispheight*dispwidth*offset;
+		memcpy(imgBuf3, thisFrame->imgBuf + offset, dispheight*dispwidth);
+		cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf3);
+		cv::imshow("disp3", frame);
+		cv::waitKey(1);
+		if (f_softtirg)
+		{
+			recvSoftCnt3++;
+		}
 
-}
+	}
 #endif
 #ifdef _CAM4
-void _stdcall RawCallBack4(LPVOID lpParam, LPVOID lpUser)
-{
-	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
-	if (thisFrame == NULL)
-		return;
+	void _stdcall RawCallBack4(LPVOID lpParam, LPVOID lpUser)
+	{
+		GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+		if (thisFrame == NULL)
+			return;
 
-	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
+		CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
 
-	int dispheight = thisFrame->m_height / g_camsize;
-	int dispwidth = thisFrame->m_width;
-	if (imgBuf4 == NULL)
-	{
-		imgBuf4 = new byte[dispheight*dispwidth];
-	}
-	int offset = 0;
-	if (show_channel <= g_camsize - 1)
-	{
-		offset = show_channel;
-	}
-	else
-	{
-		offset = g_camsize - 1;
-	}
-	offset = dispheight*dispwidth*offset;
-	memcpy(imgBuf4, thisFrame->imgBuf + offset, dispheight*dispwidth);
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf4);
-	cv::imshow("disp4", frame);
-	cv::waitKey(1);
-	if (f_softtirg)
-	{
-		recvSoftCnt4++;
-	}
+		int dispheight = thisFrame->m_height / g_camsize;
+		int dispwidth = thisFrame->m_width;
+		if (imgBuf4 == NULL)
+		{
+			imgBuf4 = new byte[dispheight*dispwidth];
+		}
+		int offset = 0;
+		if (show_channel <= g_camsize - 1)
+		{
+			offset = show_channel;
+		}
+		else
+		{
+			offset = g_camsize - 1;
+		}
+		offset = dispheight*dispwidth*offset;
+		memcpy(imgBuf4, thisFrame->imgBuf + offset, dispheight*dispwidth);
+		cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf4);
+		cv::imshow("disp4", frame);
+		cv::waitKey(1);
+		if (f_softtirg)
+		{
+			recvSoftCnt4++;
+		}
 
-}
+	}
 #endif
-void  CUsbControlDlg::OnBnClickedBtnVideocapture()
-{
-	if(GigEstartCap(board1)<1)
-	{
-		SetDlgItemText(IDC_STATIC_TEXT,L"ï¿½è±¸ï¿½ï¿½Ê§ï¿½Ü£ï¿½");
-		return;
-	}
-	if (GigEstartCap(board2)<0)
-	{
-		SetDlgItemText(IDC_STATIC_TEXT, L"ï¿½è±¸2ï¿½ï¿½Ê§ï¿½Ü£ï¿½");
-	}
-		SetDlgItemText(IDC_STATIC_TEXT,L"ï¿½É¼ï¿½ï¿½ï¿½...");
-		CheckRadioButton(IDC_RADIO_NORMAL,IDC_RADIO_XYMIRROR,IDC_RADIO_NORMAL);
-		SetTimer(1,1000,NULL);
-		SetTimer(2, 1000, NULL);
-		cv::namedWindow("disp");
-	
 
-	
+	void  CUsbControlDlg::OnBnClickedBtnVideocapture()
+{
+		if (GigEstartCap(board1) < 1)
+		{
+			SetDlgItemText(IDC_STATIC_TEXT, L"Éè±¸´ò¿ªÊ§°Ü£¡");
+			return;
+		}
+	if (GigEstartCap(board2) < 0)
+	{
+		SetDlgItemText(IDC_STATIC_TEXT, L"Éè±¸2´ò¿ªÊ§°Ü£¡");
+	}
+	SetDlgItemText(IDC_STATIC_TEXT, L"²É¼¯ÖÐ...");
+	CheckRadioButton(IDC_RADIO_NORMAL, IDC_RADIO_XYMIRROR, IDC_RADIO_NORMAL);
+	SetTimer(1, 1000, NULL);
+	cv::namedWindow("disp");
+
 	//sendSoftTrig(1);
 	//m_bmi= (BITMAPINFO*)alloca( sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD)*256);
 	//BMPHeader(g_width,g_height,NULL,m_bmi);
@@ -731,7 +760,7 @@ void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 	//h_vw.open(filename,CV_FOURCC('X','V','I','D'),15,videosize,0);
 	//if(!h_vw.isOpened())
 	//{
-	//	SetDlgItemText(IDC_STATIC_TEXT,L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÆµÊ§ï¿½Ü¡ï¿½");
+	//	SetDlgItemText(IDC_STATIC_TEXT,L"±£´æÊÓÆµÊ§°Ü¡£");
 	//	return;
 	//}
 	/////save as file////
@@ -740,16 +769,16 @@ void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 
 void CUsbControlDlg::OnBnClickedBtnStopcapture()
 {
-	// TODO: ï¿½Ú´ï¿½ï¿½ï¿½Ó¿Ø¼ï¿½Í¨Öªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// TODO: ÔÚ´ËÌí¼Ó¿Ø¼þÍ¨Öª´¦Àí³ÌÐò´úÂë
 	KillTimer(1);
 	KillTimer(2);
 	if(GigEstopCap(board1)<0)
 	{
-		SetDlgItemText(IDC_STATIC_TEXT,L"ï¿½ï¿½Î´ï¿½É¼ï¿½");
+		SetDlgItemText(IDC_STATIC_TEXT,L"ÉÐÎ´²É¼¯");
 	}
 	if(GigEstopCap(board2)!=0)
 	{
-		SetDlgItemText(IDC_STATIC_TEXT,L"ï¿½ï¿½Î´ï¿½É¼ï¿½");
+		SetDlgItemText(IDC_STATIC_TEXT,L"ÉÐÎ´²É¼¯");
 		
 	}
 	f_softtirg=0;
@@ -762,7 +791,7 @@ void CUsbControlDlg::OnDestroy()
 {
 	OnBnClickedBtnClosecon();
 	CDialog::OnDestroy();
-	// TODO: ï¿½Ú´Ë´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// TODO: ÔÚ´Ë´¦Ìí¼ÓÏûÏ¢´¦Àí³ÌÐò´úÂë
 	KillTimer(1);
 
 	m_bCloseWnd=TRUE;
@@ -789,7 +818,7 @@ void CUsbControlDlg::OnDestroy()
 
 void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 {
-	// TODO: ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½Öµ
+	// TODO: ÔÚ´ËÌí¼ÓÏûÏ¢´¦Àí³ÌÐò´úÂëºÍ/»òµ÷ÓÃÄ¬ÈÏÖµ
 	int iFrame=0;
 	CString str;
 	stringstream sstemp;
@@ -806,59 +835,45 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 		unsigned int bps2 = GigEgetDataCnt(board2);
 		unsigned int bps3 = GigEgetDataCnt(board3);
 		unsigned int bps4 = GigEgetDataCnt(board4);
-		/*
-			str.Format(L" cam1: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
-cam2: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
-cam3: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
-cam4: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
-							",
-				framecnttemp - lastFrameCnt,float(bps- lastDataCnt)/1024.0/1024.0,recvSoftCnt,sendSoftCnt,sendSoftCnt-recvSoftCnt,GigEgetErrPackCnt(board1),
-				framecnttemp2 - lastFrameCnt2,float(bps2 - lastDataCnt2)/1024/1024, recvSoftCnt2, sendSoftCnt, sendSoftCnt - recvSoftCnt2, GigEgetErrPackCnt(board2),
-				framecnttemp3 - lastFrameCnt3, float(bps3 - lastDataCnt3) / 1024 / 1024, recvSoftCnt3, sendSoftCnt, sendSoftCnt - recvSoftCnt3, GigEgetErrPackCnt(board3),
-				framecnttemp4 - lastFrameCnt4, float(bps4 - lastDataCnt4) / 1024 / 1024, recvSoftCnt4, sendSoftCnt, sendSoftCnt - recvSoftCnt4, GigEgetErrPackCnt(board4));
-				*/
+
 #ifdef _CAM1
 			sstemp << "cam1: " << framecnttemp - lastFrameCnt << " FPS,"
 				<< float(bps - lastDataCnt) / 1024 / 1024 << "MB/s"
-				<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
-				<< ",ErrPack: " << GigEgetErrPackCnt(board1) << endl;
+				//<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
+				//<< ",ErrPack: " << GigEgetErrPackCnt(board1)
+				<< endl;
+
+			lastFrameCnt = framecnttemp;
+			lastDataCnt = bps;
 #endif
 #ifdef _CAM2
 			sstemp << "cam2: " << framecnttemp2 - lastFrameCnt2 << " FPS," 
 				<< float(bps2 - lastDataCnt2) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt2 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt2 
 				<< ",ErrPack: " << GigEgetErrPackCnt(board2) << endl;
+
+			lastFrameCnt2 = framecnttemp2;
+			lastDataCnt2 = bps2;
 #endif
 #ifdef _CAM3
 			sstemp << "cam3: " << framecnttemp3 - lastFrameCnt3 << " FPS,"
 				<< float(bps3 - lastDataCnt3) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt3 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt3
 				<< ",ErrPack: " << GigEgetErrPackCnt(board3) << endl;
+
+			lastFrameCnt3 = framecnttemp3;
+			lastDataCnt3 = bps3;
 #endif
 #ifdef _CAM4
 			sstemp << "cam4: " << framecnttemp4 - lastFrameCnt4 << " FPS,"
 				<< float(bps4 - lastDataCnt4) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt4 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt4
 				<< ",ErrPack: " << GigEgetErrPackCnt(board4) << endl;
-#endif
-			str=sstemp.str().c_str();
-
-			/*if(lastLostCnt-(recvSoftCnt-sendSoftCnt*6)!=0
-			{
-				sndPlaySound(_T("trainhorn.WAV"),SND_ASYNC);
-				lastLostCnt=recvSoftCnt-sendSoftCnt*6;
-			}*/
-			lastFrameCnt= framecnttemp;
-			lastDataCnt= bps;
-
-			lastFrameCnt2 = framecnttemp2;
-			lastDataCnt2 = bps2;
-
-			lastFrameCnt3 = framecnttemp3;
-			lastDataCnt3 = bps3;
 
 			lastFrameCnt4 = framecnttemp4;
 			lastDataCnt4 = bps4;
+#endif
+			str=sstemp.str().c_str();
 
 			SetDlgItemText(IDC_STATIC_TEXT,str);
 			break;
@@ -1163,7 +1178,7 @@ void CUsbControlDlg::OnBnClickedBtnConnect()
 
 		//connect button
 		board1 = GigEaddInstance((LPVOID*)this, RawCallBack, c);
-
+		//GigEgetCamSize(&g_camsize, board1);
 		if (board1 > 0)
 		{
 			str.Format(L"Device connected");
@@ -1365,7 +1380,6 @@ void CUsbControlDlg::OnBnClickedButtonSendgain2()
 	m_eFreq.GetWindowTextW(cs_freq);
 	uint32_t temp=_ttoi(cs_freq);
 	GigEsetFreq(temp,board1);
-
 	if (rst < 0)
 	{
 		SetDlgItemText(IDC_STATIC_TEXT, L"Set trig mode error.");
@@ -1576,7 +1590,7 @@ void CUsbControlDlg::OnBnClickedButton1()
 		GigEsetTrigMode(2, board1);
 		if (GigEstartCap(board1)<1)
 		{
-			SetDlgItemText(IDC_STATIC_TEXT, L"ï¿½è±¸ï¿½ï¿½Ê§ï¿½Ü£ï¿½");
+			SetDlgItemText(IDC_STATIC_TEXT, L"Éè±¸´ò¿ªÊ§°Ü£¡");
 			return;
 		}
 #endif
@@ -1586,7 +1600,7 @@ void CUsbControlDlg::OnBnClickedButton1()
 		GigEsetTrigMode(2, board2);
 		if (GigEstartCap(board2)<0)
 		{
-			SetDlgItemText(IDC_STATIC_TEXT, L"ï¿½è±¸2ï¿½ï¿½Ê§ï¿½Ü£ï¿½");
+			SetDlgItemText(IDC_STATIC_TEXT, L"Éè±¸2´ò¿ªÊ§°Ü£¡");
 			return;
 		}
 #endif
@@ -1596,7 +1610,7 @@ void CUsbControlDlg::OnBnClickedButton1()
 		GigEsetTrigMode(2, board3);
 		if (GigEstartCap(board3)<0)
 		{
-			SetDlgItemText(IDC_STATIC_TEXT, L"ï¿½è±¸2ï¿½ï¿½Ê§ï¿½Ü£ï¿½");
+			SetDlgItemText(IDC_STATIC_TEXT, L"Éè±¸2´ò¿ªÊ§°Ü£¡");
 			return;
 		}
 #endif
@@ -1606,12 +1620,64 @@ void CUsbControlDlg::OnBnClickedButton1()
 		GigEsetTrigMode(2, board4);
 		if (GigEstartCap(board4)<0)
 		{
-			SetDlgItemText(IDC_STATIC_TEXT, L"ï¿½è±¸2ï¿½ï¿½Ê§ï¿½Ü£ï¿½");
+			SetDlgItemText(IDC_STATIC_TEXT, L"Éè±¸2´ò¿ªÊ§°Ü£¡");
 			return;
 		}
 #endif
-		SetDlgItemText(IDC_STATIC_TEXT, L"ï¿½É¼ï¿½ï¿½ï¿½...");
+		SetDlgItemText(IDC_STATIC_TEXT, L"²É¼¯ÖÐ...");
 		CheckRadioButton(IDC_RADIO_NORMAL, IDC_RADIO_XYMIRROR, IDC_RADIO_NORMAL);
 		SetTimer(1, 1000, NULL);
-		SetTimer(2, 500, NULL);
+		
+}
+
+
+void CUsbControlDlg::OnBnClickedBtnTrig2()
+{
+	int rst = 0;
+	int idx = m_combo_trig.GetCurSel();
+
+	CString cs_freq;
+	m_eFreq.GetWindowTextW(cs_freq);
+	uint32_t temp = _ttoi(cs_freq);
+	if(idx==2)
+	SetTimer(2, temp, NULL);
+
+	recvSoftCnt = 0;
+	recvSoftCnt2 = 0;
+	recvSoftCnt3 = 0;
+	recvSoftCnt4 = 0;
+	sendSoftCnt = 0;
+	f_softtirg = 1;
+	GigEsendSoftTrig(board1);
+}
+
+
+void CUsbControlDlg::OnBnClickedBtnminset()
+{
+	CString str;
+	int data;
+	GetDlgItemText(IDC_EDITA,str);
+	data = _ttoi(str);
+	csSetGaussianA(data);
+
+	GetDlgItemText(IDC_EDITB, str);
+	data = _ttoi(str);
+	csSetGaussianB(data);
+
+	GetDlgItemText(IDC_EDITC, str);
+	data = _ttoi(str);
+	csSetGaussianC(data);
+
+	GetDlgItemText(IDC_EDITMAXP, str);
+	data = _ttoi(str);
+	csSetMaxBrightnessThreshold(data);
+
+	GetDlgItemText(IDC_EDITMAXW, str);
+	data = _ttoi(str);
+	csSetMaxLineWidth(data);
+
+	GetDlgItemText(IDC_EDITMINW, str);
+	data = _ttoi(str);
+	csSetMinLineWidth(data);
+
 }
