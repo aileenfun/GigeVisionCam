@@ -17,17 +17,16 @@ int GigEaddInstance(LPVOID *lpUser, LPMV_CALLBACK2 CallBackFunc, CCHCamera *info
 		return -1;
 	}
 	vec_camins.push_back(this_camInstance);
-
 	return vec_camins.size();
-
-
 }
 
 int GigEstartCap(int camNum)
 {
 	if (camNum<1)return camNum;
+	
+		
 	camNum = camNum - 1;
-
+	
 	if (vec_camins[camNum]->b_connected)
 	{
 		return vec_camins[camNum]->start();
@@ -37,6 +36,7 @@ int GigEstartCap(int camNum)
 int GigEsetMirrorType(GigEDataProcessType mirrortype, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	vec_camins[camNum]->setMirrorType(mirrortype);
 	return 0;
@@ -44,15 +44,15 @@ int GigEsetMirrorType(GigEDataProcessType mirrortype, int camNum)
 int GigEstopCap(int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
-	if (camNum >= vec_camins.size())
-		return -1;
 
 	return vec_camins[camNum]->stop();
 }
 int GigEgetFrameCnt(int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	if (vec_camins[camNum]->isRunning())
 	{
@@ -66,6 +66,7 @@ int GigEgetFrameCnt(int camNum)
 int GigEgetDataCnt(int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	if (vec_camins[camNum]->isRunning())
 	{
@@ -79,6 +80,7 @@ int GigEgetDataCnt(int camNum)
 long GigEgetErrPackCnt(int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	if (vec_camins[camNum]->isRunning())
 	{
@@ -92,6 +94,7 @@ long GigEgetErrPackCnt(int camNum)
 int GigEsendOrder(GigEcamPropStruct camprop, int camNum, int s)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	vec_camins[camNum]->sendOrder(camprop, s);
 	return 0;
@@ -100,6 +103,7 @@ int GigEsendOrder(GigEcamPropStruct camprop, int camNum, int s)
 int GigEsendProp(GigEclientPropStruct prop, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	vec_camins[camNum]->sendProp(prop);
 	return 0;
@@ -107,6 +111,7 @@ int GigEsendProp(GigEclientPropStruct prop, int camNum)
 int GigEsetTrigMode(int s, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	vec_camins[camNum]->setTrigMode(s);
 	return 0;
@@ -115,6 +120,7 @@ int GigEsetTrigMode(int s, int camNum)
 int GigEcloseConnection(int &camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	vec_camins[camNum]->closeConnection();
 	delete vec_camins[camNum];
@@ -126,6 +132,7 @@ int GigEcloseConnection(int &camNum)
 int GigEsetIP(CCHCamera *devinfo, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setIP(devinfo);
 }
@@ -142,76 +149,109 @@ int GigEsearchCamera(map_camera * camlist)
 unsigned __int32 GigEWriteReg(unsigned __int32 addr, unsigned __int32 data, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->WriteReg(addr, data);
 }
 unsigned __int32 GigEReadReg(unsigned __int32 addr, uint32_t *data, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->ReadReg(addr, data);
 }
 int GigEsendSoftTrig(int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->sendSoftTrig();
 }
 int GigEsetGain(uint32_t value, int isauto, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setGain(value, isauto);
 }
 int GigEsetExpo(uint32_t value, int isauto, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setExpo(value, isauto);
 }
 int GigEsetFreq(uint32_t value, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setFreq(value);
 }
 int GigEsetWB(uint32_t rvalue, uint32_t gvalue, uint32_t g2value, uint32_t bvalue, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setWB(rvalue, gvalue, g2value, bvalue);
 }
 int GigEsetCamSize(int camsize, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setCamSize(camsize);
 }
 int GigEgetCamSize(unsigned int *camsize, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->getCamSize(camsize);
 }
 int GigEsetROI(int xstart, int xend, int ystart, int yend, int enable, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setROI(xstart, xend, ystart, yend, enable);
 }
 int GigEsetSkip(int enable, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setSkip(enable);
 }
 int GigEsetBinning(int enable, int camNum)
 {
 	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setBinning(enable);
 }
+int GigEsetTrigThreshold(int n,int camNum)
+{
+	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setTrigThreshold(n);
+}
+int GigEsetPWM(int perc, int freq, int camNum)
+{
+	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setPWM(perc,freq);
+}
+int GigEsetROIEn(int enable,int camNum)
+{
+	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setROIEn(enable);
 
+}
 byte * pimagebuf = NULL;
 int imgready = 0;
 int board1 = 1;
@@ -252,8 +292,6 @@ int csInit(csCallBackFuncDel cb, int w = 1280, int h = 1028)
 	int count = 0;
 	map_camera::iterator itr;
 	itr = cameralist->begin();
-
-
 	if (itr != cameralist->end())
 	{
 		CCHCamera *c0 = itr->second;

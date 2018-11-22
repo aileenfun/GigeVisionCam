@@ -364,13 +364,17 @@ public:
 		if (m_DeviceGVCP.WriteReg(0x33bb0018, ystart) &&
 			m_DeviceGVCP.WriteReg(0x33bb001C, xstart) &&
 			m_DeviceGVCP.WriteReg(0x33bb0020, yend) &&
-			m_DeviceGVCP.WriteReg(0x33bb0024, xend) &&
+			m_DeviceGVCP.WriteReg(0x33bb0024, xend)&&
 			m_DeviceGVCP.WriteReg(0x33bb0028, enable))
 		{
 			return 1;
 		}
 		return -1;
 
+	}
+	int setROIEn(int enable)
+	{
+		return m_DeviceGVCP.WriteReg(0x33bb0028, enable);
 	}
 	int setBinning(int enable)
 	{
@@ -379,6 +383,17 @@ public:
 	int setSkip(int enable)
 	{
 		return m_DeviceGVCP.WriteReg(0x33bb0030, enable);
+	}
+	int setTrigThreshold(int n)
+	{
+		return m_DeviceGVCP.WriteReg(0x33bb00f0, n);
+	}
+	int setPWM(int perc, int freq)
+	{
+		int datatemp = 0;
+		datatemp = perc << 16;
+		datatemp = datatemp + freq;
+		return m_DeviceGVCP.WriteReg(0x33bb0060, datatemp);
 	}
 };
 CCT_API int GigEaddInstance(LPVOID *lpUser,LPMV_CALLBACK2 CallBackFunc,CCHCamera *info);
@@ -404,9 +419,11 @@ CCT_API int GigEsetWB(uint32_t rvalue,uint32_t gvalue,uint32_t g2value,uint32_t 
 CCT_API int GigEsetCamSize(int camsize,int camNum=1);
 CCT_API int GigEgetCamSize(unsigned int *camsize,int camNum = 1);
 CCT_API int GigEsetROI(int xstart, int xend, int ystart, int yend, int enable, int camNum = 1);
+CCT_API int GigEsetROIEn(int enable, int camNum = 1);
 CCT_API int GigEsetBinning(int enable,int camNum=1);
 CCT_API int GigEsetSkip(int enable,int camNum=1);
-
+CCT_API int GigEsetTrigThreshold(int n, int camNum = 1);
+CCT_API int GigEsetPWM(int perc, int freq, int camNum = 1);
 //C#使用的包裹层函数列表
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);

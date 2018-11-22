@@ -81,7 +81,7 @@ int GigECDataCapture::Open(int height, int width)//
 		unsigned long dw = WSAGetLastError();
 		return -dw;
 	}
-	Sleep(1000);
+	Sleep(10);
 	//clean socket
 	/*
 	int r;
@@ -138,7 +138,7 @@ int GigECDataCapture::Close()
 
 
 	m_bCapture = FALSE;
-	Sleep(100);
+	Sleep(10);
 	if (m_pOutData != NULL)
 	{
 		delete[] m_pOutData;

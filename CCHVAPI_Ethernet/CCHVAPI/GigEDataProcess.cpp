@@ -80,8 +80,11 @@ int GigECDataProcess::Close()
 	CGuard guard(m_Mutex);
 	cpm_queue.reset();
 	m_bEnd=TRUE;
-	if(m_temp!=NULL)
-	delete m_temp;
+	if (m_temp != NULL)
+	{
+		delete m_temp;
+		m_temp = NULL;
+	}
 	return 0;
 }
 
@@ -90,12 +93,7 @@ int GigECDataProcess::Input( VOID * pData,int dwSizes )
 	CGuard guard(m_Mutex);
 	if(m_bEnd)
 		return -1;
-	//m_pPutMsg->iDataSize = dwSizes;
-	//m_pPutMsg->pAny=pData;
-	//memcpy(m_pPutMsg->pData,pData,m_pPutMsg->iDataSize);
-	//m_pPutMsg->iType = MSG_DATA_HANDALE;
 	++m_lFrameCount;
-	//return PutMessage(m_pPutMsg);
 	return 0;
 }
 
@@ -173,14 +171,6 @@ int GigECDataProcess::ProcessData()
 			DoNormal(m_In,m_processed,g_height,g_width);
 			break;
 		}
-		//OutPutWrapper(h_callback,this);
-		//CreateBmpFile();
-		//m_BitmapInfo.bmiHeader.biSizeImage=g_width*g_height*3;//图片实际数据字节数
-		//m_BitmapInfo.bmiHeader.biWidth=g_width;
-		//m_BitmapInfo.bmiHeader.biHeight= g_height;
-		//StretchDIBits(m_pDisplay->GetMemDC()->m_hDC,0,0,g_width,g_height,0,0,g_width,g_height,m_Out,&m_BitmapInfo,DIB_RGB_COLORS,SRCCOPY);
-		////StretchDIBits(m_pDisplay->GetMemDC()->m_hDC,0,0,1280,720,0,0,g_height,g_width,m_Out,&m_BitmapInfo,DIB_RGB_COLORS,SRCCOPY);
-		//m_pDisplay->Display();
 		memset(m_In,0,g_width*g_height);
 		memset(m_Out,0,g_width*g_height);
 		memset(m_processed,0,g_width*g_height);

@@ -1498,6 +1498,7 @@ void CUsbControlDlg::OnBnClickedCheckroienable()
 {
 	m_cb_binning.EnableWindow(!m_cb_roienable.GetCheck());
 	m_cb_skip.EnableWindow(!m_cb_roienable.GetCheck());
+	GigEsetROIEn(m_cb_roienable.GetCheck(),board1);
 }
 
 
