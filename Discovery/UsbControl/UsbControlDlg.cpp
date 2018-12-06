@@ -215,6 +215,7 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(btn_test, &CUsbControlDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BTN_TRIG2, &CUsbControlDlg::OnBnClickedBtnTrig2)
 	ON_BN_CLICKED(IDC_BTN_minset, &CUsbControlDlg::OnBnClickedBtnminset)
+
 END_MESSAGE_MAP()
 
 
@@ -1346,7 +1347,8 @@ void CUsbControlDlg::OnBnClickedButtonSendgain()
 	int autovalue=autogain.GetCheck();
 		autovalue=autovalue<<1;
 		autovalue=autovalue+autoexpo.GetCheck();
-		GigEsetGain(rst,autovalue,board1);
+		//GigEsetGain(rst,autovalue,board1);
+		GigEsetGain_HZC(rst, show_channel,board1);
 }
 
 
@@ -1682,3 +1684,4 @@ void CUsbControlDlg::OnBnClickedBtnminset()
 	csSetMinLineWidth(data);
 
 }
+

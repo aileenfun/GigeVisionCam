@@ -252,6 +252,14 @@ int GigEsetROIEn(int enable,int camNum)
 	return vec_camins[camNum]->setROIEn(enable);
 
 }
+int GigEsetGain_HZC(uint32_t value, int idx,int camNum)
+{
+	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setGain_HZC(value, idx);
+}
+
 byte * pimagebuf = NULL;
 int imgready = 0;
 int board1 = 1;
