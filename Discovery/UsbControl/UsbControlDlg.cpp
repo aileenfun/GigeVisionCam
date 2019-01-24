@@ -40,11 +40,13 @@ int g_height=480;
 
 unsigned long sendSoftCnt=0;
 unsigned long recvSoftCnt=0;
+unsigned long recvHardTrigCnt = 0;
 unsigned long recvSoftCnt2 = 0;
 unsigned long recvSoftCnt3 = 0;
 unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
+int f_hardtrig = 0;
 unsigned int g_camsize = 1;
 class CAboutDlg : public CDialog
 {
@@ -445,6 +447,7 @@ HCURSOR CUsbControlDlg::OnQueryDragIcon()
 
 volatile int show_channel;
 bool b_save_file;
+int trigsource;
 byte* imgBuf = NULL;
 byte* imgBuf2 = NULL;
 byte* imgBuf3 = NULL;
@@ -479,12 +482,16 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 		offset = g_camsize - 1;
 	}
 	offset = dispheight*dispwidth*offset;
+	trigsource = thisFrame->m_camNum;
 	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
 	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
 	cv::imshow("disp", frame);
 	cv::waitKey(1);
-
-
+	
+	if (f_hardtrig)
+	{
+		recvHardTrigCnt++;
+	}
 
 	if (b_save_file)
 	{
@@ -520,6 +527,7 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 		{
 			recvSoftCnt++;
 		}
+	
 		//h_vw.write(frame);
 
 	}
@@ -783,6 +791,7 @@ void CUsbControlDlg::OnBnClickedBtnStopcapture()
 		
 	}
 	f_softtirg=0;
+	f_hardtrig = 0;
 	UpdateData(TRUE);
 	//cv::destroyWindow("disp");
 	SetDlgItemText(IDC_STATIC_TEXT,L" ");
@@ -838,10 +847,11 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 		unsigned int bps4 = GigEgetDataCnt(board4);
 
 #ifdef _CAM1
-			sstemp << "cam1: " << framecnttemp - lastFrameCnt << " FPS,"
-				<< float(bps - lastDataCnt) / 1024 / 1024 << "MB/s"
-				//<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
-				//<< ",ErrPack: " << GigEgetErrPackCnt(board1)
+		sstemp << "cam1: " << framecnttemp - lastFrameCnt << " FPS,"
+			<< float(bps - lastDataCnt) / 1024 / 1024 << "MB/s"
+			//<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
+			//<< ",ErrPack: " << GigEgetErrPackCnt(board1)
+			<< ",TrigSource:" << trigsource
 				<< endl;
 
 			lastFrameCnt = framecnttemp;
@@ -881,7 +891,7 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 		}
 	case 2:
 		{
-			if(f_softtirg)
+			if(0)
 			{
 #ifdef _CAM1
 				GigEsendSoftTrig(board1);
@@ -1585,7 +1595,7 @@ void CUsbControlDlg::OnBnClickedButton1()
 	
 		sendSoftCnt = 0;
 		f_softtirg = 1;
-
+		
 
 		
 #ifdef _CAM1
@@ -1636,6 +1646,7 @@ void CUsbControlDlg::OnBnClickedButton1()
 
 void CUsbControlDlg::OnBnClickedBtnTrig2()
 {
+	/*
 	int rst = 0;
 	int idx = m_combo_trig.GetCurSel();
 
@@ -1652,6 +1663,9 @@ void CUsbControlDlg::OnBnClickedBtnTrig2()
 	sendSoftCnt = 0;
 	f_softtirg = 1;
 	GigEsendSoftTrig(board1);
+	*/
+	f_hardtrig = 1;
+	recvHardTrigCnt = 0;
 }
 
 

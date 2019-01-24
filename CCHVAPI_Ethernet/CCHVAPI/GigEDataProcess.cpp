@@ -16,6 +16,7 @@
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
+#define _SAVEFILE
 
 GigECDataProcess::GigECDataProcess(GigEwqueue<GigEimgFrame*>&queue,LPVOID *lpUser)
 	:cpm_queue(queue)
@@ -126,6 +127,7 @@ void GigECDataProcess::ThreadProcessFunction()
 			DispatchMessage(&msg);
 		}*/
 		 CImgFrame=(GigEimgFrame*)cpm_queue.remove();
+
 		 this_trigimgpack->add(CImgFrame);
 		//this_trigimgpack->onTimer(&msg);
 		//OutPutWrapper(h_callback,this);

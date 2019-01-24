@@ -263,28 +263,26 @@ void GigECDataCapture::get_udp_data()
 			//packnum = recv_buf[10] << 8;
 			//int temppack =(unsigned char) recv_buf[11];
 			//packnum = temppack + packnum;
-			if (recv_buf[0] != 0x33 && recv_buf[0] != 0x34 &&
+			/*if (recv_buf[0] != 0x33 && recv_buf[0] != 0x34 &&
 				recv_buf[0] != 0x35 && recv_buf[0] != 0x30 &&
 				recv_buf[0] != 0x3f )
 			{
 				haveerror++;
 				f_errorpack = true;
 				continue;
-			}
+			}*/
 			
 
 			//pack ok
 			this_udpbuffer = new GigEudp_buffer(nRet);
 			p_udpbuf = this_udpbuffer->packbuffer;
 			memcpy(p_udpbuf, recv_buf, this_udpbuffer->m_packsize);
-			p_udpbuf[2] = 0;
 			if (p_udpbuf[0] == 0x34)
 			{
 				getResendPackCnt++;
 			}
 			if (p_udpbuf[0] == 0x33)
 			{
-				camNum = p_udpbuf[2];
 				timestamp = p_udpbuf[3] << 16;
 				timestamp += p_udpbuf[4] << 8;
 				timestamp += p_udpbuf[5];
@@ -301,8 +299,8 @@ void GigECDataCapture::get_udp_data()
 				continue;
 			}
 
-			//todo: for single cam, camNum won't change. need better rules
-			if ((camNum != camNum_last) || (timestamp != timestamp_last)
+			
+			if ((timestamp != timestamp_last)
 				&& ((p_udpbuf[0] == 0x33) || (p_udpbuf[0] == 0x30)))//boarder pack check,new frame came
 			{
 				lostpacks = TOTALPACK - packnum_last - 1;
@@ -453,31 +451,29 @@ int GigECDataCapture::ThreadProcessFunction()
 		savefile2.write((char*)this_udp_pack->packbuffer, 16);
 #endif
 
-		/*if (this_udp_pack->packbuffer[0] != 0x33 && this_udp_pack->packbuffer[0] != 0x34 && 
+		if (this_udp_pack->packbuffer[0] != 0x33 && this_udp_pack->packbuffer[0] != 0x34 && 
 			this_udp_pack->packbuffer[0] != 0x35 && this_udp_pack->packbuffer[0] != 0x30 && 
 			this_udp_pack->packbuffer[0] != 0x3f)
 		{
 			haveerror++;
 			f_errorpack = true;
 			goto CLEANUP;
-		}*/
+		}
 
 		if (this_udp_pack->packbuffer[0] != 0x34)
 		{//normal frame process
-			camNum = this_udp_pack->packbuffer[2];
+			camNum = 0;
 			timestamp = this_udp_pack->packbuffer[3] << 16;
 			timestamp += this_udp_pack->packbuffer[4] << 8;
 			timestamp += this_udp_pack->packbuffer[5];
 			packnum = this_udp_pack->packbuffer[10] << 8;
 			packnum += (unsigned int)this_udp_pack->packbuffer[11];
-			if (camNum!= 0 || packnum > TOTALPACK)
+			if ( packnum > TOTALPACK)
 			{
 				haveerror++;
 				f_errorpack = true;
 				goto CLEANUP;
 			}
-
-			
 			unsigned char pack1 = this_udp_pack->packbuffer[0];
 			unsigned char pack2 = this_udp_pack->packbuffer[1];
 			unsigned char whdebug = this_udp_pack->packbuffer[6];
@@ -488,7 +484,7 @@ int GigECDataCapture::ThreadProcessFunction()
 			{//new frame arrived, judged by camNum and timestamp
 				thisImgFrame = new GigEimgFrame(g_width, g_height, camNum);
 				thisImgFrame->timestamp = timestamp;
-				thisImgFrame->status = 1;
+				thisImgFrame->TrigSource = this_udp_pack->packbuffer[2];
 				thisImgFrame->packnum = 0;
 				vframe.push_back(thisImgFrame);
 				head = true;
@@ -497,7 +493,7 @@ int GigECDataCapture::ThreadProcessFunction()
 
 		if (head && (this_udp_pack->packbuffer[0] != 0x30))//((this_udp_pack->packbuffer[0]==0x33)||(this_udp_pack->packbuffer[0]==0x34)||(this_udp_pack->packbuffer[0]==0x3f)))
 		{
-			camNum = this_udp_pack->packbuffer[2];
+			camNum = 0;
 
 			timestamp = this_udp_pack->packbuffer[3] << 16;
 			timestamp += this_udp_pack->packbuffer[4] << 8;
