@@ -218,6 +218,7 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(IDC_BTN_TRIG2, &CUsbControlDlg::OnBnClickedBtnTrig2)
 	ON_BN_CLICKED(IDC_BTN_minset, &CUsbControlDlg::OnBnClickedBtnminset)
 
+	ON_BN_CLICKED(btn_resolu, &CUsbControlDlg::OnBnClickedresolu)
 END_MESSAGE_MAP()
 
 
@@ -448,6 +449,7 @@ HCURSOR CUsbControlDlg::OnQueryDragIcon()
 volatile int show_channel;
 bool b_save_file;
 int trigsource;
+unsigned long imgtime;
 byte* imgBuf = NULL;
 byte* imgBuf2 = NULL;
 byte* imgBuf3 = NULL;
@@ -483,6 +485,7 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	}
 	offset = dispheight*dispwidth*offset;
 	trigsource = thisFrame->m_camNum;
+	imgtime=thisFrame->imgtime;
 	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
 	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
 	cv::imshow("disp", frame);
@@ -851,7 +854,7 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 			<< float(bps - lastDataCnt) / 1024 / 1024 << "MB/s"
 			//<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
 			//<< ",ErrPack: " << GigEgetErrPackCnt(board1)
-			<< ",TrigSource:" << trigsource
+			//<< ",ImgTime:" << imgtime
 				<< endl;
 
 			lastFrameCnt = framecnttemp;
@@ -1384,7 +1387,7 @@ void CUsbControlDlg::OnBnClickedButtonSendgain2()
 	int rst=0;
 	int idx=m_combo_trig.GetCurSel();
 	
-	if(idx>=0&&idx<3)
+	if(idx>=0&&idx<4)
 	 rst= GigEsetTrigMode(idx);
 
 
@@ -1527,6 +1530,7 @@ void CUsbControlDlg::OnBnClickedBtnWbset2()
 
 void CUsbControlDlg::OnBnClickedButton1()
 {
+
 	CString str;
 		map_camera::iterator itr;
 		itr = cameralist->begin();
@@ -1699,3 +1703,16 @@ void CUsbControlDlg::OnBnClickedBtnminset()
 
 }
 
+
+int resolu=0;
+void CUsbControlDlg::OnBnClickedresolu()
+{
+	// TODO: Add your control notification handler code here
+	if(resolu==0)
+	{	resolu=1;}
+	else
+	{
+		resolu=0;
+	}
+	GigEsetResolu_HZC(resolu);
+}

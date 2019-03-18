@@ -16,7 +16,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 中文(简体，中国) resources
+// Chinese (Simplified, PRC) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
@@ -69,7 +69,6 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\UsbControl.ico"
 
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
@@ -85,7 +84,7 @@ BEGIN
 END
 
 IDD_USBCONTROL_DIALOG DIALOGEX 0, 0, 490, 359
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_APPWINDOW
 CAPTION " "
 FONT 9, "MS Shell Dlg", 0, 0, 0x1
@@ -171,6 +170,7 @@ BEGIN
     CONTROL         "",IDC_IPADDRESS_PCIP2,"SysIPAddress32",WS_DISABLED | WS_TABSTOP,55,156,100,15
     PUSHBUTTON      "test",btn_test,330,21,21,14,NOT WS_VISIBLE
     PUSHBUTTON      "HardTrigReset",IDC_BTN_TRIG2,329,5,47,14
+    PUSHBUTTON      "ChangeResol",btn_resolu,387,22,54,14
 END
 
 IDD_DLG_VIDEO DIALOGEX 0, 0, 349, 218
@@ -254,12 +254,12 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// AFX_DIALOG_LAYOUT
+// 32766
 //
 
-IDD_USBCONTROL_DIALOG AFX_DIALOG_LAYOUT
+IDD_USBCONTROL_DIALOG 32766
 BEGIN
-    0
+    0x0000
 END
 
 
@@ -273,7 +273,7 @@ BEGIN
     IDS_ABOUTBOX            "about GigeCam..."
 END
 
-#endif    // 中文(简体，中国) resources
+#endif    // Chinese (Simplified, PRC) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

@@ -172,4 +172,5 @@ public:
 	afx_msg void OnBnClickedBtnTrig2();
 	afx_msg void OnBnClickedBtnminset();
 	afx_msg void OnEnChangeEditGain();
+	afx_msg void OnBnClickedresolu();
 };

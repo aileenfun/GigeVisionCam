@@ -401,6 +401,11 @@ public:
 		addr = addr + idx * 4;
 		return m_DeviceGVCP.WriteReg(addr, value);
 	}
+	int setResolu_HZC(int value)
+	{
+		uint32_t addr = 0x33bb00c0;
+		return m_DeviceGVCP.WriteReg(addr, value);
+	}
 };
 CCT_API int GigEaddInstance(LPVOID *lpUser,LPMV_CALLBACK2 CallBackFunc,CCHCamera *info);
 //CCT_API int initCCTAPI(int camNum);
@@ -431,6 +436,7 @@ CCT_API int GigEsetSkip(int enable,int camNum=1);
 CCT_API int GigEsetTrigThreshold(int n, int camNum = 1);
 CCT_API int GigEsetPWM(int perc, int freq, int camNum = 1);
 CCT_API int GigEsetGain_HZC(uint32_t value, int idx,int camNum);
+CCT_API int GigEsetResolu_HZC(int value,int camNum=1);
 //C#使用的包裹层函数列表
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);

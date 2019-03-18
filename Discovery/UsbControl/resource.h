@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ 生成的包含文件。
-// 供 UsbControl.rc 使用
+// Microsoft Visual C++ generated include file.
+// Used by UsbControl.rc
 //
 #define IDM_ABOUTBOX                    0x0010
 #define IDD_ABOUTBOX                    100
@@ -110,6 +110,8 @@
 #define btn_test                        1070
 #define IDC_BTN_TRIG2                   1071
 #define IDC_EDITMAXW                    1072
+#define btn_test2                       1072
+#define btn_resolu                      1072
 #define IDC_EDITMINW                    1073
 #define IDC_BTN_roiset2                 1074
 #define IDC_BTN_minset                  1074

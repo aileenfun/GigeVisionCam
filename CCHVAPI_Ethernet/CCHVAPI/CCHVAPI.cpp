@@ -23,7 +23,7 @@ int GigEaddInstance(LPVOID *lpUser, LPMV_CALLBACK2 CallBackFunc, CCHCamera *info
 int GigEstartCap(int camNum)
 {
 	if (camNum<1)return camNum;
-	
+	if (camNum > vec_camins.size())return -2;
 		
 	camNum = camNum - 1;
 	
@@ -259,7 +259,17 @@ int GigEsetGain_HZC(uint32_t value, int idx,int camNum)
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setGain_HZC(value, idx);
 }
-
+int GigEsetResolu_HZC(int value,int camNum)
+{
+	if (camNum<1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	if(value>1)
+		value=1;
+	if(value<0)
+		value=0;
+	return vec_camins[camNum]->setResolu_HZC(value);
+}
 byte * pimagebuf = NULL;
 int imgready = 0;
 int board1 = 1;

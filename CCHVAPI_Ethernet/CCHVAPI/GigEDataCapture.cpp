@@ -476,16 +476,20 @@ int GigECDataCapture::ThreadProcessFunction()
 			}
 			unsigned char pack1 = this_udp_pack->packbuffer[0];
 			unsigned char pack2 = this_udp_pack->packbuffer[1];
-			unsigned char whdebug = this_udp_pack->packbuffer[6];
-			unsigned char wldebug = this_udp_pack->packbuffer[7];
-			unsigned char hhdebug = this_udp_pack->packbuffer[8];
-			unsigned char hldebug = this_udp_pack->packbuffer[9];
+			
 			if (camNum != camNum_last || timestamp != timestamp_last)
 			{//new frame arrived, judged by camNum and timestamp
 				thisImgFrame = new GigEimgFrame(g_width, g_height, camNum);
 				thisImgFrame->timestamp = timestamp;
+
+				thisImgFrame->imgtime = this_udp_pack->packbuffer[6] << 24;
+				thisImgFrame->imgtime += this_udp_pack->packbuffer[7] << 16;
+				thisImgFrame->imgtime += this_udp_pack->packbuffer[8] << 8;
+				thisImgFrame->imgtime += this_udp_pack->packbuffer[9];
+
 				thisImgFrame->TrigSource = this_udp_pack->packbuffer[2];
 				thisImgFrame->packnum = 0;
+
 				vframe.push_back(thisImgFrame);
 				head = true;
 			}
