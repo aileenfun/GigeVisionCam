@@ -76,30 +76,13 @@ int GigECDataCapture::Open(int height, int width)//
 	Sleep(10);
 	sendbuff[3] = 0x01;//start
 	rst = sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+	delete sendbuff;
 	if (rst < 0)
 	{
 		unsigned long dw = WSAGetLastError();
 		return -dw;
 	}
-	Sleep(10);
-	//clean socket
-	/*
-	int r;
-	int total=0;
-	std::vector<char> buf(128*1024);
-	int cliaddr_len=sizeof(client_addr1);
-	do {
-	r=recvfrom(socketSrv,  &buf[0], buf.size(), 0, (struct sockaddr*)&client_addr1, &cliaddr_len);
-	if(r>0)total+=r;
-	// r = recv(socketSrv, &buf[0], buf.size(),);
-	if (r < 0 && errno == EINTR) continue;
-	} while (total<1280*960);
-	if (r < 0 && errno != EWOULDBLOCK) {
-
-	//... code to handle unexpected error
-	}
-	//end clean socket
-	*/
+	Sleep(1);
 
 	m_hThread = (HANDLE)_beginthreadex(NULL, 0, ThreadProcess, this, 0, NULL);
 	int temp = SetThreadPriority(m_hThread, THREAD_PRIORITY_TIME_CRITICAL);
@@ -135,8 +118,8 @@ int GigECDataCapture::Close()
 	sendbuff[30] = 0x57;
 	sendbuff[31] = 0xac;
 	int rst = sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
-
-
+	delete sendbuff;
+	
 	m_bCapture = FALSE;
 	Sleep(10);
 	if (m_pOutData != NULL)
@@ -263,14 +246,14 @@ void GigECDataCapture::get_udp_data()
 			//packnum = recv_buf[10] << 8;
 			//int temppack =(unsigned char) recv_buf[11];
 			//packnum = temppack + packnum;
-			/*if (recv_buf[0] != 0x33 && recv_buf[0] != 0x34 &&
+			if (recv_buf[0] != 0x33 && recv_buf[0] != 0x34 &&
 				recv_buf[0] != 0x35 && recv_buf[0] != 0x30 &&
 				recv_buf[0] != 0x3f )
 			{
 				haveerror++;
 				f_errorpack = true;
 				continue;
-			}*/
+			}
 			
 
 			//pack ok
@@ -305,7 +288,10 @@ void GigECDataCapture::get_udp_data()
 			{
 				lostpacks = TOTALPACK - packnum_last - 1;
 				if (lostpacks > MAX_RESEND_SIZE)
+				{
+					delete this_udpbuffer;
 					continue;
+				}
 				if (lostpacks>0)//last pack lost
 				{
 					resendbuf[2] = 0x03;//resend cmd
@@ -326,7 +312,10 @@ void GigECDataCapture::get_udp_data()
 
 				lostpacks = packnum - 1;
 				if (lostpacks > MAX_RESEND_SIZE)
+				{
+					delete this_udpbuffer;
 					continue;
+				}
 				if (lostpacks>0)//new frame's head lost
 				{
 					resendbuf[2] = 0x03;//resend order
@@ -349,7 +338,10 @@ void GigECDataCapture::get_udp_data()
 			{
 				lostpacks = packnum - packnum_last - 1;
 				if (lostpacks > MAX_RESEND_SIZE)
+				{
+					delete this_udpbuffer;
 					continue;
+				}
 				if (lostpacks>0)
 				{
 					resendbuf[0] = 0x56;
@@ -763,6 +755,8 @@ int GigECDataCapture::getProp(GigEclientPropStruct* prop)
 
 		}
 	}
+	delete sendbuff;
+	delete recv_buf;
 	return -2;
 
 }
@@ -781,6 +775,9 @@ int GigECDataCapture::sendOrder(GigEcamPropStruct camprop, int s)
 	this_camprop->getBuffer(sendbuff);
 	if (s == 0)
 		sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+
+
+	delete sendbuff;
 	return 0;
 }
 
@@ -805,6 +802,7 @@ unsigned __int32 GigECDataCapture::WriteReg(unsigned __int32 addr, unsigned __in
 	sendbuff[14] = (data&(0xff << 1 * 8)) >> (1 * 8);
 	sendbuff[15] = (data&(0xff << 0 * 8)) >> (0 * 8);
 	sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+	delete sendbuff;
 	return 1;
 }
 int GigECDataCapture::sendSoftTrig(int s)

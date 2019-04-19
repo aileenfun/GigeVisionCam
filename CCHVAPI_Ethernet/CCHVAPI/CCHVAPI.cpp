@@ -270,6 +270,27 @@ int GigEsetResolu_HZC(int value,int camNum)
 		value=0;
 	return vec_camins[camNum]->setResolu_HZC(value);
 }
+int GigEsetIOLength_MY(uint32_t us, int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setIOLength_MY(us);
+}
+int GigEsetLightOn_XD(int s, int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setLightOn_XD(s);
+}
+int GigEsetLightLen_XD(uint32_t len, int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setLightLen_XD(len);
+}
 byte * pimagebuf = NULL;
 int imgready = 0;
 int board1 = 1;

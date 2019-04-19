@@ -284,9 +284,13 @@ public:
 		
 		return m_DeviceGVCP.WriteReg(0x33bb0008, 1);;
 	}
+	int setAuto(int isauto)
+	{
+		m_DeviceGVCP.WriteReg(0x33bb0034, isauto);
+	}
 	int setGain(uint32_t value,int isauto)
 	{
-		m_DeviceGVCP.WriteReg(0x33bb0034,isauto);
+		
 		if(!isauto)
 		{
 			return m_DeviceGVCP.WriteReg(0x33bb003C,value);
@@ -295,7 +299,6 @@ public:
 	}
 	int setExpo(uint32_t value,int isauto)
 	{
-		m_DeviceGVCP.WriteReg(0x33bb0034,isauto);
 		if(!isauto)
 		{
 			return m_DeviceGVCP.WriteReg(0x33bb0038,value);
@@ -406,6 +409,21 @@ public:
 		uint32_t addr = 0x33bb00c0;
 		return m_DeviceGVCP.WriteReg(addr, value);
 	}
+	int setLightOn_XD(int s)
+	{
+		uint32_t addr = 0x33bb0070;
+		return m_DeviceGVCP.WriteReg(addr, s);
+	}
+	int setLightLen_XD(uint32_t len)
+	{
+		uint32_t addr = 0x33bb0074;
+		return m_DeviceGVCP.WriteReg(addr, len);
+	}
+	int setIOLength_MY(uint32_t us)
+	{
+		uint32_t addr = 0x33bb0064;
+		return m_DeviceGVCP.WriteReg(addr, us);
+	}
 };
 CCT_API int GigEaddInstance(LPVOID *lpUser,LPMV_CALLBACK2 CallBackFunc,CCHCamera *info);
 //CCT_API int initCCTAPI(int camNum);
@@ -437,7 +455,9 @@ CCT_API int GigEsetTrigThreshold(int n, int camNum = 1);
 CCT_API int GigEsetPWM(int perc, int freq, int camNum = 1);
 CCT_API int GigEsetGain_HZC(uint32_t value, int idx,int camNum);
 CCT_API int GigEsetResolu_HZC(int value,int camNum=1);
-//C#使用的包裹层函数列表
+CCT_API int GigEsetLightOn_XD(int s,int camNum);
+CCT_API int GigEsetLightLen_XD(uint32_t len,int camNum);
+
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);
 CCT_API int csSetROI(int xstart, int xend, int ystart, int yend, int enable);
@@ -453,3 +473,4 @@ CCT_API int csSetGaussianC(uint8_t c);
 CCT_API int csSetMaxBrightnessThreshold(uint8_t data);
 CCT_API int csSetMaxLineWidth(uint32_t data);
 CCT_API int csSetMinLineWidth(uint32_t data);
+CCT_API int GigEsetIOLength_MY(uint32_t us, int camnum = 1);

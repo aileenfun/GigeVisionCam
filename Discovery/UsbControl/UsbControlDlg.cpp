@@ -854,7 +854,7 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 			<< float(bps - lastDataCnt) / 1024 / 1024 << "MB/s"
 			//<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
 			//<< ",ErrPack: " << GigEgetErrPackCnt(board1)
-			//<< ",ImgTime:" << imgtime
+			<< ",ImgTime:" << imgtime
 				<< endl;
 
 			lastFrameCnt = framecnttemp;
