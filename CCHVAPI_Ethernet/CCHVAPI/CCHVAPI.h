@@ -290,19 +290,16 @@ public:
 	}
 	int setGain(uint32_t value,int isauto)
 	{
-		
-		if(!isauto)
-		{
-			return m_DeviceGVCP.WriteReg(0x33bb003C,value);
-		}
+		if (isauto)
+			return -8;
+		return m_DeviceGVCP.WriteReg(0x33bb003C,value);
 		
 	}
 	int setExpo(uint32_t value,int isauto)
 	{
-		if(!isauto)
-		{
-			return m_DeviceGVCP.WriteReg(0x33bb0038,value);
-		}
+		if (isauto)
+			return -8;
+		return m_DeviceGVCP.WriteReg(0x33bb0038,value);
 		
 	}
 	int setFreq(uint32_t value)
@@ -457,6 +454,7 @@ CCT_API int GigEsetGain_HZC(uint32_t value, int idx,int camNum);
 CCT_API int GigEsetResolu_HZC(int value,int camNum=1);
 CCT_API int GigEsetLightOn_XD(int s,int camNum);
 CCT_API int GigEsetLightLen_XD(uint32_t len,int camNum);
+CCT_API int GigEsetAuto(int isauto, int camNum);
 
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);

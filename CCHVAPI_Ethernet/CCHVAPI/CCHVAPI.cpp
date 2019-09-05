@@ -167,6 +167,10 @@ int GigEsendSoftTrig(int camNum)
 	camNum = camNum - 1;
 	return vec_camins[camNum]->sendSoftTrig();
 }
+int GigEsetAuto(int isauto, int camNum)
+{
+	return vec_camins[camNum]->setAuto(isauto);
+}
 int GigEsetGain(uint32_t value, int isauto, int camNum)
 {
 	if (camNum<1)return camNum;

@@ -16,7 +16,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Chinese (Simplified, PRC) resources
+// 中文(简体，中国) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
@@ -69,6 +69,7 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\UsbControl.ico"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
@@ -94,7 +95,7 @@ BEGIN
     PUSHBUTTON      "VideoCap",IDC_BTN_VIDEOCAPTURE,91,9,33,30
     PUSHBUTTON      "StopCap",IDC_BTN_STOPCAPTURE,125,9,33,30
     PUSHBUTTON      "CloseCon",IDC_BTN_CLOSECON,158,9,33,30
-    PUSHBUTTON      "SnapShot",IDC_BTN_SNAP,191,9,33,30,NOT WS_VISIBLE
+    PUSHBUTTON      "SnapShot",IDC_BTN_SNAP,191,9,33,30
     LISTBOX         IDC_LIST1,17,46,206,77,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_IPADDRESS_CAM,"SysIPAddress32",WS_TABSTOP,170,176,100,15
     CONTROL         "",IDC_IPADDRESS_SUBNET,"SysIPAddress32",WS_TABSTOP,170,195,99,15
@@ -169,8 +170,8 @@ BEGIN
     CONTROL         "",IDC_IPADDRESS_GATE2,"SysIPAddress32",WS_TABSTOP,55,214,99,15
     CONTROL         "",IDC_IPADDRESS_PCIP2,"SysIPAddress32",WS_DISABLED | WS_TABSTOP,55,156,100,15
     PUSHBUTTON      "test",btn_test,330,21,21,14,NOT WS_VISIBLE
-    PUSHBUTTON      "HardTrigReset",IDC_BTN_TRIG2,329,5,47,14
-    PUSHBUTTON      "ChangeResol",btn_resolu,387,22,54,14
+    PUSHBUTTON      "HardTrigReset",IDC_BTN_TRIG2,329,5,47,14,NOT WS_VISIBLE
+    PUSHBUTTON      "ChangeResol",btn_resolu,387,22,73,14,NOT WS_VISIBLE
 END
 
 IDD_DLG_VIDEO DIALOGEX 0, 0, 349, 218
@@ -254,12 +255,12 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// 32766
+// AFX_DIALOG_LAYOUT
 //
 
-IDD_USBCONTROL_DIALOG 32766
+IDD_USBCONTROL_DIALOG AFX_DIALOG_LAYOUT
 BEGIN
-    0x0000
+    0
 END
 
 
@@ -273,7 +274,7 @@ BEGIN
     IDS_ABOUTBOX            "about GigeCam..."
 END
 
-#endif    // Chinese (Simplified, PRC) resources
+#endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
