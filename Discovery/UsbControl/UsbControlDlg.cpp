@@ -47,7 +47,7 @@ unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
 int f_hardtrig = 0;
-unsigned int g_camsize = 1;
+unsigned int g_camsize = 6;
 class CAboutDlg : public CDialog
 {
 public:
@@ -478,6 +478,11 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	if (imgBuf == NULL)
 	{
 		imgBuf = new byte[dispheight*dispwidth];
+		imgBuf2 = new byte[dispheight * dispwidth];
+		imgBuf3 = new byte[dispheight * dispwidth];
+		imgBuf4 = new byte[dispheight * dispwidth];
+		imgBuf5 = new byte[dispheight * dispwidth];
+		imgBuf6 = new byte[dispheight * dispwidth];
 	}
 
 	int offset = 0;
@@ -494,29 +499,35 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	imgtime=thisFrame->imgtime;
 	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
 	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
+
 	long imgoffset = 0;
 	
 	cv::imshow("disp", frame);
+
 	imgoffset = dispheight * dispwidth * 1;
-	cv::Mat frame2(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf + imgoffset);
+	memcpy(imgBuf2, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
+	cv::Mat frame2(dispheight, dispwidth, CV_8UC1, imgBuf2);
 	cv::imshow("cam2", frame2);
 
 	imgoffset = dispheight * dispwidth * 2;
-	cv::Mat frame3(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf+ imgoffset);
+	memcpy(imgBuf3, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
+	cv::Mat frame3(dispheight, dispwidth, CV_8UC1, imgBuf3);
 	cv::imshow("cam3", frame3);
 
 	imgoffset = dispheight * dispwidth * 3;
-	cv::Mat frame4(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf + imgoffset);
+	memcpy(imgBuf4, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
+	cv::Mat frame4(dispheight, dispwidth, CV_8UC1, imgBuf4);
 	cv::imshow("cam4", frame4);
 
 	imgoffset = dispheight * dispwidth * 4;
-	cv::Mat frame5(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf + imgoffset);
+	memcpy(imgBuf5, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
+	cv::Mat frame5(dispheight, dispwidth, CV_8UC1, imgBuf5);
 	cv::imshow("cam5", frame5);
 
 	imgoffset = dispheight * dispwidth * 5;
-	cv::Mat frame6(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf + imgoffset);
+	memcpy(imgBuf6, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
+	cv::Mat frame6(dispheight, dispwidth, CV_8UC1, imgBuf6);
 	cv::imshow("cam6", frame6);
-
 	cv::waitKey(1);
 	
 	if (f_hardtrig)
