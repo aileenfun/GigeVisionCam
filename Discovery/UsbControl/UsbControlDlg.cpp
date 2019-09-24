@@ -456,6 +456,8 @@ byte* imgBuf = NULL;
 byte* imgBuf2 = NULL;
 byte* imgBuf3 = NULL;
 byte* imgBuf4 = NULL;
+byte* imgBuf5 = NULL;
+byte* imgBuf6 = NULL;
 #ifdef _ORG
 void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
@@ -492,27 +494,29 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	imgtime=thisFrame->imgtime;
 	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
 	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
-	cv::Mat frame2(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf);
-	//752*480
-	//xie
-	cv::Rect rect1(245, 240, 70, 120);
-	cv::Rect rect2(400, 240, 70, 120);
-	cv::Rect rect7(370, 153, 40, 60);
-	//zhi
-	cv::Rect rect3(95, 240+480, 70, 120);
-	cv::Rect rect4(280, 240+480, 70, 120);
-	cv::Rect rect5(440, 53+480, 60, 100);
-	cv::Rect rect6(145, 150+480, 40, 60);
-
-	cv::rectangle(frame, rect3, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect1, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect2, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect4, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect5, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect6, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect7, cv::Scalar(255, 255, 255), 2);
+	long imgoffset = 0;
+	
 	cv::imshow("disp", frame);
-	cv::imshow("all", frame2);
+	imgoffset = dispheight * dispwidth * 1;
+	cv::Mat frame2(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf + imgoffset);
+	cv::imshow("cam2", frame2);
+
+	imgoffset = dispheight * dispwidth * 2;
+	cv::Mat frame3(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf+ imgoffset);
+	cv::imshow("cam3", frame3);
+
+	imgoffset = dispheight * dispwidth * 3;
+	cv::Mat frame4(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf + imgoffset);
+	cv::imshow("cam4", frame4);
+
+	imgoffset = dispheight * dispwidth * 4;
+	cv::Mat frame5(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf + imgoffset);
+	cv::imshow("cam5", frame5);
+
+	imgoffset = dispheight * dispwidth * 5;
+	cv::Mat frame6(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf + imgoffset);
+	cv::imshow("cam6", frame6);
+
 	cv::waitKey(1);
 	
 	if (f_hardtrig)
