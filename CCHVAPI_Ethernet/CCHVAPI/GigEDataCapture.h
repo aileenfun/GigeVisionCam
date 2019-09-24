@@ -37,7 +37,6 @@ public:
 	void get_udp_data();
 	static unsigned int __stdcall get_udp_data_wrapper(void *handle);
 	int getProp(GigEclientPropStruct* prop);
-	unsigned __int32 ReadReg(unsigned __int32 addr);
 	unsigned __int32 WriteReg(unsigned __int32 addr, unsigned __int32 data);
 private:
 
@@ -74,4 +73,5 @@ private:
 	GigEcamProp *this_camprop;
 	int softtrigmode;
 	unsigned int TOTALPACK;
+	unsigned int residue;
 };

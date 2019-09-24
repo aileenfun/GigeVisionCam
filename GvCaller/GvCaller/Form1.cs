@@ -8,6 +8,14 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.IO;
+using Emgu.CV;
+using Emgu.CV.Structure;
+using Emgu.Util.TypeEnum;
+using Emgu.CV.CvEnum;
+using Emgu.CV.UI;
+
+
 namespace GvCaller
 {
 
@@ -17,10 +25,31 @@ namespace GvCaller
         public static extern int csInit(CallBack cb, int w, int h);
         [DllImport(@"CCHVAPI.dll", EntryPoint = "csStart", CallingConvention = CallingConvention.Cdecl)]
         public static extern int csStart();
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "csStop", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int csStop();
         [DllImport(@"CCHVAPI.dll", EntryPoint = "csGetFrame", CallingConvention = CallingConvention.Cdecl)]
+
         public static extern int csGetFrame(IntPtr imgbuf);
         [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetROI", CallingConvention = CallingConvention.Cdecl)]
         public static extern int csSetROI(int xstart, int xend, int ystart, int yend, int enable);
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetGaussianA", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int csSetGaussianA(char a);
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetGaussianB", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int csSetGaussianB(char b);
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetGaussianC", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int csSetGaussianC(char c);
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetMaxBrightnessThreshold", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int csSetMaxBrightnessThreshold(char c);
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetMaxLineWidth", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int csSetMaxLineWidth(int data);
+
+
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "GigEgetFrameCnt", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int GigEgetFrameCnt(int data);
+
+
+        [DllImport(@"CCHVAPI.dll", EntryPoint = "csSetMinLineWidth", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int csSetMinLineWidth(char data);
         //enable=1, roi is open. enable =0, roi is close;
         //xend-xstart=odd number, yend-ystart=odd number, 
         //for example, xstart=0. xend=639, ystart=0, yend=479, enable=1;
@@ -35,30 +64,76 @@ namespace GvCaller
         //if xend-xstart=639, then imgwidth=640
         //if yend-ystart=479, then imgheight=480
         int imgwidth = 1280;
-        int imgheight = 960;
-
+        int imgheight = 1024;
+        int coordlen = 1280 * 4;
         IntPtr pixelStartAddress;
         Bitmap bmp;
 
+        Bitmap LastMap;
+        int xtemp;
+        int ytemp;
+        int lastFrameCnt = 0;
         public Form1()
         {
 
             InitializeComponent();
             initBitMap();
             mInstance = new CallBack(callbackfunc);
-            csInit(mInstance, imgwidth, imgheight);
+            csInit(mInstance, imgwidth, imgheight+4);
+            timer1.Start();
 
         }
 
         public int callbackfunc(IntPtr buff)
         {
-
+            //buffer stores [1280*1024+1280*4]
+            //in which 1280*1024 is image data
+            //1280*4 is coordinates.
+            //coords data formates is [16b y, 16b x]
+            //[0x00 0x01, 0x00 0x03]; 
+            //On y=1, x= 3, is the laser point.
+            //if the result is invalid, x will be 0x07 0xff,
+            // such as
+            //[0x00 0x01, 0x07 0xff]
+            byte[] coords = new byte[coordlen];//stores 
             byte[] pixelValues = new byte[imgwidth * imgheight];
-            Marshal.Copy(buff, pixelValues, 0, imgwidth * imgheight);
+            byte[] totalbuff = new byte[imgwidth * (imgheight + 4)];
+            Marshal.Copy(buff, totalbuff, 0, imgwidth * (imgheight+4));
+            Buffer.BlockCopy(totalbuff, 0, pixelValues, 0, imgwidth * imgheight);
+            Buffer.BlockCopy(totalbuff, imgwidth * imgheight, coords, 0, coordlen);
+
             var bmp2 = bitmap8bpp(pixelValues, imgwidth, imgheight);
 
-            var dispbmp = new Bitmap(bmp2);
-            pictureBox1.Image = dispbmp;
+
+            Image<Gray, byte> image = new Image<Gray, byte>(imgwidth, imgheight);
+
+            LastMap =(Bitmap) bmp2.Clone();
+            // pictureBox1.Image =bmp2 ;
+            pictureBox1.Image = LastMap;
+
+            //dispbmp.Dispose();
+            //bmp2.Dispose();
+            for (int i = 0; i < coordlen; i += 4)
+            {
+                ytemp = coords[i] << 8;
+                ytemp += coords[i + 1];
+                xtemp = coords[i + 2] << 8;
+                xtemp += coords[i + 3];
+                if (xtemp > imgwidth)
+                {
+                    //for invalide result
+                    continue;
+                }
+                //pseudocode:
+                /*
+                 * cv::Point pt;
+                 * pt.x = xtemp;
+		         * pt.y = ytemp-1;
+                 * circle(frameRGB, pt, 1, cv::Scalar(0, 0, 255));
+                 */
+
+            }
+
             return 1;
         }
         int initBitMap()
@@ -118,7 +193,59 @@ namespace GvCaller
             int value;
             int.TryParse(tb_expo.Text, out value);
             int auto = cb_expoauto.Checked == true ? 1 : 0;
-            csSetExpo((uint)value, auto);
+           int res= csSetExpo((uint)value, auto);
+           
+            if (res==-1)
+            {
+                MessageBox.Show("曝光参数未设置成功");
+            }
+        }
+
+        private void SavePicButton_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog savePicDialog = new SaveFileDialog();
+            savePicDialog.RestoreDirectory = true;
+            savePicDialog.Filter = "(*.jpg)|*.jpg";
+            if ( savePicDialog.ShowDialog()==DialogResult.OK)
+            {
+                string name = savePicDialog.FileName;
+
+                Image<Gray, byte> img = new Image<Gray, byte>(imgwidth, imgheight);
+
+                if (LastMap!=null)
+                {
+                    img.Bitmap = LastMap;
+                }
+                img.Save(name);
+                
+                // File.WriteAllText(name,"helloworld!");
+            }
+
+        }
+
+        private void StopButton_Click(object sender, EventArgs e)
+        {
+            int res=csStop();
+            if (res==0)
+            {
+                MessageBox.Show("关闭异常");
+            }
+            
+        }
+
+        private void TestButton_Click(object sender, EventArgs e)
+        {
+            Image<Gray, byte> img = new Image<Gray, byte>(imgwidth, imgheight);
+            
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            int frameCnt = GigEgetFrameCnt(1);
+            int frameRate = frameCnt - lastFrameCnt;
+            lastFrameCnt = frameCnt;
+            FrameRateLabel.Text = "Frame Rate is : " + frameRate.ToString();
+
         }
     }
 }

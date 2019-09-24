@@ -1,0 +1,10 @@
+diff a/CCHVAPI_Ethernet/CCHVAPI/CCHVAPI.cpp b/CCHVAPI_Ethernet/CCHVAPI/CCHVAPI.cpp	(rejected hunks)
+@@ -244,7 +244,7 @@
+ 	Handler = cb;
+ 	cs_width = w;
+ 	cs_height = h;
+-	pimagebuf = new byte[cs_width*cs_height];
++	pimagebuf = new byte[cs_width*cs_height*6];
+ 
+ 	cameralist = new map_camera();
+ 	GigEsearchCamera(cameralist);//ö�����

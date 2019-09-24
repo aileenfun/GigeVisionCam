@@ -185,8 +185,8 @@ public:
 	}
 	int stop()
 	{
-		if(!b_opened)
-			return -2;
+		//if(!b_opened)
+		//	return -2;
 		b_opened=false;
 		m_pDataCapture->Close();
 		//m_pDataCapture=NULL;
@@ -284,22 +284,22 @@ public:
 		
 		return m_DeviceGVCP.WriteReg(0x33bb0008, 1);;
 	}
+	int setAuto(int isauto)
+	{
+		m_DeviceGVCP.WriteReg(0x33bb0034, isauto);
+	}
 	int setGain(uint32_t value,int isauto)
 	{
-		m_DeviceGVCP.WriteReg(0x33bb0034,isauto);
-		if(!isauto)
-		{
-			return m_DeviceGVCP.WriteReg(0x33bb003C,value);
-		}
+		if (isauto)
+			return -8;
+		return m_DeviceGVCP.WriteReg(0x33bb003C,value);
 		
 	}
 	int setExpo(uint32_t value,int isauto)
 	{
-		m_DeviceGVCP.WriteReg(0x33bb0034,isauto);
-		if(!isauto)
-		{
-			return m_DeviceGVCP.WriteReg(0x33bb0038,value);
-		}
+		if (isauto)
+			return -8;
+		return m_DeviceGVCP.WriteReg(0x33bb0038,value);
 		
 	}
 	int setFreq(uint32_t value)
@@ -347,6 +347,11 @@ public:
 		m_pDataProcess->setCamSize(camsize);
 		return (m_DeviceGVCP.WriteReg(0x33bb0010,camsize));
 	}
+	int getCamSize(unsigned int  *camsize)
+	{
+		 m_DeviceGVCP.ReadReg(0x33bb0010, camsize);
+		 return *camsize;
+	}
 	int setROI(int xstart, int xend, int ystart, int yend, int enable)
 	{
 		if (!enable)
@@ -359,13 +364,17 @@ public:
 		if (m_DeviceGVCP.WriteReg(0x33bb0018, ystart) &&
 			m_DeviceGVCP.WriteReg(0x33bb001C, xstart) &&
 			m_DeviceGVCP.WriteReg(0x33bb0020, yend) &&
-			m_DeviceGVCP.WriteReg(0x33bb0024, xend) &&
+			m_DeviceGVCP.WriteReg(0x33bb0024, xend)&&
 			m_DeviceGVCP.WriteReg(0x33bb0028, enable))
 		{
 			return 1;
 		}
 		return -1;
 
+	}
+	int setROIEn(int enable)
+	{
+		return m_DeviceGVCP.WriteReg(0x33bb0028, enable);
 	}
 	int setBinning(int enable)
 	{
@@ -374,6 +383,43 @@ public:
 	int setSkip(int enable)
 	{
 		return m_DeviceGVCP.WriteReg(0x33bb0030, enable);
+	}
+	int setTrigThreshold(int n)
+	{
+		return m_DeviceGVCP.WriteReg(0x33bb00f0, n);
+	}
+	int setPWM(int perc, int freq)
+	{
+		int datatemp = 0;
+		datatemp = perc << 16;
+		datatemp = datatemp + freq;
+		return m_DeviceGVCP.WriteReg(0x33bb0060, datatemp);
+	}
+	int setGain_HZC(uint32_t value, int idx)
+	{
+		uint32_t addr = 0x33bb00a0;
+		addr = addr + idx * 4;
+		return m_DeviceGVCP.WriteReg(addr, value);
+	}
+	int setResolu_HZC(int value)
+	{
+		uint32_t addr = 0x33bb00c0;
+		return m_DeviceGVCP.WriteReg(addr, value);
+	}
+	int setLightOn_XD(int s)
+	{
+		uint32_t addr = 0x33bb0070;
+		return m_DeviceGVCP.WriteReg(addr, s);
+	}
+	int setLightLen_XD(uint32_t len)
+	{
+		uint32_t addr = 0x33bb0074;
+		return m_DeviceGVCP.WriteReg(addr, len);
+	}
+	int setIOLength_MY(uint32_t us)
+	{
+		uint32_t addr = 0x33bb0064;
+		return m_DeviceGVCP.WriteReg(addr, us);
 	}
 };
 CCT_API int GigEaddInstance(LPVOID *lpUser,LPMV_CALLBACK2 CallBackFunc,CCHCamera *info);
@@ -397,10 +443,18 @@ CCT_API int GigEsetExpo(uint32_t value,int isauto,int camNum=1);
 CCT_API int GigEsetFreq(uint32_t value,int camNum=1);
 CCT_API int GigEsetWB(uint32_t rvalue,uint32_t gvalue,uint32_t g2value,uint32_t bvalue,int camNum=1);
 CCT_API int GigEsetCamSize(int camsize,int camNum=1);
+CCT_API int GigEgetCamSize(unsigned int *camsize,int camNum = 1);
 CCT_API int GigEsetROI(int xstart, int xend, int ystart, int yend, int enable, int camNum = 1);
+CCT_API int GigEsetROIEn(int enable, int camNum = 1);
 CCT_API int GigEsetBinning(int enable,int camNum=1);
 CCT_API int GigEsetSkip(int enable,int camNum=1);
-
+CCT_API int GigEsetTrigThreshold(int n, int camNum = 1);
+CCT_API int GigEsetPWM(int perc, int freq, int camNum = 1);
+CCT_API int GigEsetGain_HZC(uint32_t value, int idx,int camNum);
+CCT_API int GigEsetResolu_HZC(int value,int camNum=1);
+CCT_API int GigEsetLightOn_XD(int s,int camNum);
+CCT_API int GigEsetLightLen_XD(uint32_t len,int camNum);
+CCT_API int GigEsetAuto(int isauto, int camNum);
 
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);
@@ -410,3 +464,11 @@ CCT_API int csStart();
 CCT_API int csStop();
 CCT_API int csGetFrame(unsigned char * buff);
 //#endif 
+//parameter setting for laser
+CCT_API int csSetGaussianA(uint8_t a);
+CCT_API int csSetGaussianB(uint8_t b);
+CCT_API int csSetGaussianC(uint8_t c);
+CCT_API int csSetMaxBrightnessThreshold(uint8_t data);
+CCT_API int csSetMaxLineWidth(uint32_t data);
+CCT_API int csSetMinLineWidth(uint32_t data);
+CCT_API int GigEsetIOLength_MY(uint32_t us, int camnum = 1);

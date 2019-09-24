@@ -1,4 +1,3 @@
-
 // UsbControlDlg.cpp : 实现文件
 //
 
@@ -16,7 +15,7 @@
 #include "Mmsystem.h"
 #pragma comment(lib,"winmm.lib")
 #define _CAM1
-#define _CAM2
+//#define _CAM2
 //#define _CAM3
 //#define _CAM4
 #ifdef _DEBUG
@@ -25,7 +24,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 volatile int b_softtrig=-1;
-
+#define _ORG
 cv::VideoWriter h_vw;
 volatile bool snap;
 int board1=-1;//board id
@@ -41,12 +40,14 @@ int g_height=480;
 
 unsigned long sendSoftCnt=0;
 unsigned long recvSoftCnt=0;
+unsigned long recvHardTrigCnt = 0;
 unsigned long recvSoftCnt2 = 0;
 unsigned long recvSoftCnt3 = 0;
 unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
-int g_camsize = 6;
+int f_hardtrig = 0;
+unsigned int g_camsize = 1;
 class CAboutDlg : public CDialog
 {
 public:
@@ -214,6 +215,10 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_ForceIp, &CUsbControlDlg::OnBnClickedButtonForceip)
 	ON_BN_CLICKED(IDC_BTN_WBSet2, &CUsbControlDlg::OnBnClickedBtnWbset2)
 	ON_BN_CLICKED(btn_test, &CUsbControlDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BTN_TRIG2, &CUsbControlDlg::OnBnClickedBtnTrig2)
+	ON_BN_CLICKED(IDC_BTN_minset, &CUsbControlDlg::OnBnClickedBtnminset)
+
+	ON_BN_CLICKED(btn_resolu, &CUsbControlDlg::OnBnClickedresolu)
 END_MESSAGE_MAP()
 
 
@@ -244,8 +249,7 @@ BOOL CUsbControlDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-	// TODO: 在此添加额外的初始化代码
-	//------------------------------------
+
 	CRect cRect,wRect,mRect;
 	GetDesktopWindow()->GetWindowRect(wRect);
 	GetWindowRect(cRect);
@@ -254,19 +258,9 @@ BOOL CUsbControlDlg::OnInitDialog()
 	mRect.left=mRect.right-cRect.Width();
 	mRect.top=mRect.bottom-cRect.Height();
 	MoveWindow(mRect);
-	//------------------------------------
-	//m_pFileRbf=new CFile();
-	//m_pVideoDlg=new CVideoDlg();
-
-	//m_pVideoDlg->Create(IDD_DLG_VIDEO,this);
-	//m_pVideoDlg->ShowWindow(FALSE);
-	//m_hDisplayDC=m_pVideoDlg->GetDisplayDC()->m_hDC;
-	//m_pDisplay=new CDisplay();
-	//m_pDisplay->Open(CDC::FromHandle(m_hDisplayDC),CRect(0,0,g_width,g_height));
 
 	m_pBrush=new CBrush[2];
-	//m_pBrush[0].CreateSolidBrush(RGB(99,208,242));
-	//m_pBrush[1].CreateSolidBrush(RGB(174,238,250));
+
 	select_channel.InsertString(0,_T("0"));
 	select_channel.InsertString(1,_T("1"));
 	select_channel.InsertString(2,_T("2"));
@@ -285,11 +279,14 @@ BOOL CUsbControlDlg::OnInitDialog()
 	m_eEXPO.SetWindowTextW(_T("300"));
 	m_eGAIN.SetWindowTextW(_T("16"));
 
-	//m_eCAMIP.SetWindowTextW(_T("192.168.1.10"));
-	//m_eSUBNET.SetWindowTextW(_T("255.255.255.0"));
-	//m_eGATE.SetWindowTextW(_T("192.168.1.1"));
 	m_ecamsize.SetWindowTextW(_T("6"));
-//	m_ePCIp.SetWindowTextW(_T("192.168.1.3"));
+	
+	SetDlgItemText(IDC_EDITA, _T("152"));
+	SetDlgItemText(IDC_EDITB, _T("121"));
+	SetDlgItemText(IDC_EDITC, _T("97"));
+	SetDlgItemText(IDC_EDITMAXP, _T("200"));
+	SetDlgItemText(IDC_EDITMAXW, _T("150"));
+	SetDlgItemText(IDC_EDITMINW, _T("1"));
 	autogain.SetCheck(1);
 	autoexpo.SetCheck(1);
 	m_eEXPO.EnableWindow(0);
@@ -451,119 +448,178 @@ HCURSOR CUsbControlDlg::OnQueryDragIcon()
 
 volatile int show_channel;
 bool b_save_file;
+int trigsource;
+unsigned long imgtime;
+int camera_height = 0;
+int camera_width = 0;
 byte* imgBuf = NULL;
 byte* imgBuf2 = NULL;
 byte* imgBuf3 = NULL;
 byte* imgBuf4 = NULL;
+#ifdef _ORG
 void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
-
+	/*相机传上来的数据保存在thisFrame中，数据的长度为height*width*camsize,
+	例如，假如您的系统为6个相机，每个相机的分辨率为1280*960，那么传上来的数据总长度就是1280*960*6，
+	各个相机的图像数据从0号相机到5号相机依次排列，例如2号相机的图像就位于1280*960*2,长度为1280*960,
+	只需要对该数据块按照分辨率进行切割，就是对应的相机的图像。*/
 	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
 	if (thisFrame == NULL)
 		return;
 	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
 	int dispheight = thisFrame->m_height / g_camsize;
+	//图像的高度为m_height，因此单个图像的高度就是m_height/g_camsize
 	int dispwidth = thisFrame->m_width;
+	camera_height = thisFrame->m_height;
+	camera_width = thisFrame->m_width;
+	//数据块的宽度与图像宽度相等。
 	if (imgBuf == NULL)
 	{
 		imgBuf = new byte[dispheight*dispwidth];
 	}
 
 	int offset = 0;
-	if (show_channel<=g_camsize - 1)
+	if (show_channel <= g_camsize - 1)//选择显示哪一个相机的图像。
 	{
 		offset = show_channel;
 	}
 	else
 	{
-		offset = g_camsize-1;
+		offset = g_camsize - 1;
 	}
-	offset=dispheight*dispwidth*offset;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
-	cv::Mat frame(dispheight, dispwidth,CV_8UC1,imgBuf);
-	cv::imshow("disp", frame);
-	cv::waitKey(1);
+	offset = dispheight*dispwidth*offset;
+	trigsource = thisFrame->m_camNum;
+	imgtime=thisFrame->imgtime;
+	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
+	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
+	cv::Mat frame2(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf);
+	//752*480
+	//xie
+	cv::Rect rect1(245, 240, 70, 120);
+	cv::Rect rect2(400, 240, 70, 120);
+	cv::Rect rect7(370, 153, 40, 60);
+	//zhi
+	cv::Rect rect3(95, 240+480, 70, 120);
+	cv::Rect rect4(280, 240+480, 70, 120);
+	cv::Rect rect5(440, 53+480, 60, 100);
+	cv::Rect rect6(145, 150+480, 40, 60);
 
-	if(b_save_file)
+	cv::rectangle(frame, rect3, cv::Scalar(255, 255, 255), 2);
+	cv::rectangle(frame, rect1, cv::Scalar(255, 255, 255), 2);
+	cv::rectangle(frame, rect2, cv::Scalar(255, 255, 255), 2);
+	cv::rectangle(frame, rect4, cv::Scalar(255, 255, 255), 2);
+	cv::rectangle(frame, rect5, cv::Scalar(255, 255, 255), 2);
+	cv::rectangle(frame, rect6, cv::Scalar(255, 255, 255), 2);
+	cv::rectangle(frame, rect7, cv::Scalar(255, 255, 255), 2);
+	cv::imshow("disp", frame);
+	cv::imshow("all", frame2);
+	cv::waitKey(1);
+	
+	if (f_hardtrig)
+	{
+		recvHardTrigCnt++;
+	}
+
+	if (b_save_file)
 	{
 		CString strName;
 		CString camFolder;
-		camFolder.Format(L"c:\\c6UDP\\cam%d",thisFrame->m_camNum);
-		if(CreateDirectory(camFolder,NULL)||ERROR_ALREADY_EXISTS == GetLastError())
+
+		for (int cameranumber = 0; cameranumber < g_camsize; cameranumber++)
 		{
-			int iFileIndex=1;
-			do 
+			camFolder.Format(L"c:\\c6UDP\\cam%d", cameranumber);
+			if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
 			{
-				strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp",thisFrame->m_camNum,thisFrame->timestamp);
-				++iFileIndex;
-			} while (_waccess(strName,0)==0);
-			CT2CA pszConvertedAnsiString (strName);
-			std::string cvfilename(pszConvertedAnsiString);
-			cv::imwrite(cvfilename,frame);
+				int iFileIndex = 1;
+				do
+				{
+					strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", cameranumber, thisFrame->timestamp);
+					++iFileIndex;
+				} while (_waccess(strName, 0) == 0);
+				CT2CA pszConvertedAnsiString(strName);
+				std::string cvfilename(pszConvertedAnsiString);
+				offset = cameranumber * dispheight*dispwidth;
+				memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
+				cv::Mat framesave(dispheight, dispwidth, CV_8UC1, imgBuf);
+				cv::imwrite(cvfilename, framesave);
+
+			}
 		}
 	}
-	if(snap==true)
-	{
-		//cv::imwrite("snap.jpg",frame);
-		snap=false;
-	}
-	if(f_softtirg)
-	{
-		recvSoftCnt++;
-	}
-		//h_vw.write(frame);
-		
-}
-void _stdcall RawCallBack2(LPVOID lpParam,LPVOID lpUser)
-{
-	GigEimgFrame *thisFrame=(GigEimgFrame*)lpParam;
-	if(thisFrame==NULL)
-		return;
+		if (snap == true)
+		{
+			CString strName;
+			CString camFolder;
+			camFolder.Format(L"c:\\c6UDP\\snap");
+			if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+			{
+				int iFileIndex = 1;
+				do
+				{
+					strName.Format(L"c:\\c6UDP\\snap\\V_%d.bmp", thisFrame->timestamp);
+					++iFileIndex;
+				} while (_waccess(strName, 0) == 0);
+				CT2CA pszConvertedAnsiString(strName);
+				std::string cvfilename(pszConvertedAnsiString);
+				
+				cv::Mat framesave(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf);
+				cv::imwrite(cvfilename, framesave);
+
+			}
+
+			for (int cameranumber = 0; cameranumber < g_camsize; cameranumber++)
+			{
+				camFolder.Format(L"c:\\c6UDP\\cam%d", cameranumber);
+				if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+				{
+					int iFileIndex = 1;
+					do
+					{
+						strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", cameranumber, thisFrame->timestamp);
+						++iFileIndex;
+					} while (_waccess(strName, 0) == 0);
+					CT2CA pszConvertedAnsiString(strName);
+					std::string cvfilename(pszConvertedAnsiString);
+					offset = cameranumber * dispheight*dispwidth;
+					memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
+					cv::Mat framesave(dispheight, dispwidth, CV_8UC1, imgBuf);
+					cv::imwrite(cvfilename, framesave);
+
+				}
+			}
+			snap = false;
+		}
+		if (f_softtirg)
+		{
+			recvSoftCnt++;
+		}
 	
-	CUsbControlDlg *pDlg=(CUsbControlDlg*)lpUser;
+		//h_vw.write(frame);
 
-	int dispheight = thisFrame->m_height / g_camsize;
-	int dispwidth = thisFrame->m_width;
-	if (imgBuf2 == NULL)
-	{
-		imgBuf2 = new byte[dispheight*dispwidth];
-	}
-	int offset = 0;
-	if (show_channel <= g_camsize - 1)
-	{
-		offset = show_channel;
-	}
-	else
-	{
-		offset = g_camsize - 1;
-	}
-	offset = dispheight*dispwidth*offset;
-	memcpy(imgBuf2, thisFrame->imgBuf + offset, dispheight*dispwidth);
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf2);
-	cv::imshow("disp2", frame);
-	cv::waitKey(1);
-	if (f_softtirg)
-	{
-		recvSoftCnt2++;
-	}
-
+	
 }
-void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
+#else
+void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
+	/*相机传上来的数据保存在thisFrame中，数据的长度为height*width*camsize,
+	例如，假如您的系统为6个相机，每个相机的分辨率为1280*960，那么传上来的数据总长度就是1280*960*6，
+	各个相机的图像数据从0号相机到5号相机依次排列，例如2号相机的图像就位于1280*960*2,长度为1280*960,
+	只需要对该数据块按照分辨率进行切割，就是对应的相机的图像。*/
 	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
 	if (thisFrame == NULL)
 		return;
-
 	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
-
 	int dispheight = thisFrame->m_height / g_camsize;
+	//图像的高度为m_height，因此单个图像的高度就是m_height/g_camsize
 	int dispwidth = thisFrame->m_width;
-	if (imgBuf3 == NULL)
+	//数据块的宽度与图像宽度相等。
+	if (imgBuf == NULL)
 	{
-		imgBuf3 = new byte[dispheight*dispwidth];
+		imgBuf = new byte[dispheight*dispwidth];
 	}
+
 	int offset = 0;
-	if (show_channel <= g_camsize - 1)
+	if (show_channel <= g_camsize - 1)//选择显示哪一个相机的图像。
 	{
 		offset = show_channel;
 	}
@@ -572,69 +628,204 @@ void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
 		offset = g_camsize - 1;
 	}
 	offset = dispheight*dispwidth*offset;
-	memcpy(imgBuf3, thisFrame->imgBuf + offset, dispheight*dispwidth);
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf3);
-	cv::imshow("disp3", frame);
+	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
+	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
+	cv::Mat frameRGB;
+	cv::cvtColor(frame, frameRGB, CV_GRAY2BGR);
+
+	int coords_height = 4;
+	int imageheight = dispheight - coords_height;
+	int coords_len = imageheight * 4;
+	int imagewidth = dispwidth;
+	byte * coords = new byte[coords_len];//1
+	memcpy(coords, thisFrame->imgBuf + offset + imageheight *imagewidth, coords_len);
+
+	cv::Point pt;
+	int xtemp, ytemp;
+	for (int i = 0; i < coords_len; i += 4)
+	{
+		ytemp = coords[i];
+		ytemp = ytemp << 8;
+		ytemp += coords[i + 1];
+		xtemp = coords[i + 2];
+		xtemp = xtemp << 8;
+		xtemp += coords[i + 3];
+		if (xtemp > imagewidth)
+		{
+			continue;
+		}
+		pt.x = xtemp;
+		pt.y = ytemp - 1;
+		circle(frameRGB, pt, 1, cv::Scalar(0, 0, 255));
+	}
+	//cv::imshow("disp", frame);
+	cv::imshow("RGB", frameRGB);
 	cv::waitKey(1);
-	if (f_softtirg)
-	{
-		recvSoftCnt3++;
-	}
 
+	if (b_save_file)
+	{
+		CString strName;
+		CString camFolder;
+
+		for (int cameranumber = 0; cameranumber < g_camsize; cameranumber++)
+		{
+			camFolder.Format(L"c:\\c6UDP\\cam%d", cameranumber);
+			if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+			{
+				int iFileIndex = 1;
+				do
+				{
+					strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", cameranumber, thisFrame->timestamp);
+					++iFileIndex;
+				} while (_waccess(strName, 0) == 0);
+				CT2CA pszConvertedAnsiString(strName);
+				std::string cvfilename(pszConvertedAnsiString);
+				offset = cameranumber*dispheight*dispwidth;
+				memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
+				cv::Mat framesave(dispheight, dispwidth, CV_8UC1, imgBuf);
+				cv::imwrite(cvfilename, framesave);
+
+			}
+		}
+		if (snap == true)
+		{
+			//cv::imwrite("snap.jpg",frame);
+			snap = false;
+		}
+		if (f_softtirg)
+		{
+			recvSoftCnt++;
+		}
+		//h_vw.write(frame);
+
+	}
 }
-void _stdcall RawCallBack4(LPVOID lpParam, LPVOID lpUser)
+#endif
+#ifdef _CAM2
+	void _stdcall RawCallBack2(LPVOID lpParam, LPVOID lpUser)
+	{
+		GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+		if (thisFrame == NULL)
+			return;
+
+		CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
+
+		int dispheight = thisFrame->m_height / g_camsize;
+		int dispwidth = thisFrame->m_width;
+		if (imgBuf2 == NULL)
+		{
+			imgBuf2 = new byte[dispheight*dispwidth];
+		}
+		int offset = 0;
+		if (show_channel <= g_camsize - 1)
+		{
+			offset = show_channel;
+		}
+		else
+		{
+			offset = g_camsize - 1;
+		}
+		offset = dispheight*dispwidth*offset;
+		memcpy(imgBuf2, thisFrame->imgBuf + offset, dispheight*dispwidth);
+		cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf2);
+		cv::imshow("disp2", frame);
+		cv::waitKey(1);
+		if (f_softtirg)
+		{
+			recvSoftCnt2++;
+		}
+
+	}
+#endif
+#ifdef _CAM3
+	void _stdcall RawCallBack3(LPVOID lpParam, LPVOID lpUser)
+	{
+		GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+		if (thisFrame == NULL)
+			return;
+
+		CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
+
+		int dispheight = thisFrame->m_height / g_camsize;
+		int dispwidth = thisFrame->m_width;
+		if (imgBuf3 == NULL)
+		{
+			imgBuf3 = new byte[dispheight*dispwidth];
+		}
+		int offset = 0;
+		if (show_channel <= g_camsize - 1)
+		{
+			offset = show_channel;
+		}
+		else
+		{
+			offset = g_camsize - 1;
+		}
+		offset = dispheight*dispwidth*offset;
+		memcpy(imgBuf3, thisFrame->imgBuf + offset, dispheight*dispwidth);
+		cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf3);
+		cv::imshow("disp3", frame);
+		cv::waitKey(1);
+		if (f_softtirg)
+		{
+			recvSoftCnt3++;
+		}
+
+	}
+#endif
+#ifdef _CAM4
+	void _stdcall RawCallBack4(LPVOID lpParam, LPVOID lpUser)
+	{
+		GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
+		if (thisFrame == NULL)
+			return;
+
+		CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
+
+		int dispheight = thisFrame->m_height / g_camsize;
+		int dispwidth = thisFrame->m_width;
+		if (imgBuf4 == NULL)
+		{
+			imgBuf4 = new byte[dispheight*dispwidth];
+		}
+		int offset = 0;
+		if (show_channel <= g_camsize - 1)
+		{
+			offset = show_channel;
+		}
+		else
+		{
+			offset = g_camsize - 1;
+		}
+		offset = dispheight*dispwidth*offset;
+		memcpy(imgBuf4, thisFrame->imgBuf + offset, dispheight*dispwidth);
+		cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf4);
+		cv::imshow("disp4", frame);
+		cv::waitKey(1);
+		if (f_softtirg)
+		{
+			recvSoftCnt4++;
+		}
+
+	}
+#endif
+
+	void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 {
-	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
-	if (thisFrame == NULL)
-		return;
-
-	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
-
-	int dispheight = thisFrame->m_height / g_camsize;
-	int dispwidth = thisFrame->m_width;
-	if (imgBuf4 == NULL)
-	{
-		imgBuf4 = new byte[dispheight*dispwidth];
-	}
-	int offset = 0;
-	if (show_channel <= g_camsize - 1)
-	{
-		offset = show_channel;
-	}
-	else
-	{
-		offset = g_camsize - 1;
-	}
-	offset = dispheight*dispwidth*offset;
-	memcpy(imgBuf4, thisFrame->imgBuf + offset, dispheight*dispwidth);
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf4);
-	cv::imshow("disp4", frame);
-	cv::waitKey(1);
-	if (f_softtirg)
-	{
-		recvSoftCnt4++;
-	}
-
-}
-void  CUsbControlDlg::OnBnClickedBtnVideocapture()
-{
-	if(GigEstartCap(board1)<1)
-	{
-		SetDlgItemText(IDC_STATIC_TEXT,L"设备打开失败！");
-		return;
-	}
-	if (GigEstartCap(board2)<0)
+		if (GigEstartCap(board1) < 1)
+		{
+			SetDlgItemText(IDC_STATIC_TEXT, L"设备打开失败！");
+			return;
+		}
+	if (GigEstartCap(board2) < 0)
 	{
 		SetDlgItemText(IDC_STATIC_TEXT, L"设备2打开失败！");
 	}
-		SetDlgItemText(IDC_STATIC_TEXT,L"采集中...");
-		CheckRadioButton(IDC_RADIO_NORMAL,IDC_RADIO_XYMIRROR,IDC_RADIO_NORMAL);
-		SetTimer(1,1000,NULL);
-		SetTimer(2, 1000, NULL);
-		cv::namedWindow("disp");
-	
+	SetDlgItemText(IDC_STATIC_TEXT, L"采集中...");
+	CheckRadioButton(IDC_RADIO_NORMAL, IDC_RADIO_XYMIRROR, IDC_RADIO_NORMAL);
+	SetTimer(1, 1000, NULL);
+	cv::namedWindow("disp");
 
-	
 	//sendSoftTrig(1);
 	//m_bmi= (BITMAPINFO*)alloca( sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD)*256);
 	//BMPHeader(g_width,g_height,NULL,m_bmi);
@@ -666,6 +857,7 @@ void CUsbControlDlg::OnBnClickedBtnStopcapture()
 		
 	}
 	f_softtirg=0;
+	f_hardtrig = 0;
 	UpdateData(TRUE);
 	//cv::destroyWindow("disp");
 	SetDlgItemText(IDC_STATIC_TEXT,L" ");
@@ -719,66 +911,53 @@ void CUsbControlDlg::OnTimer(UINT_PTR nIDEvent)
 		unsigned int bps2 = GigEgetDataCnt(board2);
 		unsigned int bps3 = GigEgetDataCnt(board3);
 		unsigned int bps4 = GigEgetDataCnt(board4);
-		/*
-			str.Format(L" cam1: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
-cam2: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
-cam3: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
-cam4: %d Fps,%0.2f MBs,recv: %d, send: %d,diff: %d, ErrPack %d \n \
-							",
-				framecnttemp - lastFrameCnt,float(bps- lastDataCnt)/1024.0/1024.0,recvSoftCnt,sendSoftCnt,sendSoftCnt-recvSoftCnt,GigEgetErrPackCnt(board1),
-				framecnttemp2 - lastFrameCnt2,float(bps2 - lastDataCnt2)/1024/1024, recvSoftCnt2, sendSoftCnt, sendSoftCnt - recvSoftCnt2, GigEgetErrPackCnt(board2),
-				framecnttemp3 - lastFrameCnt3, float(bps3 - lastDataCnt3) / 1024 / 1024, recvSoftCnt3, sendSoftCnt, sendSoftCnt - recvSoftCnt3, GigEgetErrPackCnt(board3),
-				framecnttemp4 - lastFrameCnt4, float(bps4 - lastDataCnt4) / 1024 / 1024, recvSoftCnt4, sendSoftCnt, sendSoftCnt - recvSoftCnt4, GigEgetErrPackCnt(board4));
-				*/
+
 #ifdef _CAM1
-			sstemp << "cam1: " << framecnttemp - lastFrameCnt << " FPS,"
-				<< float(bps - lastDataCnt) / 1024 / 1024 << "MB/s"
-				<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
-				<< ",ErrPack: " << GigEgetErrPackCnt(board1) << endl;
+		sstemp << "cam1: " << framecnttemp - lastFrameCnt << " FPS,"
+			<< float(bps - lastDataCnt) / 1024 / 1024 << "MB/s"
+			//<< ",recv: " << recvSoftCnt << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt
+			//<< ",ErrPack: " << GigEgetErrPackCnt(board1)
+			<< ",ImgTime:" << imgtime
+				<< endl;
+
+			lastFrameCnt = framecnttemp;
+			lastDataCnt = bps;
 #endif
 #ifdef _CAM2
 			sstemp << "cam2: " << framecnttemp2 - lastFrameCnt2 << " FPS," 
 				<< float(bps2 - lastDataCnt2) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt2 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt2 
 				<< ",ErrPack: " << GigEgetErrPackCnt(board2) << endl;
+
+			lastFrameCnt2 = framecnttemp2;
+			lastDataCnt2 = bps2;
 #endif
 #ifdef _CAM3
 			sstemp << "cam3: " << framecnttemp3 - lastFrameCnt3 << " FPS,"
 				<< float(bps3 - lastDataCnt3) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt3 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt3
 				<< ",ErrPack: " << GigEgetErrPackCnt(board3) << endl;
+
+			lastFrameCnt3 = framecnttemp3;
+			lastDataCnt3 = bps3;
 #endif
 #ifdef _CAM4
 			sstemp << "cam4: " << framecnttemp4 - lastFrameCnt4 << " FPS,"
 				<< float(bps4 - lastDataCnt4) / 1024 / 1024 << "MB/s"
 				<< ",recv: " << recvSoftCnt4 << ",send: " << sendSoftCnt << ",diff: " << sendSoftCnt - recvSoftCnt4
 				<< ",ErrPack: " << GigEgetErrPackCnt(board4) << endl;
-#endif
-			str=sstemp.str().c_str();
-
-			/*if(lastLostCnt-(recvSoftCnt-sendSoftCnt*6)!=0
-			{
-				sndPlaySound(_T("trainhorn.WAV"),SND_ASYNC);
-				lastLostCnt=recvSoftCnt-sendSoftCnt*6;
-			}*/
-			lastFrameCnt= framecnttemp;
-			lastDataCnt= bps;
-
-			lastFrameCnt2 = framecnttemp2;
-			lastDataCnt2 = bps2;
-
-			lastFrameCnt3 = framecnttemp3;
-			lastDataCnt3 = bps3;
 
 			lastFrameCnt4 = framecnttemp4;
 			lastDataCnt4 = bps4;
+#endif
+			str=sstemp.str().c_str();
 
 			SetDlgItemText(IDC_STATIC_TEXT,str);
 			break;
 		}
 	case 2:
 		{
-			if(f_softtirg)
+			if(0)
 			{
 #ifdef _CAM1
 				GigEsendSoftTrig(board1);
@@ -1076,7 +1255,7 @@ void CUsbControlDlg::OnBnClickedBtnConnect()
 
 		//connect button
 		board1 = GigEaddInstance((LPVOID*)this, RawCallBack, c);
-
+		//GigEgetCamSize(&g_camsize, board1);
 		if (board1 > 0)
 		{
 			str.Format(L"Device connected");
@@ -1217,7 +1396,6 @@ void CUsbControlDlg::OnBnClickedBtnTrig()
 	recvSoftCnt3 = 0;
 	recvSoftCnt4 = 0;
 	sendSoftCnt=0;
-	f_softtirg=1;
 	GigEsendSoftTrig(board1);
 }
 
@@ -1245,7 +1423,8 @@ void CUsbControlDlg::OnBnClickedButtonSendgain()
 	int autovalue=autogain.GetCheck();
 		autovalue=autovalue<<1;
 		autovalue=autovalue+autoexpo.GetCheck();
-		GigEsetGain(rst,autovalue,board1);
+		//GigEsetGain(rst,autovalue,board1);
+		GigEsetGain_HZC(rst, show_channel,board1);
 }
 
 
@@ -1271,7 +1450,7 @@ void CUsbControlDlg::OnBnClickedButtonSendgain2()
 	int rst=0;
 	int idx=m_combo_trig.GetCurSel();
 	
-	if(idx>=0&&idx<3)
+	if(idx>=0&&idx<4)
 	 rst= GigEsetTrigMode(idx);
 
 
@@ -1279,7 +1458,6 @@ void CUsbControlDlg::OnBnClickedButtonSendgain2()
 	m_eFreq.GetWindowTextW(cs_freq);
 	uint32_t temp=_ttoi(cs_freq);
 	GigEsetFreq(temp,board1);
-
 	if (rst < 0)
 	{
 		SetDlgItemText(IDC_STATIC_TEXT, L"Set trig mode error.");
@@ -1398,6 +1576,7 @@ void CUsbControlDlg::OnBnClickedCheckroienable()
 {
 	m_cb_binning.EnableWindow(!m_cb_roienable.GetCheck());
 	m_cb_skip.EnableWindow(!m_cb_roienable.GetCheck());
+	GigEsetROIEn(m_cb_roienable.GetCheck(),board1);
 }
 
 
@@ -1414,6 +1593,7 @@ void CUsbControlDlg::OnBnClickedBtnWbset2()
 
 void CUsbControlDlg::OnBnClickedButton1()
 {
+
 	CString str;
 		map_camera::iterator itr;
 		itr = cameralist->begin();
@@ -1482,7 +1662,7 @@ void CUsbControlDlg::OnBnClickedButton1()
 	
 		sendSoftCnt = 0;
 		f_softtirg = 1;
-
+		
 
 		
 #ifdef _CAM1
@@ -1527,5 +1707,75 @@ void CUsbControlDlg::OnBnClickedButton1()
 		SetDlgItemText(IDC_STATIC_TEXT, L"采集中...");
 		CheckRadioButton(IDC_RADIO_NORMAL, IDC_RADIO_XYMIRROR, IDC_RADIO_NORMAL);
 		SetTimer(1, 1000, NULL);
-		SetTimer(2, 500, NULL);
+		
+}
+
+
+void CUsbControlDlg::OnBnClickedBtnTrig2()
+{
+	/*
+	int rst = 0;
+	int idx = m_combo_trig.GetCurSel();
+
+	CString cs_freq;
+	m_eFreq.GetWindowTextW(cs_freq);
+	uint32_t temp = _ttoi(cs_freq);
+	if(idx==2)
+	SetTimer(2, temp, NULL);
+
+	recvSoftCnt = 0;
+	recvSoftCnt2 = 0;
+	recvSoftCnt3 = 0;
+	recvSoftCnt4 = 0;
+	sendSoftCnt = 0;
+	f_softtirg = 1;
+	GigEsendSoftTrig(board1);
+	*/
+	f_hardtrig = 1;
+	recvHardTrigCnt = 0;
+}
+
+
+void CUsbControlDlg::OnBnClickedBtnminset()
+{
+	CString str;
+	int data;
+	GetDlgItemText(IDC_EDITA,str);
+	data = _ttoi(str);
+	csSetGaussianA(data);
+
+	GetDlgItemText(IDC_EDITB, str);
+	data = _ttoi(str);
+	csSetGaussianB(data);
+
+	GetDlgItemText(IDC_EDITC, str);
+	data = _ttoi(str);
+	csSetGaussianC(data);
+
+	GetDlgItemText(IDC_EDITMAXP, str);
+	data = _ttoi(str);
+	csSetMaxBrightnessThreshold(data);
+
+	GetDlgItemText(IDC_EDITMAXW, str);
+	data = _ttoi(str);
+	csSetMaxLineWidth(data);
+
+	GetDlgItemText(IDC_EDITMINW, str);
+	data = _ttoi(str);
+	csSetMinLineWidth(data);
+
+}
+
+
+int resolu=0;
+void CUsbControlDlg::OnBnClickedresolu()
+{
+	// TODO: Add your control notification handler code here
+	if(resolu==0)
+	{	resolu=1;}
+	else
+	{
+		resolu=0;
+	}
+	GigEsetResolu_HZC(resolu);
 }

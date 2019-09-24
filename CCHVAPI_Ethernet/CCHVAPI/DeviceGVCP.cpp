@@ -610,7 +610,7 @@ int DeviceGVCP::ReadRegDone()
 		{
 			return -1;
 		}
-		Sleep(100);
+		Sleep(10);
 		count--;
 	}
 	return 1;
@@ -620,7 +620,15 @@ int DeviceGVCP::WriteReg(unsigned int addr, unsigned int data)
 	try
 	{
 		WriteRegCmd(addr, data);
-		Sleep(50);
+		if ((addr >= 0x064C && addr <= 0x066C)||(addr>=0x33CC0000&&addr<=0x33CC07FF))
+		{//IP address and EE range
+			//EEROM need more time to delay
+			Sleep(50);
+		}
+		else
+		{
+			Sleep(1);
+		}
 		if (WriteRegDone() == -1)
 		{
 			return -1;
@@ -674,7 +682,7 @@ int DeviceGVCP::WriteRegDone()
 		{
 			return -1;
 		}
-		Sleep(100);
+		Sleep(10);
 		count--;
 	}
 	return 1;
