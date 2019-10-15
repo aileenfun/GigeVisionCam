@@ -469,12 +469,12 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	if (thisFrame == NULL)
 		return;
 	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
-	int dispheight = thisFrame->m_height / g_camsize;
 	//图像的高度为m_height，因此单个图像的高度就是m_height/g_camsize
-	int dispwidth = thisFrame->m_width;
-	camera_height = thisFrame->m_height;
+	camera_height = thisFrame->m_height/6;
 	camera_width = thisFrame->m_width;
 	//数据块的宽度与图像宽度相等。
+	int dispwidth = 1280;
+	int dispheight = 960;
 	if (imgBuf == NULL)
 	{
 		imgBuf = new byte[dispheight*dispwidth];
@@ -494,39 +494,39 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	{
 		offset = g_camsize - 1;
 	}
-	offset = dispheight*dispwidth*offset;
+	offset = camera_height * camera_width *offset;
 	trigsource = thisFrame->m_camNum;
 	imgtime=thisFrame->imgtime;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
+	memcpy(imgBuf, thisFrame->imgBuf + offset, camera_height *camera_width);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
+	cv::Mat frame(camera_height, camera_width, CV_8UC1, imgBuf);
 
 	long imgoffset = 0;
 	
 	cv::imshow("disp", frame);
 
-	imgoffset = dispheight * dispwidth * 1;
-	memcpy(imgBuf2, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
-	cv::Mat frame2(dispheight, dispwidth, CV_8UC1, imgBuf2);
+	imgoffset = camera_height * camera_width * 1;
+	memcpy(imgBuf2, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+	cv::Mat frame2(camera_height, camera_width, CV_8UC1, imgBuf2);
 	cv::imshow("cam2", frame2);
 
-	imgoffset = dispheight * dispwidth * 2;
-	memcpy(imgBuf3, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
-	cv::Mat frame3(dispheight, dispwidth, CV_8UC1, imgBuf3);
+	imgoffset = camera_height * camera_width * 2;
+	memcpy(imgBuf3, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+	cv::Mat frame3(camera_height, camera_width, CV_8UC1, imgBuf3);
 	cv::imshow("cam3", frame3);
 
-	imgoffset = dispheight * dispwidth * 3;
-	memcpy(imgBuf4, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
-	cv::Mat frame4(dispheight, dispwidth, CV_8UC1, imgBuf4);
+	imgoffset = camera_height * camera_width * 3;
+	memcpy(imgBuf4, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+	cv::Mat frame4(camera_height, camera_width, CV_8UC1, imgBuf4);
 	cv::imshow("cam4", frame4);
 
-	imgoffset = dispheight * dispwidth * 4;
-	memcpy(imgBuf5, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
-	cv::Mat frame5(dispheight, dispwidth, CV_8UC1, imgBuf5);
+	imgoffset = camera_height * camera_width * 4;
+	memcpy(imgBuf5, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+	cv::Mat frame5(camera_height, camera_width, CV_8UC1, imgBuf5);
 	cv::imshow("cam5", frame5);
 
-	imgoffset = dispheight * dispwidth * 5;
-	memcpy(imgBuf6, thisFrame->imgBuf + imgoffset, dispheight * dispwidth);
-	cv::Mat frame6(dispheight, dispwidth, CV_8UC1, imgBuf6);
+	imgoffset = camera_height * camera_width * 5;
+	memcpy(imgBuf6, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+	cv::Mat frame6(camera_height, camera_width, CV_8UC1, imgBuf6);
 	cv::imshow("cam6", frame6);
 	cv::waitKey(1);
 	
@@ -827,12 +827,12 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 
 	void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 {
-		if (GigEstartCap(board1) < 1)
+		if (GigEstartCap_HZC(board1) < 1)
 		{
 			SetDlgItemText(IDC_STATIC_TEXT, L"设备打开失败！");
 			return;
 		}
-	if (GigEstartCap(board2) < 0)
+	if (GigEstartCap_HZC(board2) < 0)
 	{
 		SetDlgItemText(IDC_STATIC_TEXT, L"设备2打开失败！");
 	}

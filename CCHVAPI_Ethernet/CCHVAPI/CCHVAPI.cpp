@@ -33,6 +33,19 @@ int GigEstartCap(int camNum)
 	}
 	return -1;
 }
+int GigEstartCap_HZC(int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+
+	camNum = camNum - 1;
+
+	if (vec_camins[camNum]->b_connected)
+	{
+		return vec_camins[camNum]->startHZC();
+	}
+	return -1;
+}
 int GigEsetMirrorType(GigEDataProcessType mirrortype, int camNum)
 {
 	if (camNum<1)return camNum;

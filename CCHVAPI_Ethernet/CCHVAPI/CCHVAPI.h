@@ -183,6 +183,30 @@ public:
 		}
 		return 1;
 	}
+	int startHZC()
+	{
+		if (b_opened)
+		{
+			return 0;
+		}
+		updateCameraInfo();
+		if (devprop == NULL)
+		{
+			return -1;
+		}
+		if (m_pDataCapture->initUDP(&socketSrv))
+		{
+			m_pDataProcess->Open(5760, 1280, m_pDataCapture, cb);
+			m_pDataCapture->Open(5760, 1280);
+			b_opened = true;
+			b_closed = false;
+		}
+		else
+		{
+			return -5;
+		}
+		return 1;
+	}
 	int stop()
 	{
 		//if(!b_opened)
@@ -456,7 +480,7 @@ CCT_API int GigEsetResolu_HZC(int value,int camNum=1);
 CCT_API int GigEsetLightOn_XD(int s,int camNum);
 CCT_API int GigEsetLightLen_XD(uint32_t len,int camNum);
 CCT_API int GigEsetAuto(int isauto, int camNum);
-
+CCT_API int GigEstartCap_HZC(int camNum = 1);
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);
 CCT_API int csSetROI(int xstart, int xend, int ystart, int yend, int enable);
