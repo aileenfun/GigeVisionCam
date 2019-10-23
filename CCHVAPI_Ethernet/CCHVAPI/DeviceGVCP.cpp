@@ -126,6 +126,7 @@ int DeviceGVCP::ReceiveMsg(MVComponent::UDP socket, unsigned int& nLen)
 	try
 	{
 		nLen = socket.ReceiveTimeout(500, _From, _cRecvData, nLen);
+
 	}
 	catch (SocketException& SktEx)
 	{
@@ -261,17 +262,6 @@ ThreadReturnType MV_STDCALL DeviceGVCP::HandlingAckPacket(void* Arg)
 				char *chartemp = new char[16];
 				memcpy(chartemp, ptemp->stGigEInfo.chSerialNumber, 16);
 				std::string sntemp(chartemp);
-				/*	if (pDeviceGvcp->devicelist.find(sntemp) != pDeviceGvcp->devicelist.end())
-				{
-					pDeviceGvcp->devicelist.erase(sntemp);
-				}
-				(pDeviceGvcp->devicelist).insert(std::pair<std::string, MV_CC_DEVICE_INFO*>(sntemp, ptemp));*/
-
-				//CCHCamera pcamera;
-				//pcamera.CamInfo = ptemp;
-				//pcamera.udpSocket = pDeviceGvcp->currentSocket;
-				//pcamera.hostaddr = pDeviceGvcp->currentSocket.GetAddressIp();
-				//pcamera.camerakey = sntemp;
 				if (pDeviceGvcp->cameralist.find(sntemp) != pDeviceGvcp->cameralist.end())
 				{
 					pDeviceGvcp->cameralist.erase(sntemp);
@@ -620,7 +610,8 @@ int DeviceGVCP::WriteReg(unsigned int addr, unsigned int data)
 	try
 	{
 		WriteRegCmd(addr, data);
-		if ((addr >= 0x064C && addr <= 0x066C)||(addr>=0x33CC0000&&addr<=0x33CC07FF))
+		if ((addr >= 0x064C && addr <= 0x066C)||(addr>=
+			0000&&addr<=0x33CC07FF))
 		{//IP address and EE range
 			//EEROM need more time to delay
 			Sleep(50);

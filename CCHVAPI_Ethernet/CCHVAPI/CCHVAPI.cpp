@@ -308,6 +308,13 @@ int GigEsetLightLen_XD(uint32_t len, int camNum)
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setLightLen_XD(len);
 }
+int GigESetMAC(IP_ADAPTER_INFO p,int s, int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setMACAddress(p,s);
+}
 byte * pimagebuf = NULL;
 int imgready = 0;
 int board1 = 1;

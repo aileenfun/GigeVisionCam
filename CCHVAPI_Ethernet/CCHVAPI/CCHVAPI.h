@@ -251,7 +251,30 @@ public:
 		m_DeviceGVCP.WriteReg(0x33bb0004, s);
 		return m_DeviceGVCP.WriteRegDone();
 	}
+	int setMACAddress(IP_ADAPTER_INFO p,int s)
+	{
+		uint32_t data = 0;
+		uint32_t temp = 0;
+		temp = p.Address[0];
+		data += temp << 8;
+		data += p.Address[1];
+		data += s << 24;
+		m_DeviceGVCP.WriteReg(0x33cc02C8, data);
+		temp = p.Address[2];
+		data = temp << 24;
+		temp = p.Address[3];
+		data += temp << 16;
+		temp = p.Address[4];
+		data += temp << 8;
+		data+= p.Address[5];
 
+		m_DeviceGVCP.WriteReg(0x33cc02CC, data);
+
+		unsigned long ip = inet_addr(p.IpAddressList.IpAddress.String);
+		data=ntohl(ip);
+		m_DeviceGVCP.WriteReg(0x33cc02D0, data);
+		return 1;
+	}
 	int closeConnection()
 	{
 		m_DeviceGVCP.DeInit();
@@ -481,6 +504,7 @@ CCT_API int GigEsetLightOn_XD(int s,int camNum);
 CCT_API int GigEsetLightLen_XD(uint32_t len,int camNum);
 CCT_API int GigEsetAuto(int isauto, int camNum);
 CCT_API int GigEstartCap_HZC(int camNum = 1);
+CCT_API int GigESetMAC(IP_ADAPTER_INFO p,int s,int camNum = 1);
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);
 CCT_API int csSetROI(int xstart, int xend, int ystart, int yend, int enable);

@@ -64,8 +64,10 @@ class DeviceGVCP
 	int DiscoveryDone();
 	MvCamCtrl::MV_CC_DEVICE_INFO devinfo;
 	map_camera cameralist;
-	int ForceIP(MVComponent::UDP udpskt);
-	int ForceIP(CCHCamera *info);
+	int ForceIP(MVComponent::UDP udpskt);
+
+	int ForceIP(CCHCamera *info);
+
 	int ForceIPDone();
 	
 	//success:1

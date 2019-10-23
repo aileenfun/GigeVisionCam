@@ -191,6 +191,7 @@ int GigECDataCapture::initUDP(int* s)
 		printf("set timeout error");
 		exit(EXIT_FAILURE);
 	}
+
 	*s = socketSrv;
 	return 1;
 }

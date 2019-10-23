@@ -216,7 +216,7 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(IDC_BTN_WBSet2, &CUsbControlDlg::OnBnClickedBtnWbset2)
 	ON_BN_CLICKED(btn_test, &CUsbControlDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BTN_TRIG2, &CUsbControlDlg::OnBnClickedBtnTrig2)
-	ON_BN_CLICKED(IDC_BTN_minset, &CUsbControlDlg::OnBnClickedBtnminset)
+	//ON_BN_CLICKED(IDC_BTN_minset, &CUsbControlDlg::OnBnClickedBtnminset)
 
 	ON_BN_CLICKED(btn_resolu, &CUsbControlDlg::OnBnClickedresolu)
 END_MESSAGE_MAP()
@@ -297,6 +297,8 @@ BOOL CUsbControlDlg::OnInitDialog()
 	m_eroixend.EnableWindow(1);
 	m_eroiystart.EnableWindow(1);
 	m_eroiyend.EnableWindow(1);
+	CheckDlgButton(IDC_CHECK_MAC,1);
+
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -1153,6 +1155,9 @@ unsigned long long  CUsbControlDlg::ConverMacAddressStringIntoByte(const char *p
 void CUsbControlDlg::OnBnClickedButtonSetIP()
 {
 	// TODO: Add your control notification handler code here
+	CButton *m_ctlCheck = (CButton*)GetDlgItem(IDC_CHECK_MAC);
+	int bind = m_ctlCheck->GetCheck();
+
 
 	DWORD ipaddr, subnet, gateway;
 	m_eCAMIP.GetAddress(ipaddr);
@@ -1192,6 +1197,33 @@ void CUsbControlDlg::OnBnClickedButtonSetIP()
 	}
 	SetDlgItemText(IDC_STATIC_TEXT, str);
 	OnBnClickedBtnSearch();
+
+
+	ULONG bufSz = 0;
+	if (GetAdaptersInfo(NULL, &bufSz) == ERROR_BUFFER_OVERFLOW)
+	{
+		vector<BYTE> buf;
+		buf.resize(bufSz, 0);
+		if (GetAdaptersInfo((IP_ADAPTER_INFO*)&buf[0], &bufSz) == ERROR_SUCCESS)
+		{
+			IP_ADAPTER_INFO* pAdapterInfo = (IP_ADAPTER_INFO*)&buf[0];
+			for (; pAdapterInfo != NULL; pAdapterInfo = pAdapterInfo->Next)
+			{
+				unsigned long ip = inet_addr(pAdapterInfo->IpAddressList.IpAddress.String);
+
+				if (ip == 0)
+				{
+					continue;
+				}
+				unsigned long ip2 = ntohl(ip);
+				if (ip2 == ipaddr)
+				{
+					pAdapterInfo->Address[0];
+					GigESetMAC(*pAdapterInfo,bind,board1);
+				}
+			}
+		}
+	}
 }
 std::string WStringToString(const std::wstring& wstr)
 {
@@ -1725,7 +1757,13 @@ void CUsbControlDlg::OnBnClickedButton1()
 		
 }
 
-
+void PrintMACaddress(BYTE *addr)
+{
+	for (int i = 0; i < 8; i++)
+	{
+		printf("%x ", *addr++);
+	}
+}
 void CUsbControlDlg::OnBnClickedBtnTrig2()
 {
 	/*
@@ -1748,6 +1786,18 @@ void CUsbControlDlg::OnBnClickedBtnTrig2()
 	*/
 	f_hardtrig = 1;
 	recvHardTrigCnt = 0;
+
+	ULONG bufSz = 0;
+	if (GetAdaptersInfo(NULL, &bufSz) == ERROR_BUFFER_OVERFLOW)
+	{
+		vector<BYTE> buf;
+		buf.resize(bufSz, 0);
+		if (GetAdaptersInfo((IP_ADAPTER_INFO*)&buf[0], &bufSz) == ERROR_SUCCESS)
+		{
+			IP_ADAPTER_INFO* pAdapterInfo = (IP_ADAPTER_INFO*)&buf[0];
+		}
+	}
+	
 }
 
 
