@@ -174,4 +174,5 @@ public:
 	afx_msg void OnEnChangeEditGain();
 	afx_msg void OnBnClickedresolu();
 	CButton m_cbBindMac;
+	afx_msg void OnBnClickedCheckMac();
 };

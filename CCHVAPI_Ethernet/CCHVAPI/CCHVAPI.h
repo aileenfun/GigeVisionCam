@@ -469,6 +469,16 @@ public:
 		uint32_t addr = 0x33bb0064;
 		return m_DeviceGVCP.WriteReg(addr, us);
 	}
+	int setDoubleTrig_HZC()
+	{
+		uint32_t addr = 0x33bb00D4;
+		return m_DeviceGVCP.WriteReg(addr,1);
+	}
+	int setDoubleTrigTime_HZC(int t)
+	{
+		uint32_t addr = 0x33bb00D8;
+		return m_DeviceGVCP.WriteReg(addr, t);
+	}
 };
 CCT_API int GigEaddInstance(LPVOID *lpUser,LPMV_CALLBACK2 CallBackFunc,CCHCamera *info);
 //CCT_API int initCCTAPI(int camNum);

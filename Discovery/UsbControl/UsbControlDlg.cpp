@@ -219,6 +219,7 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	//ON_BN_CLICKED(IDC_BTN_minset, &CUsbControlDlg::OnBnClickedBtnminset)
 
 	ON_BN_CLICKED(btn_resolu, &CUsbControlDlg::OnBnClickedresolu)
+	ON_BN_CLICKED(IDC_CHECK_MAC, &CUsbControlDlg::OnBnClickedCheckMac)
 END_MESSAGE_MAP()
 
 
@@ -1843,4 +1844,10 @@ void CUsbControlDlg::OnBnClickedresolu()
 		resolu=0;
 	}
 	GigEsetResolu_HZC(resolu);
+}
+
+
+void CUsbControlDlg::OnBnClickedCheckMac()
+{
+	// TODO: 在此添加控件通知处理程序代码
 }

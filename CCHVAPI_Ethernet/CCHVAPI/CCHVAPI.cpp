@@ -276,6 +276,7 @@ int GigEsetGain_HZC(uint32_t value, int idx,int camNum)
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setGain_HZC(value, idx);
 }
+
 int GigEsetResolu_HZC(int value,int camNum)
 {
 	if (camNum<1)return camNum;
@@ -286,6 +287,20 @@ int GigEsetResolu_HZC(int value,int camNum)
 	if(value<0)
 		value=0;
 	return vec_camins[camNum]->setResolu_HZC(value);
+}
+int GigEsetDoubleTrig(int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setDoubleTrig_HZC();
+}
+int GigESetDoubleTrigTime(int t,int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setDoubleTrigTime_HZC(t);
 }
 int GigEsetIOLength_MY(uint32_t us, int camNum)
 {
