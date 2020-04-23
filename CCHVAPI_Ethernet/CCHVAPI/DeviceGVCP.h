@@ -56,6 +56,7 @@ class DeviceGVCP
 	int Init(CCHCamera *c);
     int DeInit();
 	int SetDeviceInfo(CCHCamera *info);
+	static ThreadReturnType MV_STDCALL DeviceGVCP::HeartBeatFunc(void* Arg);
     static ThreadReturnType MV_STDCALL HandlingAckPacket(void* Arg);
 	int Discovery();
 	int DiscoveryCmd();
@@ -64,8 +65,10 @@ class DeviceGVCP
 	int DiscoveryDone();
 	MvCamCtrl::MV_CC_DEVICE_INFO devinfo;
 	map_camera cameralist;
-	int ForceIP(MVComponent::UDP udpskt);
-	int ForceIP(CCHCamera *info);
+	int ForceIP(MVComponent::UDP udpskt);
+
+	int ForceIP(CCHCamera *info);
+
 	int ForceIPDone();
 	
 	//success:1
@@ -89,6 +92,7 @@ class DeviceGVCP
 	CString  STR_A2T(LPCSTR in);
 	READREG_CMD_MSG_ACK ReadRegRst;
 	bool f_threadStop;
+	int b_HeartBeatTimeOut;
   private:
 	  int ReceiveMsg(MVComponent::UDP socket, unsigned int& nLen);
   private:

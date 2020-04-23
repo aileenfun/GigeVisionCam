@@ -36,8 +36,10 @@ private:
 	LPMV_CALLBACK2 cb;
 	int socketSrv;
 	void*   _pThreadGvsp;
+	void* _pThreadHeartbeat;
 	int width, height;
 	GigEclientPropStruct *devprop;
+	
 public :
 	int b_connected;
 public:
@@ -75,6 +77,7 @@ public:
 		cb = NULL;
 		socketSrv = -1;
 		devprop = new GigEclientPropStruct();
+
 	}
 	~GigEcamInstance()
 	{
@@ -121,6 +124,9 @@ public:
 			 
 		}
 		b_connected = 1;
+		
+		_pThreadHeartbeat = MV_CreateThread(MV_NULL, DeviceGVCP::HeartBeatFunc, (&(this->m_DeviceGVCP)));
+
 		return 1;
 	}
 	int updateCameraInfo()
@@ -183,6 +189,30 @@ public:
 		}
 		return 1;
 	}
+	int startHZC()
+	{
+		if (b_opened)
+		{
+			return 0;
+		}
+		updateCameraInfo();
+		if (devprop == NULL)
+		{
+			return -1;
+		}
+		if (m_pDataCapture->initUDP(&socketSrv))
+		{
+			m_pDataProcess->Open(5760, 1280, m_pDataCapture, cb);
+			m_pDataCapture->Open(5760, 1280);
+			b_opened = true;
+			b_closed = false;
+		}
+		else
+		{
+			return -5;
+		}
+		return 1;
+	}
 	int stop()
 	{
 		//if(!b_opened)
@@ -227,7 +257,30 @@ public:
 		m_DeviceGVCP.WriteReg(0x33bb0004, s);
 		return m_DeviceGVCP.WriteRegDone();
 	}
+	int setMACAddress(IP_ADAPTER_INFO p,int s)
+	{
+		uint32_t data = 0;
+		uint32_t temp = 0;
+		temp = p.Address[0];
+		data += temp << 8;
+		data += p.Address[1];
+		data += s << 24;
+		m_DeviceGVCP.WriteReg(0x33cc02C8, data);
+		temp = p.Address[2];
+		data = temp << 24;
+		temp = p.Address[3];
+		data += temp << 16;
+		temp = p.Address[4];
+		data += temp << 8;
+		data+= p.Address[5];
 
+		m_DeviceGVCP.WriteReg(0x33cc02CC, data);
+
+		unsigned long ip = inet_addr(p.IpAddressList.IpAddress.String);
+		data=ntohl(ip);
+		m_DeviceGVCP.WriteReg(0x33cc02D0, data);
+		return 1;
+	}
 	int closeConnection()
 	{
 		m_DeviceGVCP.DeInit();
@@ -287,6 +340,7 @@ public:
 	int setAuto(int isauto)
 	{
 		m_DeviceGVCP.WriteReg(0x33bb0034, isauto);
+		return 1;
 	}
 	int setGain(uint32_t value,int isauto)
 	{
@@ -421,6 +475,40 @@ public:
 		uint32_t addr = 0x33bb0064;
 		return m_DeviceGVCP.WriteReg(addr, us);
 	}
+	int setDoubleTrig_HZC()
+	{
+		uint32_t addr = 0x33bb00D4;
+		return m_DeviceGVCP.WriteReg(addr,1);
+	}
+	int setDoubleTrigTime_HZC(int t)
+	{
+		uint32_t addr = 0x33bb00D8;
+		return m_DeviceGVCP.WriteReg(addr, t);
+	}
+	int setEE(uint32_t addr, uint32_t value)
+	{
+		if (addr >= 0x0400 && addr <= 0x07ff)
+		{
+			uint32_t regaddr = 0x33cc0000+addr;//0x33cc07fff
+			return m_DeviceGVCP.WriteReg(regaddr, value);
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	int getEE(uint32_t addr, uint32_t* value)
+	{
+		if (addr >= 0x0400 && addr <= 0x07ff)
+		{
+			uint32_t regaddr = 0x33cc0000 + addr;//0x33cc07fff
+			return m_DeviceGVCP.ReadReg(regaddr, value);
+		}
+		else
+		{
+			return -1;
+		}
+	}
 };
 CCT_API int GigEaddInstance(LPVOID *lpUser,LPMV_CALLBACK2 CallBackFunc,CCHCamera *info);
 //CCT_API int initCCTAPI(int camNum);
@@ -455,7 +543,10 @@ CCT_API int GigEsetResolu_HZC(int value,int camNum=1);
 CCT_API int GigEsetLightOn_XD(int s,int camNum);
 CCT_API int GigEsetLightLen_XD(uint32_t len,int camNum);
 CCT_API int GigEsetAuto(int isauto, int camNum);
-
+CCT_API int GigEstartCap_HZC(int camNum = 1);
+CCT_API int GigESetMAC(IP_ADAPTER_INFO p,int s,int camNum = 1);
+CCT_API int GigESetEE(uint32_t addr, uint32_t value,int camNum=1);
+CCT_API int GigEGetEE(uint32_t addr, uint32_t* value,int camNum=1);
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);
 CCT_API int csSetROI(int xstart, int xend, int ystart, int yend, int enable);

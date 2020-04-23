@@ -8,7 +8,7 @@
 #include "GigEcamProp.h"
 #pragma comment(lib,"WS2_32.lib")
 #define PACKSIZE 8192
-#define PAYLOADSIZE 8176
+#define PAYLOADSIZE (PACKSIZE-16)
 class GigECDataCapture
 {
 public:

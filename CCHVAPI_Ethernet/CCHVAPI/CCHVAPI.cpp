@@ -33,6 +33,19 @@ int GigEstartCap(int camNum)
 	}
 	return -1;
 }
+int GigEstartCap_HZC(int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+
+	camNum = camNum - 1;
+
+	if (vec_camins[camNum]->b_connected)
+	{
+		return vec_camins[camNum]->startHZC();
+	}
+	return -1;
+}
 int GigEsetMirrorType(GigEDataProcessType mirrortype, int camNum)
 {
 	if (camNum<1)return camNum;
@@ -213,6 +226,21 @@ int GigEgetCamSize(unsigned int *camsize, int camNum)
 	camNum = camNum - 1;
 	return vec_camins[camNum]->getCamSize(camsize);
 }
+int GigESetEE(uint32_t addr, uint32_t value,int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setEE(addr,value);
+}
+int GigEGetEE(uint32_t addr, uint32_t* value,int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->getEE(addr,value);
+	
+}
 int GigEsetROI(int xstart, int xend, int ystart, int yend, int enable, int camNum)
 {
 	if (camNum<1)return camNum;
@@ -263,6 +291,7 @@ int GigEsetGain_HZC(uint32_t value, int idx,int camNum)
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setGain_HZC(value, idx);
 }
+
 int GigEsetResolu_HZC(int value,int camNum)
 {
 	if (camNum<1)return camNum;
@@ -273,6 +302,20 @@ int GigEsetResolu_HZC(int value,int camNum)
 	if(value<0)
 		value=0;
 	return vec_camins[camNum]->setResolu_HZC(value);
+}
+int GigEsetDoubleTrig(int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setDoubleTrig_HZC();
+}
+int GigESetDoubleTrigTime(int t,int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setDoubleTrigTime_HZC(t);
 }
 int GigEsetIOLength_MY(uint32_t us, int camNum)
 {
@@ -294,6 +337,13 @@ int GigEsetLightLen_XD(uint32_t len, int camNum)
 	if (camNum > vec_camins.size())return -2;
 	camNum = camNum - 1;
 	return vec_camins[camNum]->setLightLen_XD(len);
+}
+int GigESetMAC(IP_ADAPTER_INFO p,int s, int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setMACAddress(p,s);
 }
 byte * pimagebuf = NULL;
 int imgready = 0;

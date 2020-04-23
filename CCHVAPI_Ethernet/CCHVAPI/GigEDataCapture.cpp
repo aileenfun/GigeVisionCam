@@ -19,7 +19,7 @@ static char THIS_FILE[] = __FILE__;
 //TOTALPACK 39	//for 640*480
 
 unsigned int MAX_RESEND_SIZE = 100;
-GigECDataCapture::GigECDataCapture(GigEwqueue<GigEimgFrame*>&queue, GigECDataProcess *dp)
+GigECDataCapture::GigECDataCapture(GigEwqueue<GigEimgFrame*>& queue, GigECDataProcess* dp)
 	:m_queue(queue)
 {
 	m_pDataProcess = NULL;
@@ -51,8 +51,8 @@ int GigECDataCapture::Open(int height, int width)//
 #else
 	g_width = width;
 #endif
-	TOTALPACK = height*width / 8176 + 1;
-	residue = (height*width) % 8176;//residue//8192-16
+	TOTALPACK =( height * width) / PAYLOADSIZE + 1;
+	residue = (height * width) % PAYLOADSIZE;//residue//8192-16
 	if (residue > 0)
 	{
 		TOTALPACK++;
@@ -65,17 +65,17 @@ int GigECDataCapture::Open(int height, int width)//
 	memset(m_pInData, 0, ReadDataBytes * sizeof(byte));
 	m_bCapture = TRUE;
 
-	char *sendbuff = new char[32];
+	char* sendbuff = new char[32];
 	sendbuff[0] = 0x56;
 	sendbuff[1] = 0xab;
 	sendbuff[2] = 0x04;
 	sendbuff[3] = 0x00;//stop
 	sendbuff[30] = 0x57;
 	sendbuff[31] = 0xac;
-	int rst = sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));//stop
+	int rst = sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));//stop
 	Sleep(10);
 	sendbuff[3] = 0x01;//start
-	rst = sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+	rst = sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 	delete sendbuff;
 	if (rst < 0)
 	{
@@ -110,18 +110,18 @@ int GigECDataCapture::Open(int height, int width)//
 }
 int GigECDataCapture::Close()
 {
-	char *sendbuff = new char[32];
+	char* sendbuff = new char[32];
 	sendbuff[0] = 0x56;
 	sendbuff[1] = 0xab;
 	sendbuff[2] = 0x04;
 	sendbuff[3] = 0x00;
 	sendbuff[30] = 0x57;
 	sendbuff[31] = 0xac;
-	int rst = sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+	int rst = sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 	delete sendbuff;
-	
+
 	m_bCapture = FALSE;
-	Sleep(10);
+	Sleep(1000);
 	if (m_pOutData != NULL)
 	{
 		delete[] m_pOutData;
@@ -135,7 +135,7 @@ int GigECDataCapture::Close()
 	closeUDP();
 	return 0;
 }
-int GigECDataCapture::initUDP(int *s)
+int GigECDataCapture::initUDP(int* s)
 {
 	socketSrv = *s;
 	*s = -1;
@@ -152,7 +152,7 @@ int GigECDataCapture::initUDP(int *s)
 	}
 
 	socketSrv = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (socketSrv<0)
+	if (socketSrv < 0)
 	{
 		perror("create socket error");
 		return -4;
@@ -168,7 +168,7 @@ int GigECDataCapture::initUDP(int *s)
 	addrClient.sin_family = AF_INET;
 	addrClient.sin_port = htons(8080);
 	// bind socket server
-	rst = bind(socketSrv, (SOCKADDR*)&addrSrv, sizeof(SOCKADDR));
+	rst = bind(socketSrv, (SOCKADDR*)& addrSrv, sizeof(SOCKADDR));
 	if (SOCKET_ERROR == rst)
 	{
 		unsigned long dw = WSAGetLastError();
@@ -178,7 +178,7 @@ int GigECDataCapture::initUDP(int *s)
 		return -1;
 	}
 	int nRecvBuf = 38400 * 4096;//38400*4096;//
-	if (setsockopt(socketSrv, SOL_SOCKET, SO_RCVBUF, (const char *)&nRecvBuf, sizeof(int)) == -1) {
+	if (setsockopt(socketSrv, SOL_SOCKET, SO_RCVBUF, (const char*)& nRecvBuf, sizeof(int)) == -1) {
 		printf("Set receive buffer size failed\n");
 		exit(EXIT_FAILURE);
 	}
@@ -186,16 +186,17 @@ int GigECDataCapture::initUDP(int *s)
 	tv_out.tv_sec = 5;
 	tv_out.tv_usec = 0;
 	int timeout = 100;
-	if (setsockopt(socketSrv, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(tv_out)) == -1)
+	if (setsockopt(socketSrv, SOL_SOCKET, SO_RCVTIMEO, (char*)& timeout, sizeof(tv_out)) == -1)
 	{
 		printf("set timeout error");
 		exit(EXIT_FAILURE);
 	}
+
 	*s = socketSrv;
 	return 1;
 }
 
-unsigned int __stdcall GigECDataCapture::get_udp_data_wrapper(void *handle)
+unsigned int __stdcall GigECDataCapture::get_udp_data_wrapper(void* handle)
 {
 	GigECDataCapture* pThis = (GigECDataCapture*)handle;
 	pThis->get_udp_data();
@@ -209,7 +210,7 @@ void GigECDataCapture::get_udp_data()
 	long already_get_num = 0;
 	char resendbuf[32];
 	ZeroMemory(resendbuf, 0);
-	GigEudp_buffer *this_udpbuffer;
+	GigEudp_buffer* this_udpbuffer;
 	byte* p_udpbuf;
 	unsigned long packnum = 0;
 	long packnum_last = 0;
@@ -227,7 +228,7 @@ void GigECDataCapture::get_udp_data()
 	{
 #ifdef _READFILE
 		nRet = fromfile->Read(recv_buf, PACKSIZE);
-		if (nRet>0)
+		if (nRet > 0)
 		{
 			this_udpbuffer = new udp_buffer(nRet);
 			memcpy(this_udpbuffer->packbuffer, recv_buf, this_udpbuffer->m_packsize);
@@ -236,25 +237,25 @@ void GigECDataCapture::get_udp_data()
 #else
 		//sendto(socketSrv,tempbuf,10,0,(struct sockaddr*)&addrClient,sizeof(struct sockaddr));
 
-		nRet = recvfrom(socketSrv, (char*)recv_buf, PACKSIZE, 0, (struct sockaddr*)&client_addr1, &cliaddr_len);
+		nRet = recvfrom(socketSrv, (char*)recv_buf, PACKSIZE, 0, (struct sockaddr*) & client_addr1, &cliaddr_len);
 		dataCnt += PACKSIZE;
-		if (nRet>0)
+		if (nRet > 0)
 		{
 			//error rejection
-			
+
 			//camNum = recv_buf[2];
 			//packnum = recv_buf[10] << 8;
 			//int temppack =(unsigned char) recv_buf[11];
 			//packnum = temppack + packnum;
 			if (recv_buf[0] != 0x33 && recv_buf[0] != 0x34 &&
 				recv_buf[0] != 0x35 && recv_buf[0] != 0x30 &&
-				recv_buf[0] != 0x3f )
+				recv_buf[0] != 0x3f)
 			{
 				haveerror++;
 				f_errorpack = true;
 				continue;
 			}
-			
+
 
 			//pack ok
 			this_udpbuffer = new GigEudp_buffer(nRet);
@@ -282,17 +283,18 @@ void GigECDataCapture::get_udp_data()
 				continue;
 			}
 
-			
+
 			if ((timestamp != timestamp_last)
 				&& ((p_udpbuf[0] == 0x33) || (p_udpbuf[0] == 0x30)))//boarder pack check,new frame came
 			{
 				lostpacks = TOTALPACK - packnum_last - 1;
 				if (lostpacks > MAX_RESEND_SIZE)
 				{
+					//lostpacks = MAX_RESEND_SIZE;
 					delete this_udpbuffer;
 					continue;
 				}
-				if (lostpacks>0)//last pack lost
+				if (lostpacks > 0)//last pack lost
 				{
 					resendbuf[2] = 0x03;//resend cmd
 					resendbuf[3] = camNum_last;//camNum
@@ -306,7 +308,7 @@ void GigECDataCapture::get_udp_data()
 					resendbuf[10] = lostpacks & 0xff;
 					resendbuf[30] = 0x57;
 					resendbuf[31] = 0xac;
-					sendto(socketSrv, resendbuf, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+					sendto(socketSrv, resendbuf, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 					resendPackCnt += lostpacks;
 				}
 
@@ -316,7 +318,7 @@ void GigECDataCapture::get_udp_data()
 					delete this_udpbuffer;
 					continue;
 				}
-				if (lostpacks>0)//new frame's head lost
+				if (lostpacks > 0)//new frame's head lost
 				{
 					resendbuf[2] = 0x03;//resend order
 					resendbuf[3] = p_udpbuf[2];//camNum
@@ -329,7 +331,7 @@ void GigECDataCapture::get_udp_data()
 					resendbuf[10] = lostpacks & 0xff;
 					resendbuf[30] = 0x57;
 					resendbuf[31] = 0xac;
-					sendto(socketSrv, resendbuf, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+					sendto(socketSrv, resendbuf, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 					resendPackCnt += lostpacks;
 				}
 
@@ -342,7 +344,7 @@ void GigECDataCapture::get_udp_data()
 					delete this_udpbuffer;
 					continue;
 				}
-				if (lostpacks>0)
+				if (lostpacks > 0)
 				{
 					resendbuf[0] = 0x56;
 					resendbuf[1] = 0xab;
@@ -358,7 +360,7 @@ void GigECDataCapture::get_udp_data()
 					resendbuf[10] = lostpacks & 0xff;
 					resendbuf[30] = 0x57;
 					resendbuf[31] = 0xac;
-					sendto(socketSrv, resendbuf, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+					sendto(socketSrv, resendbuf, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 					resendPackCnt += lostpacks;
 
 				}
@@ -386,7 +388,7 @@ int GigECDataCapture::ThreadProcessFunction()
 	int cliaddr_len = sizeof(client_addr1);
 	char tempbuf[10];
 	ZeroMemory(tempbuf, 10);
-	byte * imgbuf = new byte[g_width*g_height];
+	byte* imgbuf = new byte[g_width * g_height];
 
 #ifdef _READFILE
 	fromfile = new CFile();//("d:\\udpfile.bin");
@@ -402,7 +404,7 @@ int GigECDataCapture::ThreadProcessFunction()
 #else
 	HANDLE m_hThread1 = (HANDLE)_beginthreadex(NULL, 0, get_udp_data_wrapper, this, 0, NULL);
 	int temp = SetThreadPriority(m_hThread1, THREAD_PRIORITY_TIME_CRITICAL);
-	sendto(socketSrv, tempbuf, 10, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+	sendto(socketSrv, tempbuf, 10, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 	nRet = getData(m_pInData, 0, ReadDataBytes);
 #endif
 	int i = 0;
@@ -419,6 +421,8 @@ int GigECDataCapture::ThreadProcessFunction()
 	unsigned long packnum = 0;
 	unsigned long timestamp_last = 0;
 	unsigned long cpylen = 0;
+	int rowSize = 0;
+	int columnSize = 0;
 	vector<GigEimgFrame*> vframe;
 	long timestamp;
 	haveerror = 0;
@@ -443,8 +447,8 @@ int GigECDataCapture::ThreadProcessFunction()
 		savefile2.write((char*)this_udp_pack->packbuffer, 16);
 #endif
 
-		if (this_udp_pack->packbuffer[0] != 0x33 && this_udp_pack->packbuffer[0] != 0x34 && 
-			this_udp_pack->packbuffer[0] != 0x35 && this_udp_pack->packbuffer[0] != 0x30 && 
+		if (this_udp_pack->packbuffer[0] != 0x33 && this_udp_pack->packbuffer[0] != 0x34 &&
+			this_udp_pack->packbuffer[0] != 0x35 && this_udp_pack->packbuffer[0] != 0x30 &&
 			this_udp_pack->packbuffer[0] != 0x3f)
 		{
 			haveerror++;
@@ -458,9 +462,21 @@ int GigECDataCapture::ThreadProcessFunction()
 			timestamp = this_udp_pack->packbuffer[3] << 16;
 			timestamp += this_udp_pack->packbuffer[4] << 8;
 			timestamp += this_udp_pack->packbuffer[5];
+
+			columnSize = this_udp_pack->packbuffer[6] << 8;
+			columnSize += this_udp_pack->packbuffer[7];
+			rowSize = this_udp_pack->packbuffer[8] << 8;
+			rowSize += this_udp_pack->packbuffer[9];
+			TOTALPACK = (columnSize * rowSize) / PAYLOADSIZE + 1;
+			residue = (columnSize * rowSize) % PAYLOADSIZE;//residue//8192-16
+			if (residue > 0)
+			{
+				TOTALPACK++;
+			}
+
 			packnum = this_udp_pack->packbuffer[10] << 8;
 			packnum += (unsigned int)this_udp_pack->packbuffer[11];
-			if ( packnum > TOTALPACK)
+			if (packnum > TOTALPACK)
 			{
 				haveerror++;
 				f_errorpack = true;
@@ -468,10 +484,10 @@ int GigECDataCapture::ThreadProcessFunction()
 			}
 			unsigned char pack1 = this_udp_pack->packbuffer[0];
 			unsigned char pack2 = this_udp_pack->packbuffer[1];
-			
+
 			if (camNum != camNum_last || timestamp != timestamp_last)
 			{//new frame arrived, judged by camNum and timestamp
-				thisImgFrame = new GigEimgFrame(g_width, g_height, camNum);
+				thisImgFrame = new GigEimgFrame(columnSize, rowSize, camNum);
 				thisImgFrame->timestamp = timestamp;
 
 				thisImgFrame->imgtime = this_udp_pack->packbuffer[6] << 24;
@@ -495,10 +511,22 @@ int GigECDataCapture::ThreadProcessFunction()
 			timestamp += this_udp_pack->packbuffer[4] << 8;
 			timestamp += this_udp_pack->packbuffer[5];
 
+			columnSize = this_udp_pack->packbuffer[6] << 8;
+			columnSize += this_udp_pack->packbuffer[7];
+			rowSize = this_udp_pack->packbuffer[8] << 8;
+			rowSize += this_udp_pack->packbuffer[9];
+
+			TOTALPACK = (columnSize * rowSize) / PAYLOADSIZE + 1;
+			residue = (columnSize * rowSize) % PAYLOADSIZE;//residue//8192-16
+			if (residue > 0)
+			{
+				TOTALPACK++;
+			}
+
 			packnum = this_udp_pack->packbuffer[10] << 8;
 			packnum += (unsigned int)this_udp_pack->packbuffer[11];
 
-			if ((packnum == 0 || packnum>TOTALPACK))
+			if ((packnum == 0 || packnum > TOTALPACK))
 			{
 				haveerror++;
 				f_errorpack = true;
@@ -558,7 +586,7 @@ int GigECDataCapture::ThreadProcessFunction()
 							f_errorpack = true;
 							goto CLEANUP;
 						}
-						memcpy(vframe[i]->imgBuf + packnum*PAYLOADSIZE, this_udp_pack->packbuffer + 16, this_udp_pack->m_packsize);
+						memcpy(vframe[i]->imgBuf + packnum * PAYLOADSIZE, this_udp_pack->packbuffer + 16, this_udp_pack->m_packsize);
 					}
 					if ((vframe[i]->packnum >= TOTALPACK - 1))//||(this_udp_pack->packbuffer[0]==0x3f))
 					{
@@ -656,7 +684,7 @@ unsigned int __stdcall GigECDataCapture::ThreadProcess(void* handle)
 	pThis->ThreadProcessFunction();
 	return 0;
 }
-long GigECDataCapture::getData(byte * buffer, long startpos, long len, long packsize)
+long GigECDataCapture::getData(byte* buffer, long startpos, long len, long packsize)
 {
 	long rst = -1;
 	long already_get_num = 0;
@@ -666,7 +694,7 @@ long GigECDataCapture::getData(byte * buffer, long startpos, long len, long pack
 	ZeroMemory(tempbuf, 10);
 	GigEudp_buffer* this_udp_buffer;
 	long diff = 0;
-	for (already_get_num = 0; already_get_num<len;)
+	for (already_get_num = 0; already_get_num < len;)
 	{
 		this_udp_buffer = udp_queue.remove();
 		if (this_udp_buffer == NULL)
@@ -678,10 +706,10 @@ long GigECDataCapture::getData(byte * buffer, long startpos, long len, long pack
 		//#endif
 
 		diff = len - already_get_num;
-		if (diff<this_udp_buffer->m_packsize)
+		if (diff < this_udp_buffer->m_packsize)
 		{
 			memcpy(buffer + startpos + already_get_num, this_udp_buffer->packbuffer, diff);
-			GigEudp_buffer *partial_buffer = new GigEudp_buffer(this_udp_buffer->m_packsize - diff);
+			GigEudp_buffer* partial_buffer = new GigEudp_buffer(this_udp_buffer->m_packsize - diff);
 			memcpy(partial_buffer->packbuffer, this_udp_buffer->packbuffer + diff, this_udp_buffer->m_packsize - diff);
 			udp_queue.insert_front(partial_buffer);
 			already_get_num += diff;
@@ -692,7 +720,7 @@ long GigECDataCapture::getData(byte * buffer, long startpos, long len, long pack
 			memcpy(buffer + startpos + already_get_num, this_udp_buffer->packbuffer, this_udp_buffer->m_packsize);
 			already_get_num += this_udp_buffer->m_packsize;
 			delete this_udp_buffer;
-			if ((already_get_num + PACKSIZE)>len)
+			if ((already_get_num + PACKSIZE) > len)
 				break;
 		}
 
@@ -714,7 +742,7 @@ unsigned long GigECDataCapture::getFrameCnt()
 int GigECDataCapture::getProp(GigEclientPropStruct* prop)
 {
 	int buffsize = 32;
-	char *sendbuff = new char[buffsize];
+	char* sendbuff = new char[buffsize];
 	sendbuff[0] = 0x56;
 	sendbuff[1] = 0xab;
 	sendbuff[2] = 0x05;
@@ -722,11 +750,11 @@ int GigECDataCapture::getProp(GigEclientPropStruct* prop)
 	sendbuff[31] = 0xac;
 	char* recv_buf = new char[PACKSIZE];
 	int cliaddr_len = sizeof(client_addr1);
-	sendto(socketSrv, sendbuff, buffsize, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
-	for (int i = 0; i<5; i++)
+	sendto(socketSrv, sendbuff, buffsize, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
+	for (int i = 0; i < 5; i++)
 	{
-		int rst = recvfrom(socketSrv, recv_buf, PACKSIZE, 0, (struct sockaddr*)&client_addr1, &cliaddr_len);
-		if (rst>-1)
+		int rst = recvfrom(socketSrv, recv_buf, PACKSIZE, 0, (struct sockaddr*) & client_addr1, &cliaddr_len);
+		if (rst > -1)
 		{
 			if (recv_buf[0] == 0x40)
 				if ((byte)recv_buf[1] == 0xe0)
@@ -748,7 +776,7 @@ int GigECDataCapture::getProp(GigEclientPropStruct* prop)
 					prop->width = width;
 					prop->height = height;
 					prop->camCnt = camnum;
-					if (camnum<1)
+					if (camnum < 1)
 						return -1;
 					return camnum;
 				}
@@ -769,12 +797,12 @@ int GigECDataCapture::sendProp(GigEclientPropStruct prop)
 }
 int GigECDataCapture::sendOrder(GigEcamPropStruct camprop, int s)
 {
-	char *sendbuff = new char[32];
+	char* sendbuff = new char[32];
 
 	this_camprop->setCamProp(camprop);
 	this_camprop->getBuffer(sendbuff);
 	if (s == 0)
-		sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+		sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 
 
 	delete sendbuff;
@@ -783,7 +811,7 @@ int GigECDataCapture::sendOrder(GigEcamPropStruct camprop, int s)
 
 unsigned __int32 GigECDataCapture::WriteReg(unsigned __int32 addr, unsigned __int32 data)
 {
-	char *sendbuff = new char[32];
+	char* sendbuff = new char[32];
 	memset(sendbuff, 32, 0);
 	sendbuff[0] = 0x42;
 	sendbuff[1] = 0x01;
@@ -793,21 +821,21 @@ unsigned __int32 GigECDataCapture::WriteReg(unsigned __int32 addr, unsigned __in
 	sendbuff[5] = 0x08;
 	sendbuff[6] = 0x00;
 	sendbuff[7] = 0x02;
-	sendbuff[8] = (addr&(0xff << 3 * 8)) >> (3 * 8);
-	sendbuff[9] = (addr&(0xff << 2 * 8)) >> (2 * 8);
-	sendbuff[10] = (addr&(0xff << 1 * 8)) >> (1 * 8);
-	sendbuff[11] = (addr&(0xff << 0 * 8)) >> (0 * 8);
-	sendbuff[12] = (data&(0xff << 3 * 8)) >> (3 * 8);
-	sendbuff[13] = (data&(0xff << 2 * 8)) >> (2 * 8);
-	sendbuff[14] = (data&(0xff << 1 * 8)) >> (1 * 8);
-	sendbuff[15] = (data&(0xff << 0 * 8)) >> (0 * 8);
-	sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+	sendbuff[8] = (addr & (0xff << 3 * 8)) >> (3 * 8);
+	sendbuff[9] = (addr & (0xff << 2 * 8)) >> (2 * 8);
+	sendbuff[10] = (addr & (0xff << 1 * 8)) >> (1 * 8);
+	sendbuff[11] = (addr & (0xff << 0 * 8)) >> (0 * 8);
+	sendbuff[12] = (data & (0xff << 3 * 8)) >> (3 * 8);
+	sendbuff[13] = (data & (0xff << 2 * 8)) >> (2 * 8);
+	sendbuff[14] = (data & (0xff << 1 * 8)) >> (1 * 8);
+	sendbuff[15] = (data & (0xff << 0 * 8)) >> (0 * 8);
+	sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 	delete sendbuff;
 	return 1;
 }
 int GigECDataCapture::sendSoftTrig(int s)
 {
-	char *sendbuff = new char[32];
+	char* sendbuff = new char[32];
 	switch (s)
 	{
 	case 0://disable soft trig mode
@@ -827,7 +855,7 @@ int GigECDataCapture::sendSoftTrig(int s)
 		sendbuff[2] = 0x02;
 		sendbuff[30] = 0x57;
 		sendbuff[31] = 0xac;
-		sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+		sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 		break;
 	case 3://trig once
 		sendbuff[0] = 0x56;
@@ -835,7 +863,7 @@ int GigECDataCapture::sendSoftTrig(int s)
 		sendbuff[2] = 0x03;
 		sendbuff[30] = 0x57;
 		sendbuff[31] = 0xac;
-		sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+		sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 		break;
 	case 4:
 		sendbuff[0] = 0x56;
@@ -843,7 +871,7 @@ int GigECDataCapture::sendSoftTrig(int s)
 		sendbuff[2] = 0x04;
 		sendbuff[30] = 0x57;
 		sendbuff[31] = 0xac;
-		sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*)&addrClient, sizeof(struct sockaddr));
+		sendto(socketSrv, sendbuff, 32, 0, (struct sockaddr*) & addrClient, sizeof(struct sockaddr));
 		Sleep(100);
 	default:
 		m_pDataProcess->setsofttrigmode(0);

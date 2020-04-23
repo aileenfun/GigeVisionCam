@@ -164,6 +164,9 @@
     <ClInclude Include="GigETrigImgPack.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TrigImgPack.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CCHVAPI.rc">
