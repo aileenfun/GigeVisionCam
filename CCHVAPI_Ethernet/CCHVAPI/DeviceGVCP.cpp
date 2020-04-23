@@ -25,7 +25,7 @@ DeviceGVCP::DeviceGVCP()
 	f_ForceIPDone = 1;
 	f_ReadRegDone = 1;
 	f_DiscoveryDone = 1;
-
+	b_HeartBeatTimeOut = 0;
 }
 
 DeviceGVCP::~DeviceGVCP()
@@ -225,6 +225,25 @@ int DeviceGVCP::decodePacket(MVComponent::UDP s)
 		}
 		Sleep(1);
 	}
+}
+ThreadReturnType MV_STDCALL DeviceGVCP::HeartBeatFunc(void* arg)
+{
+	DeviceGVCP* pDeviceGvcp = (DeviceGVCP*)arg;
+	uint32_t readvalue = 0;
+	do
+	{
+		int rst=pDeviceGvcp->ReadReg(0x48, &readvalue);
+		if (rst > 0&&readvalue == 0x43616963)
+		{
+			pDeviceGvcp->b_HeartBeatTimeOut = 0;
+		}
+		else
+		{
+			pDeviceGvcp->b_HeartBeatTimeOut += 1;
+		}
+		Sleep(1000);
+	} while (pDeviceGvcp->f_threadStop);
+	return 1;
 }
 ThreadReturnType MV_STDCALL DeviceGVCP::HandlingAckPacket(void* Arg)
 {

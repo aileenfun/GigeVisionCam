@@ -226,6 +226,21 @@ int GigEgetCamSize(unsigned int *camsize, int camNum)
 	camNum = camNum - 1;
 	return vec_camins[camNum]->getCamSize(camsize);
 }
+int GigESetEE(uint32_t addr, uint32_t value,int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->setEE(addr,value);
+}
+int GigEGetEE(uint32_t addr, uint32_t* value,int camNum)
+{
+	if (camNum < 1)return camNum;
+	if (camNum > vec_camins.size())return -2;
+	camNum = camNum - 1;
+	return vec_camins[camNum]->getEE(addr,value);
+	
+}
 int GigEsetROI(int xstart, int xend, int ystart, int yend, int enable, int camNum)
 {
 	if (camNum<1)return camNum;

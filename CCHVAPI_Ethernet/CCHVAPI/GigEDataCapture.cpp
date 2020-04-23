@@ -51,8 +51,8 @@ int GigECDataCapture::Open(int height, int width)//
 #else
 	g_width = width;
 #endif
-	TOTALPACK = height * width / 8176 + 1;
-	residue = (height * width) % 8176;//residue//8192-16
+	TOTALPACK =( height * width) / PAYLOADSIZE + 1;
+	residue = (height * width) % PAYLOADSIZE;//residue//8192-16
 	if (residue > 0)
 	{
 		TOTALPACK++;
@@ -121,7 +121,7 @@ int GigECDataCapture::Close()
 	delete sendbuff;
 
 	m_bCapture = FALSE;
-	Sleep(10);
+	Sleep(1000);
 	if (m_pOutData != NULL)
 	{
 		delete[] m_pOutData;
@@ -290,6 +290,7 @@ void GigECDataCapture::get_udp_data()
 				lostpacks = TOTALPACK - packnum_last - 1;
 				if (lostpacks > MAX_RESEND_SIZE)
 				{
+					//lostpacks = MAX_RESEND_SIZE;
 					delete this_udpbuffer;
 					continue;
 				}
@@ -466,9 +467,8 @@ int GigECDataCapture::ThreadProcessFunction()
 			columnSize += this_udp_pack->packbuffer[7];
 			rowSize = this_udp_pack->packbuffer[8] << 8;
 			rowSize += this_udp_pack->packbuffer[9];
-
-			TOTALPACK = columnSize * rowSize / 8176 + 1;
-			residue = (columnSize * rowSize) % 8176;//residue//8192-16
+			TOTALPACK = (columnSize * rowSize) / PAYLOADSIZE + 1;
+			residue = (columnSize * rowSize) % PAYLOADSIZE;//residue//8192-16
 			if (residue > 0)
 			{
 				TOTALPACK++;
@@ -516,8 +516,8 @@ int GigECDataCapture::ThreadProcessFunction()
 			rowSize = this_udp_pack->packbuffer[8] << 8;
 			rowSize += this_udp_pack->packbuffer[9];
 
-			TOTALPACK = columnSize * rowSize / 8176 + 1;
-			residue = (columnSize * rowSize) % 8176;//residue//8192-16
+			TOTALPACK = (columnSize * rowSize) / PAYLOADSIZE + 1;
+			residue = (columnSize * rowSize) % PAYLOADSIZE;//residue//8192-16
 			if (residue > 0)
 			{
 				TOTALPACK++;

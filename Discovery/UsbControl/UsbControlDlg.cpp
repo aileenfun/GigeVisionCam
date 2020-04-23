@@ -26,6 +26,7 @@ static char THIS_FILE[]=__FILE__;
 volatile int b_softtrig=-1;
 #define _ORG
 cv::VideoWriter h_vw;
+cv::VideoWriter h_vw1;
 volatile bool snap;
 int board1=-1;//board id
 int board2=-1;
@@ -47,7 +48,11 @@ unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
 int f_hardtrig = 0;
-unsigned int g_camsize = 6;
+unsigned int g_camsize = 1;
+#define JSR_Width1 720
+#define JSR_Height1 360
+#define JSR_Width2 320
+#define JSR_Height2 360
 class CAboutDlg : public CDialog
 {
 public:
@@ -383,12 +388,10 @@ void CUsbControlDlg::BMPHeader(int lWidth, int lHeight,byte* m_buf,BITMAPINFO* m
 
 	m_bmi->bmiHeader=bih;
 	
-	//StretchDIBits(m_pDisplay->GetMemDC()->m_hDC,0,0,g_width,g_height,0,0,g_width,g_height,m_buf,m_bmi,DIB_RGB_COLORS,SRCCOPY);
-	//m_pDisplay->Display();
 	delete bmpbuffer;
 	bool b_save_file	=false;
 	if(b_save_file)
-	{
+	{/*
 		CString strName;
 		CString camFolder;
 		camFolder.Format(L"d:\\c6UDP\\cam%d",0);
@@ -397,7 +400,7 @@ void CUsbControlDlg::BMPHeader(int lWidth, int lHeight,byte* m_buf,BITMAPINFO* m
 			int iFileIndex=1;
 			do 
 			{
-				strName.Format(L"d:\\c6UDP\\cam%d\\V_%d.bmp",0,iFileIndex);
+				strName.Format(L"d:\\c6UDP\\cam%d\\V_%d.jpg",0,iFileIndex);
 				++iFileIndex;
 			} while (_waccess(strName,0)==0);
 			CT2CA pszConvertedAnsiString (strName);
@@ -414,7 +417,9 @@ void CUsbControlDlg::BMPHeader(int lWidth, int lHeight,byte* m_buf,BITMAPINFO* m
 		return ;  
 	}  
 		}
+		*/
 	}
+	
 }
 
 void CUsbControlDlg::OnPaint()
@@ -453,14 +458,15 @@ volatile int show_channel;
 bool b_save_file;
 int trigsource;
 unsigned long imgtime;
-int camera_height = 0;
-int camera_width = 0;
+int camera_height = 1024;
+int camera_width = 1280;
 byte* imgBuf = NULL;
 byte* imgBuf2 = NULL;
 byte* imgBuf3 = NULL;
 byte* imgBuf4 = NULL;
 byte* imgBuf5 = NULL;
 byte* imgBuf6 = NULL;
+int g_ROI_EN = 0;
 #ifdef _ORG
 void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
@@ -473,11 +479,11 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 		return;
 	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
 	//图像的高度为m_height，因此单个图像的高度就是m_height/g_camsize
-	camera_height = thisFrame->m_height/6;
+	camera_height = thisFrame->m_height/ g_camsize;
 	camera_width = thisFrame->m_width;
 	//数据块的宽度与图像宽度相等。
 	int dispwidth = 1280;
-	int dispheight = 960;
+	int dispheight = 1024;
 	if (imgBuf == NULL)
 	{
 		imgBuf = new byte[dispheight*dispwidth];
@@ -500,37 +506,59 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	offset = camera_height * camera_width *offset;
 	trigsource = thisFrame->m_camNum;
 	imgtime=thisFrame->imgtime;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, camera_height *camera_width);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
+	memcpy(imgBuf, thisFrame->imgBuf + offset, camera_height *camera_width);//从数据块中只拷贝需要显示的图像byte *coords=new byte[dispheight];
 	cv::Mat frame(camera_height, camera_width, CV_8UC1, imgBuf);
 
 	long imgoffset = 0;
 	
 	cv::imshow("disp", frame);
 
-	imgoffset = camera_height * camera_width * 1;
-	memcpy(imgBuf2, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
-	cv::Mat frame2(camera_height, camera_width, CV_8UC1, imgBuf2);
-	cv::imshow("cam2", frame2);
-
-	imgoffset = camera_height * camera_width * 2;
-	memcpy(imgBuf3, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
-	cv::Mat frame3(camera_height, camera_width, CV_8UC1, imgBuf3);
-	cv::imshow("cam3", frame3);
-
-	imgoffset = camera_height * camera_width * 3;
-	memcpy(imgBuf4, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
-	cv::Mat frame4(camera_height, camera_width, CV_8UC1, imgBuf4);
-	cv::imshow("cam4", frame4);
-
-	imgoffset = camera_height * camera_width * 4;
-	memcpy(imgBuf5, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
-	cv::Mat frame5(camera_height, camera_width, CV_8UC1, imgBuf5);
-	cv::imshow("cam5", frame5);
-
-	imgoffset = camera_height * camera_width * 5;
-	memcpy(imgBuf6, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
-	cv::Mat frame6(camera_height, camera_width, CV_8UC1, imgBuf6);
-	cv::imshow("cam6", frame6);
+	if (b_save_file)
+	{
+		
+		h_vw.write(frame);
+	}
+	if (g_camsize > 1)
+	{
+		imgoffset = camera_height * camera_width * 1;
+		memcpy(imgBuf2, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+		cv::Mat frame2(camera_height, camera_width, CV_8UC1, imgBuf2);
+		cv::imshow("cam2", frame2);
+		if (b_save_file)
+		{
+			
+				h_vw1.write(frame2);
+			
+		}
+	}
+	if (g_camsize > 2)
+	{
+		imgoffset = camera_height * camera_width * 2;
+		memcpy(imgBuf3, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+		cv::Mat frame3(camera_height, camera_width, CV_8UC1, imgBuf3);
+		cv::imshow("cam3", frame3);
+	}
+	if (g_camsize > 3)
+	{
+		imgoffset = camera_height * camera_width * 3;
+		memcpy(imgBuf4, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+		cv::Mat frame4(camera_height, camera_width, CV_8UC1, imgBuf4);
+		cv::imshow("cam4", frame4);
+	}
+	if (g_camsize > 4)
+	{
+		imgoffset = camera_height * camera_width * 4;
+		memcpy(imgBuf5, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+		cv::Mat frame5(camera_height, camera_width, CV_8UC1, imgBuf5);
+		cv::imshow("cam5", frame5);
+	}
+	if (g_camsize > 5)
+	{
+		imgoffset = camera_height * camera_width * 5;
+		memcpy(imgBuf6, thisFrame->imgBuf + imgoffset, camera_height * camera_width);
+		cv::Mat frame6(camera_height, camera_width, CV_8UC1, imgBuf6);
+		cv::imshow("cam6", frame6);
+	}
 	cv::waitKey(1);
 	
 	if (f_hardtrig)
@@ -540,6 +568,7 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 
 	if (b_save_file)
 	{
+		/*
 		CString strName;
 		CString camFolder;
 
@@ -551,7 +580,7 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 				int iFileIndex = 1;
 				do
 				{
-					strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", cameranumber, thisFrame->timestamp);
+					strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.jpg", cameranumber, thisFrame->timestamp);
 					++iFileIndex;
 				} while (_waccess(strName, 0) == 0);
 				CT2CA pszConvertedAnsiString(strName);
@@ -562,7 +591,9 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 				cv::imwrite(cvfilename, framesave);
 
 			}
-		}
+			
+		}*/
+		
 	}
 		if (snap == true)
 		{
@@ -619,105 +650,43 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 #else
 void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
-	/*相机传上来的数据保存在thisFrame中，数据的长度为height*width*camsize,
-	例如，假如您的系统为6个相机，每个相机的分辨率为1280*960，那么传上来的数据总长度就是1280*960*6，
-	各个相机的图像数据从0号相机到5号相机依次排列，例如2号相机的图像就位于1280*960*2,长度为1280*960,
-	只需要对该数据块按照分辨率进行切割，就是对应的相机的图像。*/
 	GigEimgFrame *thisFrame = (GigEimgFrame*)lpParam;
 	if (thisFrame == NULL)
 		return;
 	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
-	int dispheight = thisFrame->m_height / g_camsize;
-	//图像的高度为m_height，因此单个图像的高度就是m_height/g_camsize
-	int dispwidth = thisFrame->m_width;
-	//数据块的宽度与图像宽度相等。
-	if (imgBuf == NULL)
+	int w1, h1, w2, h2;
+	
+	if (g_ROI_EN == 1)
 	{
-		imgBuf = new byte[dispheight*dispwidth];
-	}
-
-	int offset = 0;
-	if (show_channel <= g_camsize - 1)//选择显示哪一个相机的图像。
-	{
-		offset = show_channel;
+		w1 = JSR_Width1;
+		w2 = JSR_Width2;
+		h1 = JSR_Height1;
+		h2 = JSR_Height2;
 	}
 	else
 	{
-		offset = g_camsize - 1;
+		w1 = 1280;
+		w2 = 1280;
+		h1 = 1024;
+		h2 = 1024;
 	}
-	offset = dispheight*dispwidth*offset;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
-	cv::Mat frameRGB;
-	cv::cvtColor(frame, frameRGB, CV_GRAY2BGR);
-
-	int coords_height = 4;
-	int imageheight = dispheight - coords_height;
-	int coords_len = imageheight * 4;
-	int imagewidth = dispwidth;
-	byte * coords = new byte[coords_len];//1
-	memcpy(coords, thisFrame->imgBuf + offset + imageheight *imagewidth, coords_len);
-
-	cv::Point pt;
-	int xtemp, ytemp;
-	for (int i = 0; i < coords_len; i += 4)
+	if (imgBuf== NULL)
 	{
-		ytemp = coords[i];
-		ytemp = ytemp << 8;
-		ytemp += coords[i + 1];
-		xtemp = coords[i + 2];
-		xtemp = xtemp << 8;
-		xtemp += coords[i + 3];
-		if (xtemp > imagewidth)
-		{
-			continue;
-		}
-		pt.x = xtemp;
-		pt.y = ytemp - 1;
-		circle(frameRGB, pt, 1, cv::Scalar(0, 0, 255));
+		imgBuf = new byte[w1 * h1];
 	}
-	//cv::imshow("disp", frame);
-	cv::imshow("RGB", frameRGB);
+	if (imgBuf2 == NULL)
+	{
+		imgBuf2 = new byte[ w2 * h2];
+	}
+
+	memcpy(imgBuf, thisFrame->imgBuf, w1 * h1);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
+	memcpy(imgBuf2, thisFrame->imgBuf+ w1 * h1,w2*h2);
+	cv::Mat frame(h1, w1, CV_8UC1, imgBuf);
+	cv::Mat frame2(h2, w2, CV_8UC1, imgBuf2);
+	cv::imshow("disp", frame);
+	cv::imshow("disp2", frame2);
 	cv::waitKey(1);
-
-	if (b_save_file)
-	{
-		CString strName;
-		CString camFolder;
-
-		for (int cameranumber = 0; cameranumber < g_camsize; cameranumber++)
-		{
-			camFolder.Format(L"c:\\c6UDP\\cam%d", cameranumber);
-			if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
-			{
-				int iFileIndex = 1;
-				do
-				{
-					strName.Format(L"c:\\c6UDP\\cam%d\\V_%d.bmp", cameranumber, thisFrame->timestamp);
-					++iFileIndex;
-				} while (_waccess(strName, 0) == 0);
-				CT2CA pszConvertedAnsiString(strName);
-				std::string cvfilename(pszConvertedAnsiString);
-				offset = cameranumber*dispheight*dispwidth;
-				memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);
-				cv::Mat framesave(dispheight, dispwidth, CV_8UC1, imgBuf);
-				cv::imwrite(cvfilename, framesave);
-
-			}
-		}
-		if (snap == true)
-		{
-			//cv::imwrite("snap.jpg",frame);
-			snap = false;
-		}
-		if (f_softtirg)
-		{
-			recvSoftCnt++;
-		}
-		//h_vw.write(frame);
-
-	}
-}
+}	
 #endif
 #ifdef _CAM2
 	void _stdcall RawCallBack2(LPVOID lpParam, LPVOID lpUser)
@@ -830,12 +799,13 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 
 	void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 {
-		if (GigEstartCap_HZC(board1) < 1)
+		OnBnClickedBtnroiset();
+		if (GigEstartCap(board1) < 1)
 		{
 			SetDlgItemText(IDC_STATIC_TEXT, L"设备打开失败！");
 			return;
 		}
-	if (GigEstartCap_HZC(board2) < 0)
+	if (GigEstartCap(board2) < 0)
 	{
 		SetDlgItemText(IDC_STATIC_TEXT, L"设备2打开失败！");
 	}
@@ -869,16 +839,21 @@ void CUsbControlDlg::OnBnClickedBtnStopcapture()
 	{
 		SetDlgItemText(IDC_STATIC_TEXT,L"尚未采集");
 	}
-	if(GigEstopCap(board2)!=0)
-	{
-		SetDlgItemText(IDC_STATIC_TEXT,L"尚未采集");
-		
-	}
 	f_softtirg=0;
 	f_hardtrig = 0;
 	UpdateData(TRUE);
 	//cv::destroyWindow("disp");
 	SetDlgItemText(IDC_STATIC_TEXT,L" ");
+	if (imgBuf != NULL)
+	{
+		delete imgBuf;
+		imgBuf = NULL;
+	}
+	if (imgBuf2 != NULL)
+	{
+		delete imgBuf2;
+		imgBuf2 = NULL;
+	}
 }
 
 void CUsbControlDlg::OnDestroy()
@@ -1080,8 +1055,24 @@ void CUsbControlDlg::OnCbnSelchangeComboChannel()
 
 void CUsbControlDlg::OnBnClickedCheckSave()
 {
-	// TODO: Add your control notification handler code here
-	b_save_file=check_save_file.GetCheck();
+	if (!h_vw.isOpened())
+	{
+		std::string filename = "d:\\c6UDP\\cam1.avi";
+		cv::Size videosize = cv::Size(camera_width, camera_height);
+		h_vw.open(filename, CV_FOURCC('X', 'V', 'I', 'D'), 15, videosize, 0);
+	}
+	if (!h_vw1.isOpened())
+	{
+		std::string filename = "d:\\c6UDP\\cam2.avi";
+		cv::Size videosize = cv::Size(camera_width, camera_height);
+		h_vw1.open(filename, CV_FOURCC('X', 'V', 'I', 'D'), 15, videosize, 0);
+
+	}
+
+		b_save_file = check_save_file.GetCheck();
+		
+	
+
 }
 
 BOOL CUsbControlDlg::PreTranslateMessage(MSG* pMsg) 
@@ -1535,12 +1526,13 @@ void CUsbControlDlg::OnBnClickedBtnregread()
   ss_addr << std::hex << str_addr;
   ss_addr >> addr;
   uint32_t regdata;
-  if (GigEReadReg(addr, &regdata, board1))
+  if (GigEGetEE(addr, &regdata, board1))
   {
-    CString str;
-    str.Format(L"%x", regdata);
-    m_eRegData.SetWindowTextW(str);
+	  CString str;
+	  str.Format(L"%x", regdata);
+	  m_eRegData.SetWindowTextW(str);
   }
+  
   else
   {
     m_eRegData.SetWindowTextW(L"error");
@@ -1562,7 +1554,7 @@ void CUsbControlDlg::OnBnClickedBtnregwrite()
   std::string str_data(pszConvertedAnsiString1);
   ss_value << std::hex << str_data;
   ss_value >> regdata;
-  if (GigEWriteReg(regaddr, regdata, board1))
+  if (GigESetEE(regaddr, regdata, board1))
   {
     SetDlgItemText(IDC_STATIC_TEXT, L"Success");
   }
@@ -1599,8 +1591,9 @@ void CUsbControlDlg::OnBnClickedBtnroiset()
 	int ystart = _ttoi(cs_ystart);
 	int yend = _ttoi(cs_yend);
 	int roienable = m_cb_roienable.GetCheck();
-
+	g_ROI_EN = roienable;
 	GigEsetROI(xstart,xend,ystart, yend, roienable,board1);
+	
 }
 
 

@@ -36,8 +36,10 @@ private:
 	LPMV_CALLBACK2 cb;
 	int socketSrv;
 	void*   _pThreadGvsp;
+	void* _pThreadHeartbeat;
 	int width, height;
 	GigEclientPropStruct *devprop;
+	
 public :
 	int b_connected;
 public:
@@ -75,6 +77,7 @@ public:
 		cb = NULL;
 		socketSrv = -1;
 		devprop = new GigEclientPropStruct();
+
 	}
 	~GigEcamInstance()
 	{
@@ -121,6 +124,9 @@ public:
 			 
 		}
 		b_connected = 1;
+		
+		_pThreadHeartbeat = MV_CreateThread(MV_NULL, DeviceGVCP::HeartBeatFunc, (&(this->m_DeviceGVCP)));
+
 		return 1;
 	}
 	int updateCameraInfo()
@@ -479,6 +485,30 @@ public:
 		uint32_t addr = 0x33bb00D8;
 		return m_DeviceGVCP.WriteReg(addr, t);
 	}
+	int setEE(uint32_t addr, uint32_t value)
+	{
+		if (addr >= 0x0400 && addr <= 0x07ff)
+		{
+			uint32_t regaddr = 0x33cc0000+addr;//0x33cc07fff
+			return m_DeviceGVCP.WriteReg(regaddr, value);
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	int getEE(uint32_t addr, uint32_t* value)
+	{
+		if (addr >= 0x0400 && addr <= 0x07ff)
+		{
+			uint32_t regaddr = 0x33cc0000 + addr;//0x33cc07fff
+			return m_DeviceGVCP.ReadReg(regaddr, value);
+		}
+		else
+		{
+			return -1;
+		}
+	}
 };
 CCT_API int GigEaddInstance(LPVOID *lpUser,LPMV_CALLBACK2 CallBackFunc,CCHCamera *info);
 //CCT_API int initCCTAPI(int camNum);
@@ -515,6 +545,8 @@ CCT_API int GigEsetLightLen_XD(uint32_t len,int camNum);
 CCT_API int GigEsetAuto(int isauto, int camNum);
 CCT_API int GigEstartCap_HZC(int camNum = 1);
 CCT_API int GigESetMAC(IP_ADAPTER_INFO p,int s,int camNum = 1);
+CCT_API int GigESetEE(uint32_t addr, uint32_t value,int camNum=1);
+CCT_API int GigEGetEE(uint32_t addr, uint32_t* value,int camNum=1);
 typedef int(__stdcall *csCallBackFuncDel)(unsigned char *buff);
 CCT_API int csInit(csCallBackFuncDel cb, int w, int h);
 CCT_API int csSetROI(int xstart, int xend, int ystart, int yend, int enable);
