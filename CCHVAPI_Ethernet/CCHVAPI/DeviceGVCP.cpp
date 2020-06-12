@@ -627,9 +627,16 @@ int DeviceGVCP::WriteReg(unsigned int addr, unsigned int data)
 		{
 			Sleep(1);
 		}
-		if (WriteRegDone() == -1)
+		if (addr == 0x33bb0060)
 		{
-			return -1;
+			WriteRegCmd(addr, data);
+		}
+		else
+		{
+			if (WriteRegDone() == -1)
+			{
+				return -1;
+			}
 		}
 		return 1;
 	}
