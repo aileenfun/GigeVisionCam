@@ -1,6 +1,6 @@
-// stdafx.cpp : 只包括标准包含文件的源文件
-// CCTAPI.pch 将作为预编译头
-// stdafx.obj 将包含预编译类型信息
+// stdafx.cpp : 只锟斤拷锟斤拷锟斤拷准锟斤拷锟斤拷锟侥硷拷锟斤拷源锟侥硷拷
+// CCTAPI.pch 锟斤拷锟斤拷为预锟斤拷锟斤拷头
+// stdafx.obj 锟斤拷锟斤拷锟斤拷预锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷息
 
 #include "stdafx.h"
 

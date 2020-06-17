@@ -24,7 +24,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 volatile int b_softtrig=-1;
-#define _ORG
+//#define _ORG
 cv::VideoWriter h_vw;
 cv::VideoWriter h_vw1;
 volatile bool snap;
@@ -49,7 +49,7 @@ unsigned long lastLostCnt=0;
 int f_softtirg=0;
 int f_hardtrig = 0;
 unsigned int g_camsize = 1;
-#define JSR_Width1 720
+#define JSR_Width1 960
 #define JSR_Height1 360
 #define JSR_Width2 320
 #define JSR_Height2 360
@@ -655,8 +655,9 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 		return;
 	CUsbControlDlg *pDlg = (CUsbControlDlg*)lpUser;
 	int w1, h1, w2, h2;
-	
-	if (g_ROI_EN == 1)
+	int disp_h=thisFrame->m_height;
+	int disp_w=thisFrame->m_width;
+	if (disp_h==360)
 	{
 		w1 = JSR_Width1;
 		w2 = JSR_Width2;
@@ -672,11 +673,11 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	}
 	if (imgBuf== NULL)
 	{
-		imgBuf = new byte[w1 * h1];
+		imgBuf = new byte[1280 * 1024];
 	}
 	if (imgBuf2 == NULL)
 	{
-		imgBuf2 = new byte[ w2 * h2];
+		imgBuf2 = new byte[ 1280 * 1024];
 	}
 
 	memcpy(imgBuf, thisFrame->imgBuf, w1 * h1);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
@@ -686,6 +687,37 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	cv::imshow("disp", frame);
 	cv::imshow("disp2", frame2);
 	cv::waitKey(1);
+
+	if (snap == true)
+	{
+		snap = false;
+		CString strName;
+		CString camFolder;
+		camFolder.Format(L".\\snap");
+		if (CreateDirectory(camFolder, NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+		{
+			int iFileIndex = 1;
+			do
+			{
+				strName.Format(L".\\snap\\V%d_1.bmp", thisFrame->timestamp);
+				++iFileIndex;
+			} while (_waccess(strName, 0) == 0);
+			CT2CA pszConvertedAnsiString(strName);
+			std::string cvfilename(pszConvertedAnsiString);
+
+			cv::imwrite(cvfilename, frame);
+
+			do
+			{
+				strName.Format(L".\\snap\\V%d_2.bmp", thisFrame->timestamp);
+				++iFileIndex;
+			} while (_waccess(strName, 0) == 0);
+			CT2CA pszConvertedAnsiString2(strName);
+			std::string cvfilename2(pszConvertedAnsiString2);
+			cv::imwrite(cvfilename2, frame2);
+		}
+	}
+
 }	
 #endif
 #ifdef _CAM2
@@ -800,15 +832,11 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 {
 		OnBnClickedBtnroiset();
-		if (GigEstartCap(board1) < 1)
+		if (GigEstartCap(2048,1280,board1) < 1)
 		{
 			SetDlgItemText(IDC_STATIC_TEXT, L"设备打开失败！");
 			return;
 		}
-	if (GigEstartCap(board2) < 0)
-	{
-		SetDlgItemText(IDC_STATIC_TEXT, L"设备2打开失败！");
-	}
 	SetDlgItemText(IDC_STATIC_TEXT, L"采集中...");
 	CheckRadioButton(IDC_RADIO_NORMAL, IDC_RADIO_XYMIRROR, IDC_RADIO_NORMAL);
 	SetTimer(1, 1000, NULL);
@@ -842,7 +870,6 @@ void CUsbControlDlg::OnBnClickedBtnStopcapture()
 	f_softtirg=0;
 	f_hardtrig = 0;
 	UpdateData(TRUE);
-	//cv::destroyWindow("disp");
 	SetDlgItemText(IDC_STATIC_TEXT,L" ");
 	if (imgBuf != NULL)
 	{

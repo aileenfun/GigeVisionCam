@@ -160,13 +160,24 @@ public:
 		sendProp(*devprop);
 		return 1;
 	}
-	int start()
+	int start(int height=0,int width=0)
 	{
 
 		//get height and width from reg
 		//must connected
 		//must know ip address from GVCP, read reg
 		//send prop
+		int h, w;
+		if (width == 0)
+		{
+			h = devprop->height;
+			w = devprop->width;
+		}
+		else
+		{
+			h = height;
+			w = width;
+		}
 		if(b_opened)
 		{
 			return 0;
@@ -178,8 +189,8 @@ public:
 		}
 		if(m_pDataCapture->initUDP(&socketSrv))
 		{
-			m_pDataProcess->Open(devprop->height, devprop->width, m_pDataCapture, cb);
-			m_pDataCapture->Open(devprop->height, devprop->width);
+			m_pDataProcess->Open(h, w, m_pDataCapture, cb);
+			m_pDataCapture->Open(h, w);
 			b_opened = true;
 			b_closed = false;
 		}
@@ -189,30 +200,7 @@ public:
 		}
 		return 1;
 	}
-	int startHZC()
-	{
-		if (b_opened)
-		{
-			return 0;
-		}
-		updateCameraInfo();
-		if (devprop == NULL)
-		{
-			return -1;
-		}
-		if (m_pDataCapture->initUDP(&socketSrv))
-		{
-			m_pDataProcess->Open(5760, 1280, m_pDataCapture, cb);
-			m_pDataCapture->Open(5760, 1280);
-			b_opened = true;
-			b_closed = false;
-		}
-		else
-		{
-			return -5;
-		}
-		return 1;
-	}
+	
 	int stop()
 	{
 		//if(!b_opened)
@@ -512,7 +500,7 @@ public:
 };
 CCT_API int GigEaddInstance(LPVOID *lpUser,LPMV_CALLBACK2 CallBackFunc,CCHCamera *info);
 //CCT_API int initCCTAPI(int camNum);
-CCT_API int GigEstartCap(int camNum=1);
+CCT_API int GigEstartCap(int height=0,int wdith=0,int camNum=1);
 CCT_API int GigEstopCap(int camNum=1);
 CCT_API int GigEsetMirrorType(GigEDataProcessType mirrortype,int camNum=1);
 CCT_API int GigEgetFrameCnt(int camNum=1);
@@ -543,7 +531,6 @@ CCT_API int GigEsetResolu_HZC(int value,int camNum=1);
 CCT_API int GigEsetLightOn_XD(int s,int camNum);
 CCT_API int GigEsetLightLen_XD(uint32_t len,int camNum);
 CCT_API int GigEsetAuto(int isauto, int camNum);
-CCT_API int GigEstartCap_HZC(int camNum = 1);
 CCT_API int GigESetMAC(IP_ADAPTER_INFO p,int s,int camNum = 1);
 CCT_API int GigESetEE(uint32_t addr, uint32_t value,int camNum=1);
 CCT_API int GigEGetEE(uint32_t addr, uint32_t* value,int camNum=1);

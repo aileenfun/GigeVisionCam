@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29519.181
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Discovery", "UsbControl\UsbControl.vcxproj", "{6A8FCB15-370E-4DDD-8F85-D348915ABFF0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CCHVAPI", "..\CCHVAPI_Ethernet\CCHVAPI\CCHVAPI.vcxproj", "{A8B5F764-E843-463A-AA60-A182F9F46074}"
@@ -32,5 +34,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {69638F0F-790C-4E97-9411-167BF55EC97E}
 	EndGlobalSection
 EndGlobal

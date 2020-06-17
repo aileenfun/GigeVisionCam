@@ -20,20 +20,7 @@ int GigEaddInstance(LPVOID *lpUser, LPMV_CALLBACK2 CallBackFunc, CCHCamera *info
 	return vec_camins.size();
 }
 
-int GigEstartCap(int camNum)
-{
-	if (camNum<1)return camNum;
-	if (camNum > vec_camins.size())return -2;
-		
-	camNum = camNum - 1;
-	
-	if (vec_camins[camNum]->b_connected)
-	{
-		return vec_camins[camNum]->start();
-	}
-	return -1;
-}
-int GigEstartCap_HZC(int camNum)
+int GigEstartCap(int height,int width,int camNum)
 {
 	if (camNum < 1)return camNum;
 	if (camNum > vec_camins.size())return -2;
@@ -42,7 +29,7 @@ int GigEstartCap_HZC(int camNum)
 
 	if (vec_camins[camNum]->b_connected)
 	{
-		return vec_camins[camNum]->startHZC();
+		return vec_camins[camNum]->start(height,width);
 	}
 	return -1;
 }
