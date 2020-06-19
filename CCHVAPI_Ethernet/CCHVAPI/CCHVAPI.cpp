@@ -299,8 +299,8 @@ byte * pimagebuf = NULL;
 int imgready = 0;
 int board1 = 1;
 #ifdef _W1280
-int cs_width = 1280;
-int cs_height = 1028;
+int cs_width = 752;
+int cs_height = 960;
 #endif
 #ifdef _W640
 int cs_width = 640;
@@ -339,8 +339,6 @@ int csInit(csCallBackFuncDel cb, int w = 1280, int h = 1028)
 	{
 		CCHCamera *c0 = itr->second;
 		board1 = GigEaddInstance(NULL, csCallBack, c0);
-		if (board1>0)
-			GigEsetCamSize(1, board1);
 		return board1;
 	}
 	else

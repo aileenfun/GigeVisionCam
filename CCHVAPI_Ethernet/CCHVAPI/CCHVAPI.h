@@ -286,7 +286,8 @@ public:
 	}
 	int setAuto(int isauto)
 	{
-		m_DeviceGVCP.WriteReg(0x33bb0034, isauto);
+		return m_DeviceGVCP.WriteReg(0x33bb0034, isauto);
+		
 	}
 	int setGain(uint32_t value,int isauto)
 	{

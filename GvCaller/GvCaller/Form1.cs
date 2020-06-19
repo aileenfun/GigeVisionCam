@@ -63,9 +63,8 @@ namespace GvCaller
         //change resolution here before set roi
         //if xend-xstart=639, then imgwidth=640
         //if yend-ystart=479, then imgheight=480
-        int imgwidth = 1280;
-        int imgheight = 1024;
-        int coordlen = 1280 * 4;
+        int imgwidth = 752;
+        int imgheight = 960;
         IntPtr pixelStartAddress;
         Bitmap bmp;
 
@@ -79,7 +78,7 @@ namespace GvCaller
             InitializeComponent();
             initBitMap();
             mInstance = new CallBack(callbackfunc);
-            csInit(mInstance, imgwidth, imgheight+4);
+            csInit(mInstance, imgwidth, imgheight);
             timer1.Start();
 
         }
@@ -95,12 +94,10 @@ namespace GvCaller
             //if the result is invalid, x will be 0x07 0xff,
             // such as
             //[0x00 0x01, 0x07 0xff]
-            byte[] coords = new byte[coordlen];//stores 
             byte[] pixelValues = new byte[imgwidth * imgheight];
             byte[] totalbuff = new byte[imgwidth * (imgheight + 4)];
             Marshal.Copy(buff, totalbuff, 0, imgwidth * (imgheight+4));
             Buffer.BlockCopy(totalbuff, 0, pixelValues, 0, imgwidth * imgheight);
-            Buffer.BlockCopy(totalbuff, imgwidth * imgheight, coords, 0, coordlen);
 
             var bmp2 = bitmap8bpp(pixelValues, imgwidth, imgheight);
 
@@ -113,26 +110,6 @@ namespace GvCaller
 
             //dispbmp.Dispose();
             //bmp2.Dispose();
-            for (int i = 0; i < coordlen; i += 4)
-            {
-                ytemp = coords[i] << 8;
-                ytemp += coords[i + 1];
-                xtemp = coords[i + 2] << 8;
-                xtemp += coords[i + 3];
-                if (xtemp > imgwidth)
-                {
-                    //for invalide result
-                    continue;
-                }
-                //pseudocode:
-                /*
-                 * cv::Point pt;
-                 * pt.x = xtemp;
-		         * pt.y = ytemp-1;
-                 * circle(frameRGB, pt, 1, cv::Scalar(0, 0, 255));
-                 */
-
-            }
 
             return 1;
         }
