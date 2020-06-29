@@ -6,16 +6,13 @@ public:
 	int m_height;
 	int m_camNum;
 	long timestamp;
-	int TrigSource;
+	int status;
 	byte* imgBuf;
 	int packnum;
 	int packnum_last;
-	long imgtime;
 	GigEimgFrame(int width,int height,int camNum):m_width(width),m_height(height),m_camNum(camNum)
 	{
-		imgtime = 0;
 		timestamp=0;
-		m_camNum = 0;
 		imgBuf=new byte[height*width];
 		memset(imgBuf,0,height*width);
 	}

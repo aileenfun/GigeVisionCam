@@ -209,8 +209,8 @@ BEGIN_MESSAGE_MAP(CUsbControlDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SENDexpo, &CUsbControlDlg::OnBnClickedButtonSendexpo)
 	ON_BN_CLICKED(IDC_BTN_WBSet, &CUsbControlDlg::OnBnClickedBtnWbset2)
 	ON_BN_CLICKED(IDC_BUTTON_SENDgain2, &CUsbControlDlg::OnBnClickedButtonSendgain2)
-	ON_BN_CLICKED(IDC_BTNregread, &CUsbControlDlg::OnBnClickedBtnregread)
-	ON_BN_CLICKED(IDC_BTNregwrite, &CUsbControlDlg::OnBnClickedBtnregwrite)
+	//ON_BN_CLICKED(IDC_BTNregread, &CUsbControlDlg::OnBnClickedBtnregread)
+	//ON_BN_CLICKED(IDC_BTNregwrite, &CUsbControlDlg::OnBnClickedBtnregwrite)
 
 	ON_BN_CLICKED(IDC_BUTTON_SENDcamsize, &CUsbControlDlg::OnBnClickedButtonSendcamsize)
 	ON_BN_CLICKED(IDC_BTN_roiset, &CUsbControlDlg::OnBnClickedBtnroiset)
@@ -832,7 +832,7 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	void  CUsbControlDlg::OnBnClickedBtnVideocapture()
 {
 		OnBnClickedBtnroiset();
-		if (GigEstartCap(2048,1280,board1) < 1)
+		if (GigEstartCap(board1) < 1)
 		{
 			SetDlgItemText(IDC_STATIC_TEXT, L"设备打开失败！");
 			return;
@@ -1238,7 +1238,7 @@ void CUsbControlDlg::OnBnClickedButtonSetIP()
 				if (ip2 == ipaddr)
 				{
 					pAdapterInfo->Address[0];
-					GigESetMAC(*pAdapterInfo,bind,board1);
+					//GigESetMAC(*pAdapterInfo,bind,board1);
 				}
 			}
 		}
@@ -1534,64 +1534,8 @@ void CUsbControlDlg::OnBnClickedButtonSendgain2()
 	}
 }
 
-void CUsbControlDlg::OnBnClickedBtnregread()
-{
-  /*
-  std::stringstream ss_addr, ss_value;
-  unsigned int ee_addr, ee_value;
-  ss_addr << std::hex << it_map->first;
-  ss_value << std::hex << it_map->second;
-  ss_addr >> ee_addr;
-  ss_value >> ee_value;
-  */
-  std::stringstream ss_addr, ss_value;
-  uint32_t addr;
-  CString cs_regaddr;
-  m_eRegAddr.GetWindowTextW(cs_regaddr);
-  CT2CA pszConvertedAnsiString(cs_regaddr);
-  std::string str_addr(pszConvertedAnsiString);
-  ss_addr << std::hex << str_addr;
-  ss_addr >> addr;
-  uint32_t regdata;
-  if (GigEGetEE(addr, &regdata, board1))
-  {
-	  CString str;
-	  str.Format(L"%x", regdata);
-	  m_eRegData.SetWindowTextW(str);
-  }
-  
-  else
-  {
-    m_eRegData.SetWindowTextW(L"error");
-  }
-}
- 
-void CUsbControlDlg::OnBnClickedBtnregwrite()
-{
-  std::stringstream ss_addr, ss_value;
-  uint32_t regaddr, regdata;
-  CString cs_regaddr, cs_regdata;
-  m_eRegAddr.GetWindowTextW(cs_regaddr);
-  CT2CA pszConvertedAnsiString(cs_regaddr);
-  std::string str_addr(pszConvertedAnsiString);
-  ss_addr << std::hex << str_addr;
-  ss_addr >> regaddr;
-  m_eRegData.GetWindowTextW(cs_regaddr);
-  CT2CA pszConvertedAnsiString1(cs_regaddr);
-  std::string str_data(pszConvertedAnsiString1);
-  ss_value << std::hex << str_data;
-  ss_value >> regdata;
-  if (GigESetEE(regaddr, regdata, board1))
-  {
-    SetDlgItemText(IDC_STATIC_TEXT, L"Success");
-  }
-  else
-  {
-    SetDlgItemText(IDC_STATIC_TEXT, L"error");
-  }
-}
- 
 
+ 
 
 void CUsbControlDlg::OnBnClickedButtonSendcamsize()
 {
@@ -1642,9 +1586,9 @@ void CUsbControlDlg::OnBnClickedCheckskip()
 
 void CUsbControlDlg::OnBnClickedCheckroienable()
 {
-	m_cb_binning.EnableWindow(!m_cb_roienable.GetCheck());
-	m_cb_skip.EnableWindow(!m_cb_roienable.GetCheck());
-	GigEsetROIEn(m_cb_roienable.GetCheck(),board1);
+	//m_cb_binning.EnableWindow(!m_cb_roienable.GetCheck());
+	//m_cb_skip.EnableWindow(!m_cb_roienable.GetCheck());
+	//GigEsetROIEn(m_cb_roienable.GetCheck(),board1);
 }
 
 

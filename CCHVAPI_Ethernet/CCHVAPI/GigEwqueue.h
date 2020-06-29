@@ -110,7 +110,7 @@ void  GigEwqueue<T>::reset()
 	EnterCriticalSection(&qlock);
 	stop=true;
 	LeaveCriticalSection(&qlock);
-	Sleep(10);
+	Sleep(1000);
 	WakeAllConditionVariable(&nofull);
 	WakeAllConditionVariable(&noempty);
 	for(int i=0;i<m_queue.size();i++)

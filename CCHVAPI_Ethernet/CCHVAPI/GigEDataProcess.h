@@ -112,5 +112,4 @@ private:
 	GigECDataCapture* this_dp;
 	vector<LPMV_CALLBACK2> vec_callbackfunc;
 	int camsize;
-	
 };

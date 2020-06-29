@@ -16,7 +16,6 @@
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
-#define _SAVEFILE
 
 GigECDataProcess::GigECDataProcess(GigEwqueue<GigEimgFrame*>&queue,LPVOID *lpUser)
 	:cpm_queue(queue)
@@ -53,8 +52,7 @@ GigECDataProcess::GigECDataProcess(GigEwqueue<GigEimgFrame*>&queue,LPVOID *lpUse
 
 GigECDataProcess::~GigECDataProcess(void)
 {
-		delete []m_Out;
-		delete []m_In;
+		
 }
 
 int GigECDataProcess::Open(int height,int width, GigECDataCapture* dp,LPMV_CALLBACK2 CallBackFunc)
@@ -64,14 +62,14 @@ int GigECDataProcess::Open(int height,int width, GigECDataCapture* dp,LPMV_CALLB
 	g_width_L=width;
 	h_callback=CallBackFunc;
 	m_bEnd=FALSE;
-	m_In = new byte[g_height*g_width_L];
-	m_processed=new byte[g_height*g_width_L];
-	m_Out = new tagRGB[g_height*g_width];
-	memset(m_In,0,sizeof(m_In));
-	memset(m_Out,0,sizeof(m_Out));
+//	m_In = new byte[g_height*g_width_L];
+//	m_processed=new byte[g_height*g_width_L];
+	//m_Out = new tagRGB[g_height*g_width];
+	//memset(m_In,0,sizeof(m_In));
+	//memset(m_Out,0,sizeof(m_Out));
 	m_bEnd=FALSE;
 	m_hThread = (HANDLE)_beginthreadex(NULL,0,ThreadProcess,this,0,NULL);
-	m_temp=new byte[g_width*g_height];
+	//m_temp=new byte[g_width*g_height];
 	this_dp=dp;
 	//this_trigimgpack=new TrigImgPack(6,2000,this_dp,h_callback);
 	return 0;
@@ -81,11 +79,9 @@ int GigECDataProcess::Close()
 	CGuard guard(m_Mutex);
 	cpm_queue.reset();
 	m_bEnd=TRUE;
-	if (m_temp != NULL)
-	{
-		delete m_temp;
-		m_temp = NULL;
-	}
+	
+	//if (m_Out != NULL)
+	//	delete[] m_Out;
 	return 0;
 }
 
@@ -94,7 +90,12 @@ int GigECDataProcess::Input( VOID * pData,int dwSizes )
 	CGuard guard(m_Mutex);
 	if(m_bEnd)
 		return -1;
+	//m_pPutMsg->iDataSize = dwSizes;
+	//m_pPutMsg->pAny=pData;
+	//memcpy(m_pPutMsg->pData,pData,m_pPutMsg->iDataSize);
+	//m_pPutMsg->iType = MSG_DATA_HANDALE;
 	++m_lFrameCount;
+	//return PutMessage(m_pPutMsg);
 	return 0;
 }
 
@@ -127,13 +128,20 @@ void GigECDataProcess::ThreadProcessFunction()
 			DispatchMessage(&msg);
 		}*/
 		 CImgFrame=(GigEimgFrame*)cpm_queue.remove();
-
 		 this_trigimgpack->add(CImgFrame);
 		//this_trigimgpack->onTimer(&msg);
 		//OutPutWrapper(h_callback,this);
 		//delete CImgFrame;
 
 	}
+	//if (m_temp != NULL)
+		//delete m_temp;
+//	if (m_Out != NULL)
+//		delete[]m_Out;
+	//if (m_In != NULL)
+		//delete[]m_In;
+//	if (m_processed != NULL)
+	//	delete[] m_processed;
 }
 
 unsigned int __stdcall GigECDataProcess::ThreadProcess( void *handle )
@@ -173,9 +181,17 @@ int GigECDataProcess::ProcessData()
 			DoNormal(m_In,m_processed,g_height,g_width);
 			break;
 		}
-		memset(m_In,0,g_width*g_height);
-		memset(m_Out,0,g_width*g_height);
-		memset(m_processed,0,g_width*g_height);
+		//OutPutWrapper(h_callback,this);
+		//CreateBmpFile();
+		//m_BitmapInfo.bmiHeader.biSizeImage=g_width*g_height*3;//图片实际数据字节数
+		//m_BitmapInfo.bmiHeader.biWidth=g_width;
+		//m_BitmapInfo.bmiHeader.biHeight= g_height;
+		//StretchDIBits(m_pDisplay->GetMemDC()->m_hDC,0,0,g_width,g_height,0,0,g_width,g_height,m_Out,&m_BitmapInfo,DIB_RGB_COLORS,SRCCOPY);
+		////StretchDIBits(m_pDisplay->GetMemDC()->m_hDC,0,0,1280,720,0,0,g_height,g_width,m_Out,&m_BitmapInfo,DIB_RGB_COLORS,SRCCOPY);
+		//m_pDisplay->Display();
+		//memset(m_In,0,g_width*g_height);
+		//memset(m_Out,0,g_width*g_height);
+	//	memset(m_processed,0,g_width*g_height);
 	}
 	return 0;
 }

@@ -3,8 +3,6 @@
 #include <vector>
 #include "GigEimgFrame.h"
 #include <map>
-#include <iostream>
-#include <fstream>
 using namespace std;
 typedef
 VOID
@@ -30,7 +28,6 @@ public:
 	 bool b_getallpack;
 	 GigECDataCapture* this_dp;
 	 LPVOID lpcb;
-	 //std::ofstream savefile2;
 	 GigETrigImgPack(int cs,int ap, GigECDataCapture *dp,LPMV_CALLBACK2 CallBackFunc)
 	{
 		recved=0;
@@ -41,8 +38,6 @@ public:
 		softtrigmode=0;
 		softtrig=0;
 		m_TrigImgPackMap[id]=this;
-		//savefile2.open("C:\\c6udp\\callbackcnt.txt", std::ios::out | std::ios::binary);
-
 	}
 	~GigETrigImgPack(void);
 	void InitPack()
@@ -89,9 +84,9 @@ public:
 	}
 	void consumePack(LPMV_CALLBACK2 CallBackFunc,LPVOID lpUser)
 	{
+		
 		for(int i=0;i<camSize;i++)
 		{
-			//savefile2 << imgPack[i]->timestamp << endl;
 			if(imgPack.size()!=0)
 			CallBackFunc(imgPack[i], lpcb);
 		}
