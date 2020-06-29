@@ -9,11 +9,11 @@ using System.Windows.Forms;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.IO;
-using Emgu.CV;
-using Emgu.CV.Structure;
-using Emgu.Util.TypeEnum;
-using Emgu.CV.CvEnum;
-using Emgu.CV.UI;
+//using Emgu.CV;
+//using Emgu.CV.Structure;
+//using Emgu.Util.TypeEnum;
+//using Emgu.CV.CvEnum;
+//using Emgu.CV.UI;
 
 
 namespace GvCaller
@@ -95,14 +95,14 @@ namespace GvCaller
             // such as
             //[0x00 0x01, 0x07 0xff]
             byte[] pixelValues = new byte[imgwidth * imgheight];
-            byte[] totalbuff = new byte[imgwidth * (imgheight + 4)];
-            Marshal.Copy(buff, totalbuff, 0, imgwidth * (imgheight+4));
+            byte[] totalbuff = new byte[imgwidth * (imgheight)];
+            Marshal.Copy(buff, totalbuff, 0, imgwidth * (imgheight));
             Buffer.BlockCopy(totalbuff, 0, pixelValues, 0, imgwidth * imgheight);
 
             var bmp2 = bitmap8bpp(pixelValues, imgwidth, imgheight);
 
 
-            Image<Gray, byte> image = new Image<Gray, byte>(imgwidth, imgheight);
+            //Image<Gray, byte> image = new Image<Gray, byte>(imgwidth, imgheight);
 
             LastMap =(Bitmap) bmp2.Clone();
             // pictureBox1.Image =bmp2 ;
@@ -187,13 +187,13 @@ namespace GvCaller
             {
                 string name = savePicDialog.FileName;
 
-                Image<Gray, byte> img = new Image<Gray, byte>(imgwidth, imgheight);
+                //Image<Gray, byte> img = new Image<Gray, byte>(imgwidth, imgheight);
 
-                if (LastMap!=null)
-                {
-                    img.Bitmap = LastMap;
-                }
-                img.Save(name);
+                //if (LastMap!=null)
+                //{
+                //    img.Bitmap = LastMap;
+                //}
+                //img.Save(name);
                 
                 // File.WriteAllText(name,"helloworld!");
             }
@@ -212,7 +212,7 @@ namespace GvCaller
 
         private void TestButton_Click(object sender, EventArgs e)
         {
-            Image<Gray, byte> img = new Image<Gray, byte>(imgwidth, imgheight);
+            //Image<Gray, byte> img = new Image<Gray, byte>(imgwidth, imgheight);
             
         }
 

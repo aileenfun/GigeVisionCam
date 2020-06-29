@@ -5,6 +5,7 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+#define _W1280
 vector<GigEcamInstance*>vec_camins;
 GigEcamInstance searchCamIns;
 int GigEaddInstance(LPVOID *lpUser, LPMV_CALLBACK2 CallBackFunc, CCHCamera *info)
