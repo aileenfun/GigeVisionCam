@@ -290,12 +290,7 @@ ThreadReturnType MV_STDCALL DeviceGVCP::HandlingAckPacket(void* Arg)
 			}
 			case MV_GEV_READREG_ACK:
 			{
-				ss << "Read register command" << endl;
-				cout << ss.rdbuf();
 				pDeviceGvcp->ReadRegRst = pDeviceGvcp->ReadRegAck(pDeviceGvcp->_cRecvData);
-				ss << "[HandlingControlPacket] --> " << pDeviceGvcp->_From
-					<< "  Read register acknowledge" << endl;
-				cout << ss.rdbuf();
 				break;
 			}
 			case MV_GEV_WRITEREG_ACK:
@@ -593,11 +588,12 @@ READREG_CMD_MSG_ACK DeviceGVCP::ReadRegAck(char* arg)
 {
 	char * recvbuff = (char*)arg;
 	ACK_MSG_HEADER* pAckHdr = (ACK_MSG_HEADER*)recvbuff;
-	this->f_ReadRegDone = pAckHdr->nAckId;
+	
 	if (pAckHdr->nStatus == MV_OK)
 	{
 		memcpy(&ReadRegRst, recvbuff + sizeof(ACK_MSG_HEADER), sizeof(READREG_CMD_MSG_ACK));
 	}
+	this->f_ReadRegDone = pAckHdr->nAckId;
 	return ReadRegRst;
 }
 int DeviceGVCP::ReadRegDone()
