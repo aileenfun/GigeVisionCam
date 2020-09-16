@@ -451,7 +451,7 @@ bool b_save_file;
 int trigsource;
 unsigned long imgtime;
 int camera_height = 0;
-int camera_width = 0;
+
 byte* imgBuf = NULL;
 byte* imgBuf2 = NULL;
 byte* imgBuf3 = NULL;
@@ -470,8 +470,6 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	int dispheight = thisFrame->m_height / g_camsize;
 	//图像的高度为m_height，因此单个图像的高度就是m_height/g_camsize
 	int dispwidth = thisFrame->m_width;
-	camera_height = thisFrame->m_height;
-	camera_width = thisFrame->m_width;
 	//数据块的宽度与图像宽度相等。
 	if (imgBuf == NULL)
 	{
@@ -492,27 +490,8 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	imgtime=thisFrame->imgtime;
 	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
 	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
-	cv::Mat frame2(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf);
-	//752*480
-	//xie
-	cv::Rect rect1(245, 240, 70, 120);
-	cv::Rect rect2(400, 240, 70, 120);
-	cv::Rect rect7(370, 153, 40, 60);
-	//zhi
-	cv::Rect rect3(95, 240+480, 70, 120);
-	cv::Rect rect4(280, 240+480, 70, 120);
-	cv::Rect rect5(440, 53+480, 60, 100);
-	cv::Rect rect6(145, 150+480, 40, 60);
-
-	cv::rectangle(frame, rect3, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect1, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect2, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect4, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect5, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect6, cv::Scalar(255, 255, 255), 2);
-	cv::rectangle(frame, rect7, cv::Scalar(255, 255, 255), 2);
+	
 	cv::imshow("disp", frame);
-	cv::imshow("all", frame2);
 	cv::waitKey(1);
 	
 	if (f_hardtrig)
