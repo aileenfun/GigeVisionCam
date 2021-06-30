@@ -47,7 +47,7 @@ unsigned long recvSoftCnt4 = 0;
 unsigned long lastLostCnt=0;
 int f_softtirg=0;
 int f_hardtrig = 0;
-unsigned int g_camsize = 1;
+unsigned int g_camsize = 3;
 class CAboutDlg : public CDialog
 {
 public:
@@ -475,23 +475,33 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	{
 		imgBuf = new byte[dispheight*dispwidth];
 	}
-
+	if (imgBuf2 == NULL)
+	{
+		imgBuf2 = new byte[dispheight * dispwidth];
+	}
+	if (imgBuf3 == NULL)
+	{
+		imgBuf3 = new byte[dispheight * dispwidth];
+	}
 	int offset = 0;
-	if (show_channel <= g_camsize - 1)//选择显示哪一个相机的图像。
-	{
-		offset = show_channel;
-	}
-	else
-	{
-		offset = g_camsize - 1;
-	}
-	offset = dispheight*dispwidth*offset;
+	
+	
 	trigsource = thisFrame->m_camNum;
 	imgtime=thisFrame->imgtime;
+	offset = dispheight * dispwidth * 0;
 	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
-	cv::Mat frame(dispheight, dispwidth, CV_8UC1, imgBuf);
-	
-	cv::imshow("disp", frame);
+	offset= dispheight * dispwidth * 1;
+	memcpy(imgBuf2, thisFrame->imgBuf + offset, dispheight * dispwidth);
+	offset = dispheight * dispwidth * 2;
+	memcpy(imgBuf3, thisFrame->imgBuf + offset, dispheight * dispwidth);
+	cv::Mat frame0(dispheight, dispwidth, CV_8UC1, imgBuf);
+	cv::Mat frame1(dispheight, dispwidth, CV_8UC1, imgBuf2);
+	cv::Mat frame2(dispheight, dispwidth, CV_8UC1, imgBuf3);
+	cv::Mat frameFull(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf);
+	cv::imshow("disp", frameFull);
+	cv::imshow("disp1", frame0);
+	cv::imshow("disp2", frame1);
+	cv::imshow("disp3", frame2);
 	cv::waitKey(1);
 	
 	if (f_hardtrig)
@@ -803,7 +813,7 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	SetDlgItemText(IDC_STATIC_TEXT, L"采集中...");
 	CheckRadioButton(IDC_RADIO_NORMAL, IDC_RADIO_XYMIRROR, IDC_RADIO_NORMAL);
 	SetTimer(1, 1000, NULL);
-	cv::namedWindow("disp");
+	cv::namedWindow("disp",cv::WINDOW_NORMAL);
 
 	//sendSoftTrig(1);
 	//m_bmi= (BITMAPINFO*)alloca( sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD)*256);

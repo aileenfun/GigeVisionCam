@@ -159,10 +159,10 @@ int GigECDataCapture::initUDP(int *s)
 	}
 	//set server ip
 	addrSrv.sin_addr.S_un.S_addr = this_clientProp->getpcIP();
-	unsigned long long temp = htonl(inet_addr("192.168.2.7"));
+	//unsigned long long temp = htonl(inet_addr("192.168.2.7"));
 	addrSrv.sin_family = AF_INET;
 	addrSrv.sin_port = htons(8080);
-
+	
 	addrClient.sin_addr.S_un.S_addr = htonl(this_clientProp->getcamIP());
 	unsigned long long temp1 = inet_addr("192.168.2.2");
 	addrClient.sin_family = AF_INET;
