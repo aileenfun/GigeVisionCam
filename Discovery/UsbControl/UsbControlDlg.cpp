@@ -456,6 +456,7 @@ byte* imgBuf = NULL;
 byte* imgBuf2 = NULL;
 byte* imgBuf3 = NULL;
 byte* imgBuf4 = NULL;
+unsigned long timecount = 0;
 #ifdef _ORG
 void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
@@ -488,22 +489,29 @@ void _stdcall RawCallBack(LPVOID lpParam, LPVOID lpUser)
 	
 	trigsource = thisFrame->m_camNum;
 	imgtime=thisFrame->imgtime;
-	offset = dispheight * dispwidth * 0;
-	memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
-	offset= dispheight * dispwidth * 1;
-	memcpy(imgBuf2, thisFrame->imgBuf + offset, dispheight * dispwidth);
-	offset = dispheight * dispwidth * 2;
-	memcpy(imgBuf3, thisFrame->imgBuf + offset, dispheight * dispwidth);
-	cv::Mat frame0(dispheight, dispwidth, CV_8UC1, imgBuf);
-	cv::Mat frame1(dispheight, dispwidth, CV_8UC1, imgBuf2);
-	cv::Mat frame2(dispheight, dispwidth, CV_8UC1, imgBuf3);
-	cv::Mat frameFull(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf);
-	cv::imshow("disp", frameFull);
-	cv::imshow("disp1", frame0);
-	cv::imshow("disp2", frame1);
-	cv::imshow("disp3", frame2);
-	cv::waitKey(1);
-	
+	if (::GetTickCount() - timecount > 30)
+	{
+		timecount = ::GetTickCount();
+		cv::Mat frameFull(thisFrame->m_height, thisFrame->m_width, CV_8UC1, thisFrame->imgBuf);
+		cv::imshow("disp", frameFull);
+		/*
+		offset = dispheight * dispwidth * 0;
+		memcpy(imgBuf, thisFrame->imgBuf + offset, dispheight*dispwidth);//从数据块中只拷贝需要显示的图像	byte *coords=new byte[dispheight];
+		offset= dispheight * dispwidth * 1;
+		memcpy(imgBuf2, thisFrame->imgBuf + offset, dispheight * dispwidth);
+		offset = dispheight * dispwidth * 2;
+		memcpy(imgBuf3, thisFrame->imgBuf + offset, dispheight * dispwidth);
+		cv::Mat frame0(dispheight, dispwidth, CV_8UC1, imgBuf);
+		cv::Mat frame1(dispheight, dispwidth, CV_8UC1, imgBuf2);
+		cv::Mat frame2(dispheight, dispwidth, CV_8UC1, imgBuf3);
+
+
+		cv::imshow("disp1", frame0);
+		cv::imshow("disp2", frame1);
+		cv::imshow("disp3", frame2);
+		*/
+		cv::waitKey(1);
+	}
 	if (f_hardtrig)
 	{
 		recvHardTrigCnt++;
